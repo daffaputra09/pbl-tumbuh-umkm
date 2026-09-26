@@ -14,6 +14,6 @@
         @vite(['resources/css/app.css', 'resources/js/app.jsx'])
     </head>
     <body>
-        <div id="app" data-page="umkm-profil"></div>
+        <div id="app" data-page="umkmProfile"></div>
     </body>
 </html>
