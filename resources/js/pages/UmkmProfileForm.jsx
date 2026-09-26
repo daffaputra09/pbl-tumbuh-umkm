@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { CheckmarkCircle02Icon, Factory01Icon, LegalDocument01Icon, Store04Icon } from '@hugeicons/core-free-icons';
 import FormSection from '@/components/umkm/FormSection';
+import PageBackground from '@/components/umkm/PageBackground';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -129,7 +130,9 @@ export default function UmkmProfileForm() {
     }
 
     return (
-        <div className="min-h-screen bg-background py-10 sm:py-14">
+        <div className="relative isolate min-h-screen overflow-hidden bg-background py-10 sm:py-14">
+            <PageBackground />
+
             <div className="mx-auto max-w-3xl px-5">
                 <header className="mb-8">
                     <p className="text-sm font-semibold text-primary">Pendaftaran &amp; Pembaruan Data</p>
