@@ -6,7 +6,7 @@
         <meta name="description" content="Formulir pendaftaran dan pembaruan data profil UMKM untuk program Tumbuh UMKM.">
         <meta name="theme-color" content="#0F766E">
 
-        <title>Profil UMKM · Tumbuh UMKM</title>
+        <title>Profil UMKM</title>
 
         @fonts
 
