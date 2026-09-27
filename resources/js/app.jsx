@@ -2,10 +2,12 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import LandingPage from '@/pages/LandingPage';
 import UmkmProfileForm from '@/pages/UmkmProfileForm';
+import UmkmNeedsForm from '@/pages/UmkmNeedsForm';
 
 const pages = {
     landing: LandingPage,
     umkmProfile: UmkmProfileForm,
+    umkmKebutuhan: UmkmNeedsForm,
 };
 
 const rootElement = document.getElementById('app');
