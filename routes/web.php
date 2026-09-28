@@ -1,12 +1,14 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PetugasUmkmController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'landing')->name('landing');
 Route::view('/umkm/profil', 'umkm.profil')->name('umkm.profil');
 Route::view('/umkm/kebutuhan', 'umkm.kebutuhan')->name('umkm.kebutuhan');
+Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
 Route::middleware('guest')->group(function () {
     Route::get('register', [AuthController::class, 'showRegisterForm'])->name('register');

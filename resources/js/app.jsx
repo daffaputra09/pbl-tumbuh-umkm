@@ -1,23 +1,35 @@
-import { StrictMode } from 'react';
+import { StrictMode, Suspense, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
-import LandingPage from '@/pages/LandingPage';
-import UmkmProfileForm from '@/pages/UmkmProfileForm';
-import UmkmNeedsForm from '@/pages/UmkmNeedsForm';
+import DashboardSkeleton from '@/components/dashboard/DashboardSkeleton';
 
 const pages = {
-    landing: LandingPage,
-    umkmProfile: UmkmProfileForm,
-    umkmKebutuhan: UmkmNeedsForm,
+    landing: lazy(() => import('@/pages/LandingPage')),
+    umkmProfile: lazy(() => import('@/pages/UmkmProfileForm')),
+    umkmKebutuhan: lazy(() => import('@/pages/UmkmNeedsForm')),
+    dashboard: lazy(() => import('@/pages/Dashboard')),
 };
+
+const pageFallbacks = {
+    dashboard: <DashboardSkeleton />,
+};
+
+function readPageProps() {
+    const propsElement = document.getElementById('page-props');
+
+    return propsElement ? JSON.parse(propsElement.textContent) : {};
+}
 
 const rootElement = document.getElementById('app');
 
 if (rootElement) {
-    const Page = pages[rootElement.dataset.page] ?? LandingPage;
+    const pageName = pages[rootElement.dataset.page] ? rootElement.dataset.page : 'landing';
+    const Page = pages[pageName];
 
     createRoot(rootElement).render(
         <StrictMode>
-            <Page />
+            <Suspense fallback={pageFallbacks[pageName] ?? null}>
+                <Page {...readPageProps()} />
+            </Suspense>
         </StrictMode>,
     );
 }
