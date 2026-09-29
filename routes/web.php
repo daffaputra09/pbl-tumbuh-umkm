@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 Route::view('/', 'landing')->name('landing');
 Route::view('/umkm/profil', 'umkm.profil')->name('umkm.profil');
 Route::view('/umkm/kebutuhan', 'umkm.kebutuhan')->name('umkm.kebutuhan');
+Route::view('/umkm/dashboard', 'umkm.dashboard')->name('umkm.dashboard');
 Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
 Route::middleware('guest')->group(function () {
@@ -22,7 +23,6 @@ Route::post('logout', [AuthController::class, 'logout'])->name('logout')->middle
 // Route::middleware('auth')->group(function () {
 Route::get('/petugas/dashboard', [AuthController::class, 'dashboardPetugas'])->name('petugas.dashboard');
 Route::get('/pimpinan/dashboard', [AuthController::class, 'dashboardPimpinan'])->name('pimpinan.dashboard');
-Route::get('/umkm/dashboard', [AuthController::class, 'dashboardUmkm'])->name('umkm.dashboard');
 // });
 
 Route::get('/petugas/umkm', [PetugasUmkmController::class, 'verifikasi'])->name('petugas.umkm.verifikasi');

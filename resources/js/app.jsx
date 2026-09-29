@@ -7,6 +7,7 @@ const pages = {
     umkmProfile: lazy(() => import('@/pages/UmkmProfileForm')),
     umkmKebutuhan: lazy(() => import('@/pages/UmkmNeedsForm')),
     dashboard: lazy(() => import('@/pages/Dashboard')),
+    umkmDashboard: lazy(() => import('@/pages/UmkmDashboard')),
 };
 
 const pageFallbacks = {
