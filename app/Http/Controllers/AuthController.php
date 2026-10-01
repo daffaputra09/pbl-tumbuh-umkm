@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Umkm;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -20,20 +24,19 @@ class AuthController extends Controller
             'nama_usaha' => 'required|string|max:255',
         ]);
 
-        $user = \App\Models\User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => \Illuminate\Support\Facades\Hash::make($request->password),
-            'role' => 'umkm',
-            'status_akun' => 'aktif',
+            'password' => Hash::make($request->password),
+            'role' => User::ROLE_BUSINESS_OWNER,
         ]);
 
-        \App\Models\Umkm::create([
+        Umkm::create([
             'id_user' => $user->id,
             'nama_usaha' => $request->nama_usaha,
         ]);
 
-        \Illuminate\Support\Facades\Auth::login($user);
+        Auth::login($user);
 
         return redirect()->route('umkm.dashboard');
     }
@@ -57,15 +60,15 @@ class AuthController extends Controller
             'password' => $request->password,
         ];
 
-        if (\Illuminate\Support\Facades\Auth::attempt($credentials)) {
+        if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            $role = \Illuminate\Support\Facades\Auth::user()->role;
-            if ($role === 'petugas') {
+            $role = Auth::user()->role;
+            if ($role === User::ROLE_OFFICER) {
                 return redirect()->route('petugas.dashboard');
-            } elseif ($role === 'pimpinan') {
+            } elseif ($role === User::ROLE_VILLAGE_HEAD) {
                 return redirect()->route('pimpinan.dashboard');
-            } elseif ($role === 'umkm') {
+            } elseif ($role === User::ROLE_BUSINESS_OWNER) {
                 return redirect()->route('umkm.dashboard');
             }
 
@@ -79,7 +82,7 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        \Illuminate\Support\Facades\Auth::logout();
+        Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
