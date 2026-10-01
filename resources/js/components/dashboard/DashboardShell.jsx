@@ -229,13 +229,13 @@ export default function DashboardShell({ role, village, pendingCount, children }
                         )}
                     </a>
 
-                    <div className="flex items-center gap-2.5 border-l border-border pl-3">
+                    <a href="/akun" className="flex items-center gap-2.5 border-l border-border pl-3" aria-label="Kelola profil akun">
                         <span className="grid size-9 place-items-center rounded-full bg-brand-100 text-xs font-bold text-brand-hover">{initials}</span>
                         <span className="hidden leading-tight md:block">
                             <span className="block text-sm font-semibold text-ink">{ROLE_LABELS[role]}</span>
                             <span className="block text-xs text-muted-foreground">{village.name}</span>
                         </span>
-                    </div>
+                    </a>
                 </div>
             </header>
 

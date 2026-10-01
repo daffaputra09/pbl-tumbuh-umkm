@@ -76,7 +76,12 @@ export default function UmkmDashboard() {
                         </p>
                     </div>
 
-                    <StatusBadge verified={isVerified} />
+                    <div className="flex items-center gap-3">
+                        <a href="/akun" className="text-sm font-semibold text-primary underline-offset-4 hover:underline">
+                            Profil akun
+                        </a>
+                        <StatusBadge verified={isVerified} />
+                    </div>
                 </header>
 
                 <Card className="mb-8">

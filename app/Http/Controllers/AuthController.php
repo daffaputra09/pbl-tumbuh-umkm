@@ -95,12 +95,12 @@ class AuthController extends Controller
 
     public function dashboardPetugas()
     {
-        return "<h1>Dashboard Petugas</h1><form method='POST' action='".route('logout')."'>".csrf_field()."<button type='submit'>Logout</button></form>";
+        return "<h1>Dashboard Petugas</h1><p><a href='".route('account.edit')."'>Profil akun</a></p><form method='POST' action='".route('logout')."'>".csrf_field()."<button type='submit'>Logout</button></form>";
     }
 
     public function dashboardPimpinan()
     {
-        return "<h1>Dashboard Pimpinan</h1><form method='POST' action='".route('logout')."'>".csrf_field()."<button type='submit'>Logout</button></form>";
+        return "<h1>Dashboard Pimpinan</h1><p><a href='".route('account.edit')."'>Profil akun</a></p><form method='POST' action='".route('logout')."'>".csrf_field()."<button type='submit'>Logout</button></form>";
     }
 
     public function dashboardUmkm()

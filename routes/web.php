@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PetugasUmkmController;
@@ -26,6 +27,11 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::post('logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+
+Route::middleware(['auth', 'active'])->group(function () {
+    Route::get('/akun', [AccountController::class, 'edit'])->name('account.edit');
+    Route::put('/akun', [AccountController::class, 'update'])->name('account.update');
+});
 
 Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(function () {
     Route::get('/petugas/dashboard', [AuthController::class, 'dashboardPetugas'])->name('petugas.dashboard');

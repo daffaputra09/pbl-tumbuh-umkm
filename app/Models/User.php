@@ -57,4 +57,14 @@ class User extends Authenticatable
             default => 'landing',
         };
     }
+
+    public function roleLabel(): string
+    {
+        return match ($this->role) {
+            self::ROLE_OFFICER => 'Petugas Desa',
+            self::ROLE_VILLAGE_HEAD => 'Kepala Desa',
+            self::ROLE_BUSINESS_OWNER => 'Pemilik UMKM',
+            default => $this->role,
+        };
+    }
 }
