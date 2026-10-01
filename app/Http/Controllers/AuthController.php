@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\EnsureUserIsActive;
 use App\Models\Umkm;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -61,18 +62,21 @@ class AuthController extends Controller
         ];
 
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
+            $user = Auth::user();
 
-            $role = Auth::user()->role;
-            if ($role === User::ROLE_OFFICER) {
-                return redirect()->route('petugas.dashboard');
-            } elseif ($role === User::ROLE_VILLAGE_HEAD) {
-                return redirect()->route('pimpinan.dashboard');
-            } elseif ($role === User::ROLE_BUSINESS_OWNER) {
-                return redirect()->route('umkm.dashboard');
+            if (! $user instanceof User || ! $user->is_active) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withErrors([
+                    'login' => EnsureUserIsActive::MESSAGE,
+                ])->onlyInput('login');
             }
 
-            return redirect('/');
+            $request->session()->regenerate();
+
+            return redirect()->route($user->homeRouteName());
         }
 
         return back()->withErrors([

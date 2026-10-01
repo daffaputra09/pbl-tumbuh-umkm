@@ -13,7 +13,8 @@ class DashboardController extends Controller
      */
     public function __invoke(Request $request, DashboardService $dashboard): View
     {
-        // Role masih dari query string sampai autentikasi tiga peran terpasang.
+        // Pratinjau dummy. Query `peran` hanya mengubah tampilan contoh.
+        // Route ini dibatasi ke officer dan village_head.
         $role = in_array($request->query('peran'), DashboardService::ROLES, true)
             ? $request->query('peran')
             : DashboardService::ROLE_PETUGAS;

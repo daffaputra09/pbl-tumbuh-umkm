@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\EnsureUserHasRole;
+use App\Http\Middleware\EnsureUserIsActive;
+use App\Models\User;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,7 +15,22 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'role' => EnsureUserHasRole::class,
+            'active' => EnsureUserIsActive::class,
+        ]);
+
+        $middleware->redirectGuestsTo(fn () => route('login'));
+
+        $middleware->redirectUsersTo(function (Request $request) {
+            $user = $request->user();
+
+            if (! $user instanceof User) {
+                return route('landing');
+            }
+
+            return route($user->homeRouteName());
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

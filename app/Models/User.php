@@ -42,4 +42,19 @@ class User extends Authenticatable
     {
         return $this->hasMany(SocialAccount::class);
     }
+
+    public function hasRole(string ...$roles): bool
+    {
+        return in_array($this->role, $roles, true);
+    }
+
+    public function homeRouteName(): string
+    {
+        return match ($this->role) {
+            self::ROLE_OFFICER => 'petugas.dashboard',
+            self::ROLE_VILLAGE_HEAD => 'pimpinan.dashboard',
+            self::ROLE_BUSINESS_OWNER => 'umkm.dashboard',
+            default => 'landing',
+        };
+    }
 }
