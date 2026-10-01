@@ -906,16 +906,9 @@
 
 /* Grid Layout Detail */
 .pumkm-detail-layout {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 1.5rem;
-    align-items: start;
-}
-
-@media (max-width: 960px) {
-    .pumkm-detail-layout {
-        grid-template-columns: 1fr;
-    }
+    display: flex;
+    flex-direction: column;
+    gap: 0;
 }
 
 .pumkm-card {
@@ -1026,17 +1019,16 @@
 
 .pumkm-decision-btn-group {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: 0.75rem;
 }
 
 .pumkm-btn-verify-lg {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    width: 100%;
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 1.5rem;
     background-color: #0f766e;
     color: #ffffff;
     border: none;
@@ -1055,12 +1047,11 @@
 }
 
 .pumkm-btn-reject-lg {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    width: 100%;
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 1.5rem;
     background-color: #fff1f1;
     color: #dc2626;
     border: 1.5px solid #fca5a5;
@@ -1165,4 +1156,258 @@
     justify-content: flex-end;
     gap: 0.5rem;
 }
+
+
+/* Sidebar Navigasi Petugas Desa */
+.pumkm-sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 260px;
+    background-color: #ffffff;
+    border-right: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    z-index: 50;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pumkm-sidebar-brand {
+    height: 64px;
+    padding: 0 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    border-bottom: 1px solid #f8fafc;
+}
+
+.pumkm-sidebar-close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #64748b;
+    padding: 0.25rem;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+}
+
+.pumkm-sidebar-close:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+
+.pumkm-sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem 0.75rem 1.5rem;
+}
+
+.pumkm-nav-group {
+    margin-top: 1.25rem;
+}
+
+.pumkm-nav-group:first-child {
+    margin-top: 0.25rem;
+}
+
+.pumkm-nav-heading {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #94a3b8;
+    text-transform: uppercase;
+    padding: 0 0.75rem 0.35rem;
+}
+
+.pumkm-nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.pumkm-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: #475569;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.pumkm-nav-link:hover {
+    background-color: #f0fdfa;
+    color: #0f766e;
+}
+
+.pumkm-nav-link--active {
+    background-color: #0f766e;
+    color: #ffffff;
+    box-shadow: 0 8px 20px -8px rgba(15, 118, 110, 0.8);
+}
+
+.pumkm-nav-link--active:hover {
+    background-color: #115e59;
+    color: #ffffff;
+}
+
+.pumkm-nav-link--disabled {
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.pumkm-nav-link--disabled:hover {
+    background-color: transparent;
+    color: #94a3b8;
+}
+
+.pumkm-nav-icon {
+    flex-shrink: 0;
+}
+
+.pumkm-sidebar-footer {
+    border-top: 1px solid #e2e8f0;
+    padding: 1rem;
+    flex-shrink: 0;
+    background-color: #ffffff;
+}
+
+.pumkm-role-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.25rem;
+    background-color: #f1f5f9;
+    border-radius: 0.75rem;
+    padding: 0.25rem;
+    margin-top: 0.35rem;
+}
+
+.pumkm-role-opt {
+    padding: 0.35rem 0.5rem;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    color: #64748b;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+}
+
+.pumkm-role-opt--active {
+    background-color: #ffffff;
+    color: #0f766e;
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.pumkm-village-link {
+    margin-top: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: #64748b;
+    text-decoration: none;
+    padding: 0.25rem 0.35rem;
+    border-radius: 0.5rem;
+    transition: color 0.15s ease;
+}
+
+.pumkm-village-link:hover {
+    color: #0f766e;
+}
+
+.pumkm-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 45;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.pumkm-sidebar-overlay.pumkm-sidebar-overlay-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.pumkm-topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.pumkm-menu-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    background: transparent;
+    border: none;
+    border-radius: 0.625rem;
+    color: #0f172a;
+    cursor: pointer;
+}
+
+.pumkm-menu-btn:hover {
+    background-color: #f1f5f9;
+}
+
+.pumkm-topbar-title-wrap {
+    display: flex;
+    flex-direction: column;
+}
+
+.pumkm-topbar-breadcrumb {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #94a3b8;
+}
+
+.pumkm-topbar-title {
+    font-size: 0.925rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+@media (min-width: 1024px) {
+    .pumkm-main-wrap {
+        margin-left: 260px;
+    }
+}
+
+@media (max-width: 1023px) {
+    .pumkm-sidebar {
+        transform: translateX(-100%);
+        box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
+    }
+    .pumkm-sidebar.pumkm-sidebar-open {
+        transform: translateX(0);
+    }
+    .pumkm-sidebar-close {
+        display: flex;
+    }
+    .pumkm-menu-btn {
+        display: flex;
+    }
+    .pumkm-main-wrap {
+        margin-left: 0;
+    }
+}
+
 
