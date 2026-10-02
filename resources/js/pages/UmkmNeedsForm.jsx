@@ -8,24 +8,25 @@ import {
     Money03Icon,
     SmartPhone01Icon,
 } from '@hugeicons/core-free-icons';
-import FormSection from '@/components/umkm/FormSection';
 import PageBackground from '@/components/umkm/PageBackground';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
+// Urutan dan isi pernyataan ini mengikuti hasil analisis dari Pak Subhi.
 const CATEGORIES = [
     {
         key: 'modal',
         title: 'Modal',
         description: 'Soal keuangan dan permodalan usaha.',
         icon: Money03Icon,
-        options: [
-            'Butuh tambahan modal usaha',
-            'Kesulitan mengatur pembukuan atau catatan keuangan',
-            'Sulit mengajukan pinjaman ke bank atau koperasi',
+        indicators: [
+            'Usaha saya membutuhkan tambahan modal untuk operasional atau pengembangan.',
+            'Saya mengalami kesulitan dalam melakukan pencatatan / pembukuan keuangan usaha.',
+            'Saya kesulitan dalam mengajukan pinjaman ke bank, koperasi, atau lembaga keuangan.',
+            'Arus kas (cash flow) usaha sering terganggu akibat keterlambatan pembayaran pelanggan atau penjualan yang tidak stabil.',
         ],
     },
     {
@@ -33,168 +34,357 @@ const CATEGORIES = [
         title: 'Pemasaran',
         description: 'Soal menjual dan memperkenalkan produk ke lebih banyak orang.',
         icon: Megaphone01Icon,
-        options: [
-            'Jangkauan pembeli masih terbatas di sekitar rumah',
-            'Belum paham cara promosi lewat internet',
-            'Bingung menentukan harga jual yang pas',
-        ],
-    },
-    {
-        key: 'legalitas',
-        title: 'Legalitas',
-        description: 'Soal izin dan surat-surat resmi usaha.',
-        icon: LegalDocument01Icon,
-        options: [
-            'Belum punya izin usaha (NIB)',
-            'Bingung cara mengurus sertifikasi halal',
-            'Belum punya NPWP untuk usaha',
-        ],
-    },
-    {
-        key: 'produksi',
-        title: 'Produksi',
-        description: 'Soal proses membuat dan mengemas produk.',
-        icon: Factory01Icon,
-        options: [
-            'Peralatan usaha masih terbatas',
-            'Bahan baku mahal atau susah dicari',
-            'Kemasan produk masih kurang menarik',
+        indicators: [
+            'Wilayah/jangkauan penjualan produk saya saat ini masih sangat terbatas.',
+            'Desain logo, label, atau kemasan produk saya belum menarik / belum standar komersial.',
+            'Saya kesulitan dalam menentukan strategi harga dan promosi yang efektif.',
+            'Produk saya sulit bersaing dengan produk sejenis dari pesaing lain.',
         ],
     },
     {
         key: 'digitalisasi',
         title: 'Digitalisasi',
-        description: 'Soal pemakaian teknologi untuk membantu usaha.',
+        description: 'Soal pemanfaatan teknologi dan media digital.',
         icon: SmartPhone01Icon,
-        options: [
-            'Belum menerima pembayaran lewat QRIS',
-            'Belum punya akun media sosial untuk usaha',
-            'Belum pernah coba jualan lewat marketplace online',
+        indicators: [
+            'Saya belum atau jarang memanfaatkan media sosial (Instagram, TikTok, Facebook, dll.) untuk promosi.',
+            'Saya mengalami kesulitan dalam berjualan melalui e-commerce / marketplace (Shopee, Tokopedia, GoFood, dll.).',
+            'Saya belum memanfaatkan pembayaran digital (QRIS, transfer bank) dalam transaksi harian.',
+            'Saya kesulitan membuat konten promosi foto/video produk yang menarik secara mandiri.',
+        ],
+    },
+    {
+        key: 'legalitas',
+        title: 'Legalitas',
+        description: 'Soal perizinan dan kelengkapan dokumen resmi.',
+        icon: LegalDocument01Icon,
+        indicators: [
+            'Usaha saya belum memiliki Nomor Induk Berusaha (NIB).',
+            'Produk saya belum memiliki sertifikasi perizinan yang dibutuhkan (Sertifikat Halal, P-IRT, BPOM, dll.).',
+            'Saya merasa proses atau persyaratan pengurusan izin usaha membingungkan / rumit.',
+            'Kurangnya informasi dan pendampingan mengenai regulasi legalitas bagi UMKM.',
+        ],
+    },
+    {
+        key: 'produksi',
+        title: 'Produksi',
+        description: 'Soal proses pembuatan, bahan baku, dan kapasitas produksi.',
+        icon: Factory01Icon,
+        indicators: [
+            'Peralatan dan teknologi produksi yang saya gunakan saat ini masih sangat terbatas / manual.',
+            'Saya sering mengalami kesulitan dalam mendapatkan bahan baku dengan harga terjangkau dan stabil.',
+            'Kapasitas produksi usaha saya belum mampu memenuhi pesanan dalam jumlah besar.',
+            'Saya mengalami kendala dalam menjaga konsistensi kualitas dan ketahanan produk.',
         ],
     },
 ];
 
-function buildInitialState() {
-    return Object.fromEntries(CATEGORIES.map((category) => [category.key, { pilihan: [], catatan: '' }]));
+const LIKERT_OPTIONS = [
+    { value: 1, label: 'Sangat Tidak Setuju', hint: 'Tidak mengalami kendala ini' },
+    { value: 2, label: 'Tidak Setuju', hint: 'Kendala ringan' },
+    { value: 3, label: 'Setuju', hint: 'Cukup mengalami kendala' },
+    { value: 4, label: 'Sangat Setuju', hint: 'Kendala sangat berat' },
+];
+
+function buildInitialAnswers() {
+    return Object.fromEntries(
+        CATEGORIES.map((category) => [category.key, { mengalami: null, skors: [null, null, null, null], catatan: '' }]),
+    );
+}
+
+// Sesuai rumus dari Pak Subhi: skor total 4 pernyataan (tiap 1-4) per bidang.
+function getUrgencyLevel(total) {
+    if (total <= 7) return { label: 'Rendah', badgeClass: 'bg-success/10 text-success' };
+    if (total <= 11) return { label: 'Sedang', badgeClass: 'bg-sun-50 text-sun-700' };
+    return { label: 'Tinggi', badgeClass: 'bg-destructive/10 text-destructive' };
 }
 
 export default function UmkmNeedsForm() {
-    const [formData, setFormData] = useState(buildInitialState);
-    const [errorMessage, setErrorMessage] = useState('');
-    const [submitStatus, setSubmitStatus] = useState('idle');
+    const [answers, setAnswers] = useState(buildInitialAnswers);
+    const [categoryIndex, setCategoryIndex] = useState(0);
+    const [phase, setPhase] = useState('gate'); // 'gate' | 'detail' | 'review'
+    const [history, setHistory] = useState([]);
+    const [validationError, setValidationError] = useState('');
 
-    function toggleOption(categoryKey, option) {
-        setFormData((prev) => {
-            const current = prev[categoryKey].pilihan;
-            const next = current.includes(option) ? current.filter((item) => item !== option) : [...current, option];
-            return { ...prev, [categoryKey]: { ...prev[categoryKey], pilihan: next } };
+    const category = CATEGORIES[categoryIndex];
+    const isLastCategory = categoryIndex === CATEGORIES.length - 1;
+
+    function goTo(nextIndex, nextPhase) {
+        setHistory((prev) => [...prev, { categoryIndex, phase }]);
+        setCategoryIndex(nextIndex);
+        setPhase(nextPhase);
+        setValidationError('');
+    }
+
+    function goBack() {
+        setHistory((prev) => {
+            if (prev.length === 0) return prev;
+            const last = prev[prev.length - 1];
+            setCategoryIndex(last.categoryIndex);
+            setPhase(last.phase);
+            return prev.slice(0, -1);
         });
-        setErrorMessage('');
+        setValidationError('');
     }
 
-    function updateCatatan(categoryKey, value) {
-        setFormData((prev) => ({ ...prev, [categoryKey]: { ...prev[categoryKey], catatan: value } }));
+    function handleGateAnswer(mengalami) {
+        setAnswers((prev) => ({ ...prev, [category.key]: { ...prev[category.key], mengalami } }));
+
+        if (mengalami === 'tidak') {
+            goTo(isLastCategory ? categoryIndex : categoryIndex + 1, isLastCategory ? 'review' : 'gate');
+        } else {
+            goTo(categoryIndex, 'detail');
+        }
     }
 
-    function handleSubmit(event) {
-        event.preventDefault();
-        setSubmitStatus('idle');
+    function updateSkor(indicatorIndex, value) {
+        setAnswers((prev) => {
+            const skors = [...prev[category.key].skors];
+            skors[indicatorIndex] = value;
+            return { ...prev, [category.key]: { ...prev[category.key], skors } };
+        });
+        setValidationError('');
+    }
 
-        const totalDipilih = CATEGORIES.reduce((total, category) => total + formData[category.key].pilihan.length, 0);
+    function updateCatatan(value) {
+        setAnswers((prev) => ({ ...prev, [category.key]: { ...prev[category.key], catatan: value } }));
+    }
 
-        if (totalDipilih === 0) {
-            setErrorMessage('Pilih minimal satu kendala di salah satu bidang di atas, supaya kami tahu apa yang perlu dibantu.');
+    function handleDetailLanjut() {
+        const belumLengkap = answers[category.key].skors.some((skor) => skor === null);
+
+        if (belumLengkap) {
+            setValidationError('Jawab semua pernyataan di atas dulu sebelum lanjut.');
             return;
         }
 
-        // TODO: ganti bagian ini dengan pemanggilan endpoint API sesungguhnya, contoh:
-        // const response = await fetch('/api/umkm/kebutuhan', {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-        //     body: JSON.stringify(formData),
-        // });
-        console.log('Data kebutuhan & kendala UMKM siap dikirim ke server:', formData);
-        setErrorMessage('');
-        setSubmitStatus('success');
+        goTo(isLastCategory ? categoryIndex : categoryIndex + 1, isLastCategory ? 'review' : 'gate');
+    }
+
+    function handleSubmit() {
+        // TODO: ganti bagian ini dengan pemanggilan endpoint API sesungguhnya begitu
+        // tabel assessments/assessment_answers dan Controller-nya siap, contoh:
+        // await fetch('/api/assessments', { method: 'POST', ... });
+        console.log('Jawaban kebutuhan & kendala siap dikirim:', answers);
+
+        window.location.href = '/umkm/dashboard';
     }
 
     return (
         <div className="relative isolate min-h-screen overflow-hidden bg-background py-10 sm:py-14">
             <PageBackground />
 
-            <div className="mx-auto max-w-3xl px-5">
-                <header className="mb-8">
+            <div className="mx-auto max-w-2xl px-5">
+                <header className="mb-6">
                     <p className="text-sm font-semibold text-primary">Kebutuhan &amp; Kendala Usaha</p>
                     <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
-                        Ceritakan Kesulitan Usahamu
+                        {phase === 'review' ? 'Ringkasan Jawabanmu' : 'Ceritakan Kesulitan Usahamu'}
                     </h1>
-                    <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
-                        Tidak perlu semua dicentang. Pilih saja bagian yang benar-benar kamu rasakan sebagai kendala,
-                        supaya program bantuan yang diberikan nanti bisa lebih tepat sasaran.
-                    </p>
+                    {phase !== 'review' && (
+                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                            Bidang {categoryIndex + 1} dari {CATEGORIES.length}. Jawab sejujurnya, tidak ada jawaban benar
+                            atau salah.
+                        </p>
+                    )}
                 </header>
 
-                {submitStatus === 'success' && (
-                    <div className="mb-6 flex items-start gap-3 rounded-xl border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">
-                        <HugeiconsIcon icon={CheckmarkCircle02Icon} size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
-                        <p>Terima kasih, data kendala usahamu berhasil disimpan dan akan segera dianalisis.</p>
+                {phase !== 'review' && (
+                    <div className="mb-6 flex gap-1.5">
+                        {CATEGORIES.map((item, index) => (
+                            <span
+                                key={item.key}
+                                className={cn(
+                                    'h-1.5 flex-1 rounded-full',
+                                    index < categoryIndex ? 'bg-primary' : index === categoryIndex ? 'bg-primary/50' : 'bg-muted',
+                                )}
+                            />
+                        ))}
                     </div>
                 )}
 
-                {errorMessage && (
-                    <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
-                        {errorMessage}
-                    </div>
+                {phase === 'gate' && (
+                    <GateScreen category={category} onAnswer={handleGateAnswer} onBack={history.length > 0 ? goBack : null} />
                 )}
 
-                <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
-                    {CATEGORIES.map((category) => (
-                        <FormSection
-                            key={category.key}
-                            icon={category.icon}
-                            title={category.title}
-                            description={category.description}
+                {phase === 'detail' && (
+                    <DetailScreen
+                        category={category}
+                        answer={answers[category.key]}
+                        onChangeSkor={updateSkor}
+                        onChangeCatatan={updateCatatan}
+                        onLanjut={handleDetailLanjut}
+                        onBack={goBack}
+                        error={validationError}
+                    />
+                )}
+
+                {phase === 'review' && <ReviewScreen answers={answers} onBack={goBack} onSubmit={handleSubmit} />}
+            </div>
+        </div>
+    );
+}
+
+function GateScreen({ category, onAnswer, onBack }) {
+    return (
+        <Card>
+            <CardHeader className="items-center text-center">
+                <span className="flex size-14 items-center justify-center rounded-2xl bg-brand-50 text-primary">
+                    <HugeiconsIcon icon={category.icon} size={28} strokeWidth={1.6} aria-hidden="true" />
+                </span>
+                <CardTitle className="mt-2 text-xl">{category.title}</CardTitle>
+                <p className="text-sm text-muted-foreground">{category.description}</p>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center gap-4">
+                <p className="text-center text-base font-semibold text-ink">
+                    Apakah kamu mengalami kendala di bidang {category.title.toLowerCase()}?
+                </p>
+                <div className="flex gap-3">
+                    <Button type="button" variant="outline" onClick={() => onAnswer('tidak')}>
+                        Tidak
+                    </Button>
+                    <Button type="button" onClick={() => onAnswer('ya')}>
+                        Ya, ada
+                    </Button>
+                </div>
+                {onBack && (
+                    <button
+                        type="button"
+                        onClick={onBack}
+                        className="text-xs font-medium text-muted-foreground underline underline-offset-2"
+                    >
+                        Kembali ke bidang sebelumnya
+                    </button>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+
+function DetailScreen({ category, answer, onChangeSkor, onChangeCatatan, onLanjut, onBack, error }) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="text-lg">{category.title}</CardTitle>
+                <p className="text-sm text-muted-foreground">Pilih seberapa setuju kamu dengan tiap pernyataan di bawah ini.</p>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-8 sm:gap-10">
+                {category.indicators.map((statement, index) => (
+                    <div key={statement} className="flex flex-col gap-4">
+                        <p className="text-sm leading-relaxed font-medium text-ink">
+                            {index + 1}. {statement}
+                        </p>
+                        <LikertScale value={answer.skors[index]} onChange={(value) => onChangeSkor(index, value)} />
+                    </div>
+                ))}
+
+                <div className="flex flex-col">
+                    <Label className="mb-1.5">Catatan tambahan (boleh dikosongkan)</Label>
+                    <Textarea
+                        rows={2}
+                        value={answer.catatan}
+                        onChange={(event) => onChangeCatatan(event.target.value)}
+                        placeholder={`Ceritakan detail kendala ${category.title.toLowerCase()} lainnya kalau ada`}
+                    />
+                </div>
+
+                {error && <p className="text-sm font-medium text-destructive">{error}</p>}
+
+                <div className="flex justify-between">
+                    <Button type="button" variant="outline" onClick={onBack}>
+                        Kembali
+                    </Button>
+                    <Button type="button" onClick={onLanjut}>
+                        Lanjut
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+// Baris skala 1-4 dengan label di ujung kiri-kanan, gaya kuesioner Likert klasik.
+function LikertScale({ value, onChange }) {
+    return (
+        <div className="flex items-center gap-3 sm:gap-4">
+            <span className="w-16 shrink-0 text-right text-[11px] leading-tight text-muted-foreground sm:w-24 sm:text-xs">
+                Sangat Tidak Setuju
+            </span>
+
+            <div className="flex flex-1 items-center justify-center gap-4 sm:gap-7">
+                {LIKERT_OPTIONS.map((option) => {
+                    const selected = value === option.value;
+                    return (
+                        <button
+                            key={option.value}
+                            type="button"
+                            title={option.hint}
+                            onClick={() => onChange(option.value)}
+                            className={cn(
+                                'flex size-9 shrink-0 items-center justify-center rounded-full border-2 text-sm font-bold transition-colors sm:size-10',
+                                selected
+                                    ? 'border-primary bg-primary text-white'
+                                    : 'border-border bg-white text-muted-foreground hover:border-primary/50',
+                            )}
                         >
-                            <div className="flex flex-col gap-3 sm:col-span-2">
-                                {category.options.map((option) => {
-                                    const checked = formData[category.key].pilihan.includes(option);
+                            {option.value}
+                        </button>
+                    );
+                })}
+            </div>
 
-                                    return (
-                                        <label
-                                            key={option}
-                                            className={cn(
-                                                'flex cursor-pointer items-start gap-3 rounded-xl border bg-white p-4 transition-colors',
-                                                checked ? 'border-primary/40 bg-brand-50' : 'border-border hover:border-brand-200',
-                                            )}
-                                        >
-                                            <Checkbox
-                                                checked={checked}
-                                                onChange={() => toggleOption(category.key, option)}
-                                            />
-                                            <span className="text-sm font-medium text-ink">{option}</span>
-                                        </label>
-                                    );
-                                })}
+            <span className="w-16 shrink-0 text-[11px] leading-tight text-muted-foreground sm:w-24 sm:text-xs">
+                Sangat Setuju
+            </span>
+        </div>
+    );
+}
 
-                                <div className="mt-1 flex flex-col">
-                                    <Label className="mb-1.5">Catatan tambahan (boleh dikosongkan)</Label>
-                                    <Textarea
-                                        rows={2}
-                                        value={formData[category.key].catatan}
-                                        onChange={(event) => updateCatatan(category.key, event.target.value)}
-                                        placeholder={`Ceritakan detail kendala lain seputar ${category.title.toLowerCase()} yang kamu alami`}
-                                    />
-                                </div>
+function ReviewScreen({ answers, onBack, onSubmit }) {
+    return (
+        <div className="flex flex-col gap-4">
+            {CATEGORIES.map((category) => {
+                const answer = answers[category.key];
+
+                if (answer.mengalami !== 'ya') {
+                    return (
+                        <Card key={category.key}>
+                            <CardContent className="flex items-center gap-3">
+                                <HugeiconsIcon icon={CheckmarkCircle02Icon} size={18} className="text-success" aria-hidden="true" />
+                                <p className="text-sm text-ink">
+                                    <span className="font-semibold">{category.title}:</span> Tidak ada kendala dilaporkan.
+                                </p>
+                            </CardContent>
+                        </Card>
+                    );
+                }
+
+                const total = answer.skors.reduce((sum, skor) => sum + (skor ?? 0), 0);
+                const urgency = getUrgencyLevel(total);
+
+                return (
+                    <Card key={category.key}>
+                        <CardContent className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                                <p className="text-sm font-bold text-ink">{category.title}</p>
+                                <span className={cn('rounded-full px-2.5 py-0.5 text-[11px] font-semibold', urgency.badgeClass)}>
+                                    Kendala {urgency.label}
+                                </span>
                             </div>
-                        </FormSection>
-                    ))}
+                            {answer.catatan && (
+                                <p className="text-sm leading-relaxed text-muted-foreground">&ldquo;{answer.catatan}&rdquo;</p>
+                            )}
+                        </CardContent>
+                    </Card>
+                );
+            })}
 
-                    <div className="flex justify-end">
-                        <Button type="submit" size="lg">
-                            Simpan &amp; Analisis Kebutuhan
-                        </Button>
-                    </div>
-                </form>
+            <div className="flex justify-between pt-2">
+                <Button type="button" variant="outline" onClick={onBack}>
+                    Kembali
+                </Button>
+                <Button type="button" onClick={onSubmit}>
+                    Kirim Jawaban
+                </Button>
             </div>
         </div>
     );
