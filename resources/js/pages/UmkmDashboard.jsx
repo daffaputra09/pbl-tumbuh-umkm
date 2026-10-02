@@ -89,8 +89,7 @@ export default function UmkmDashboard() {
     const isVerified = DUMMY_PROFILE.statusVerifikasi === 'verified';
 
     return (
-        <div className="min-h-screen bg-background py-8 sm:py-10">
-            <div className="mx-auto max-w-5xl px-5">
+            <div className="mx-auto max-w-5xl">
                 {/* Welcome banner */}
                 <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-brand-hover px-6 py-7 text-white sm:px-9 sm:py-9">
                     <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
@@ -227,7 +226,6 @@ export default function UmkmDashboard() {
                     </div>
                 </section>
             </div>
-        </div>
     );
 }
 

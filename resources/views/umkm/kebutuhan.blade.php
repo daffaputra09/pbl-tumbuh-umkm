@@ -1,19 +1,12 @@
-<!DOCTYPE html>
-<html lang="id">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="Formulir pendataan kebutuhan dan kendala usaha untuk program Tumbuh UMKM.">
-        <meta name="theme-color" content="#0F766E">
+@extends('layouts.app-shell')
 
-        <title>Kebutuhan &amp; Kendala Usaha UMKM</title>
+@section('title', 'Kebutuhan & Kendala Usaha UMKM')
 
-        @fonts
+@push('head')
+    @viteReactRefresh
+    @vite(['resources/js/entries/umkm-needs.jsx'])
+@endpush
 
-        @viteReactRefresh
-        @vite(['resources/css/app.css', 'resources/js/app.jsx'])
-    </head>
-    <body>
-        <div id="app" data-page="umkmKebutuhan"></div>
-    </body>
-</html>
+@section('content')
+    <div id="app" data-page="umkmKebutuhan"></div>
+@endsection

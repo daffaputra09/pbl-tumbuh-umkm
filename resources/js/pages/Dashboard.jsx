@@ -1,6 +1,5 @@
 import { Suspense, lazy, useMemo, useState } from 'react';
 import { MotionConfig } from 'motion/react';
-import DashboardShell from '@/components/dashboard/DashboardShell';
 import StatCards from '@/components/dashboard/StatCards';
 import ObstaclePanel from '@/components/dashboard/ObstaclePanel';
 import { AttentionTable, VerificationQueue } from '@/components/dashboard/ActionPanels';
@@ -20,7 +19,7 @@ function SectionLabel({ children }) {
     return <h2 className="-mb-1 pt-2 text-xs font-bold tracking-wider text-slate-500 uppercase">{children}</h2>;
 }
 
-export default function Dashboard({ role, village, generatedAt, isSampleData, references, businesses }) {
+export default function Dashboard({ role, generatedAt, isSampleData, references, businesses }) {
     const [filters, setFilters] = useState(DEFAULT_FILTERS);
     const now = useMemo(() => new Date(generatedAt), [generatedAt]);
 
@@ -39,8 +38,7 @@ export default function Dashboard({ role, village, generatedAt, isSampleData, re
 
     return (
         <MotionConfig reducedMotion="user">
-            <DashboardShell role={role} village={village} pendingCount={metrics.summary.verified.waiting}>
-                <div className="flex flex-col gap-5 sm:gap-6">
+            <div className="flex flex-col gap-5 sm:gap-6">
                     <WelcomeBanner
                         role={role}
                         now={now}
@@ -116,8 +114,7 @@ export default function Dashboard({ role, village, generatedAt, isSampleData, re
                         </div>
                         <VerificationQueue records={metrics.verificationQueue} />
                     </div>
-                </div>
-            </DashboardShell>
+            </div>
         </MotionConfig>
     );
 }

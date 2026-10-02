@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\User;
 use Carbon\CarbonImmutable;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
@@ -71,10 +72,7 @@ class DashboardService
     {
         return [
             'role' => $role,
-            'village' => [
-                'name' => 'Kampung Rejoso',
-                'district' => 'Desa Junrejo, Kota Batu',
-            ],
+            'village' => $this->sampleVillage(),
             'generatedAt' => CarbonImmutable::now()->toIso8601String(),
             'isSampleData' => true,
             'references' => [
@@ -267,6 +265,29 @@ class DashboardService
         }
 
         return $score >= $moderateThreshold ? 'moderate' : 'low';
+    }
+
+    /**
+     * @return array{name: string, district: string}
+     */
+    public function sampleVillage(): array
+    {
+        return [
+            'name' => 'Kampung Rejoso',
+            'district' => 'Desa Junrejo, Kota Batu',
+        ];
+    }
+
+    /**
+     * @return array{accountRole: string, pendingCount: int, village: array{name: string, district: string}}
+     */
+    public function shellProps(User $user, int $pendingCount = 0): array
+    {
+        return [
+            'accountRole' => $user->role,
+            'pendingCount' => $pendingCount,
+            'village' => $this->sampleVillage(),
+        ];
     }
 
     /**

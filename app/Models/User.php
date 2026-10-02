@@ -51,8 +51,8 @@ class User extends Authenticatable
     public function homeRouteName(): string
     {
         return match ($this->role) {
-            self::ROLE_OFFICER => 'petugas.dashboard',
-            self::ROLE_VILLAGE_HEAD => 'pimpinan.dashboard',
+            self::ROLE_OFFICER => 'dashboard',
+            self::ROLE_VILLAGE_HEAD => 'dashboard',
             self::ROLE_BUSINESS_OWNER => 'umkm.dashboard',
             default => 'landing',
         };
@@ -66,5 +66,17 @@ class User extends Authenticatable
             self::ROLE_BUSINESS_OWNER => 'Pemilik UMKM',
             default => $this->role,
         };
+    }
+
+    public function initials(): string
+    {
+        $parts = preg_split('/\s+/', trim($this->name)) ?: [];
+        $letters = '';
+
+        foreach (array_slice(array_values(array_filter($parts)), 0, 2) as $part) {
+            $letters .= mb_strtoupper(mb_substr($part, 0, 1));
+        }
+
+        return $letters !== '' ? $letters : 'TU';
     }
 }

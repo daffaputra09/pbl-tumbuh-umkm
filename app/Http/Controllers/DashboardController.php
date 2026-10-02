@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Services\DashboardService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -13,14 +14,17 @@ class DashboardController extends Controller
      */
     public function __invoke(Request $request, DashboardService $dashboard): View
     {
-        // Pratinjau dummy. Query `peran` hanya mengubah tampilan contoh.
-        // Route ini dibatasi ke officer dan village_head.
-        $role = in_array($request->query('peran'), DashboardService::ROLES, true)
-            ? $request->query('peran')
+        $user = $request->user();
+        $accountRole = $user instanceof User ? $user->role : User::ROLE_OFFICER;
+        $viewRole = $accountRole === User::ROLE_VILLAGE_HEAD
+            ? DashboardService::ROLE_KEPALA_DESA
             : DashboardService::ROLE_PETUGAS;
 
         return view('dashboard.index', [
-            'dashboard' => $dashboard->build($role),
+            'dashboard' => [
+                ...$dashboard->build($viewRole),
+                'accountRole' => $accountRole,
+            ],
         ]);
     }
 }

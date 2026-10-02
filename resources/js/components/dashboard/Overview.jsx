@@ -14,8 +14,12 @@ import { Icon } from '@/components/landing/shared';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { SegmentedControl } from '@/components/dashboard/Panel';
-import { ROLE_LABELS } from '@/components/dashboard/DashboardShell';
 import { formatNumber } from '@/components/dashboard/lib/metrics';
+
+const ROLE_LABELS = {
+    petugas: 'Petugas Desa',
+    'kepala-desa': 'Kepala Desa',
+};
 
 function greeting(date) {
     const hour = date.getHours();

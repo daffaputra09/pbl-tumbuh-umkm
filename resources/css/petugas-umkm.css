@@ -1311,6 +1311,35 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
+.pumkm-logout-form {
+    margin: 0;
+}
+
+.pumkm-logout-btn {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.5rem;
+    border: 0;
+    border-radius: 0.75rem;
+    background-color: #f8fafc;
+    color: #334155;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.pumkm-logout-btn:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+
+.pumkm-logout-btn:focus-visible {
+    outline: 2px solid #0f766e;
+    outline-offset: 2px;
+}
+
 .pumkm-village-link {
     margin-top: 0.75rem;
     display: flex;

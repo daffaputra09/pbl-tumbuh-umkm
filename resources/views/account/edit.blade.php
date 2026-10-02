@@ -1,21 +1,10 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Profil akun - Tumbuh UMKM</title>
-    @vite(['resources/css/app.css'])
-</head>
-<body class="bg-gray-50 font-sans text-slate-800 selection:bg-teal-500 selection:text-white">
-    <div class="absolute top-6 left-6 sm:top-10 sm:left-10 z-10">
-        <a href="{{ route($user->homeRouteName()) }}" class="group flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm ring-1 ring-slate-900/5 transition-all hover:bg-slate-50 hover:text-teal-700 hover:shadow-md">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform group-hover:-translate-x-1" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-            Kembali
-        </a>
-    </div>
+@extends('layouts.app-shell')
 
-    <div class="mx-auto w-full max-w-lg px-5 pt-24 pb-16">
-        <div class="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-slate-900/5 p-8 sm:p-10">
+@section('title', 'Profil akun - Tumbuh UMKM')
+
+@section('content')
+    <div class="mx-auto w-full max-w-lg">
+        <div class="rounded-3xl bg-white p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-slate-900/5 sm:p-10">
             <div class="mb-8">
                 <p class="text-sm font-semibold text-teal-700">{{ $user->roleLabel() }}</p>
                 <h1 class="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">Profil akun</h1>
@@ -94,5 +83,4 @@
             </form>
         </div>
     </div>
-</body>
-</html>
+@endsection

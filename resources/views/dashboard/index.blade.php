@@ -1,20 +1,13 @@
-<!DOCTYPE html>
-<html lang="id">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="Ringkasan UMKM aktif, status kendala dari asesmen, dan sebaran usaha di desa.">
-        <meta name="theme-color" content="#0F766E">
+@extends('layouts.app-shell')
 
-        <title>Dashboard - Tumbuh UMKM</title>
+@section('title', 'Dashboard - Tumbuh UMKM')
 
-        @fonts
+@push('head')
+    @viteReactRefresh
+    @vite(['resources/js/entries/dashboard.jsx'])
+@endpush
 
-        @viteReactRefresh
-        @vite(['resources/css/app.css', 'resources/js/app.jsx'])
-    </head>
-    <body>
-        <div id="app" data-page="dashboard"></div>
-        <script type="application/json" id="page-props">@json($dashboard)</script>
-    </body>
-</html>
+@section('content')
+    <div id="app" data-page="dashboard"></div>
+    <script type="application/json" id="page-props">@json($dashboard)</script>
+@endsection

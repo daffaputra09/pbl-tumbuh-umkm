@@ -130,10 +130,10 @@ export default function UmkmProfileForm() {
     }
 
     return (
-        <div className="relative isolate min-h-screen overflow-hidden bg-background py-10 sm:py-14">
+        <div className="relative isolate overflow-hidden">
             <PageBackground />
 
-            <div className="mx-auto max-w-3xl px-5">
+            <div className="mx-auto max-w-3xl">
                 <header className="mb-8">
                     <p className="text-sm font-semibold text-primary">Pendaftaran &amp; Pembaruan Data</p>
                     <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">Profil UMKM</h1>

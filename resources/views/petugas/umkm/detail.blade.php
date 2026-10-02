@@ -1,38 +1,12 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Detail lengkap data UMKM untuk verifikasi petugas desa — TUMBUH UMKM.">
-    <meta name="theme-color" content="#0F766E">
-    <title>Detail UMKM — {{ $umkm['business_name'] ?? $umkm['nama_usaha'] }} — TUMBUH UMKM</title>
+@extends('layouts.app-shell')
 
-    @fonts
+@section('title', 'Detail UMKM — '.($umkm['business_name'] ?? $umkm['nama_usaha']).' — TUMBUH UMKM')
 
+@push('head')
     @vite(['resources/css/petugas-umkm.css'])
-</head>
-<body class="pumkm-page">
+@endpush
 
-    @include('petugas.partials.sidebar')
-
-    <div class="pumkm-main-wrap">
-        <header class="pumkm-topbar">
-            <div class="pumkm-topbar-left">
-                <button type="button" class="pumkm-menu-btn" onclick="togglePumkmSidebar()" aria-label="Buka menu navigasi">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
-                    </svg>
-                </button>
-                <div class="pumkm-topbar-title-wrap">
-                    <span class="pumkm-topbar-breadcrumb">Tumbuh UMKM / Verifikasi Data</span>
-                    <span class="pumkm-topbar-title">Detail Data UMKM</span>
-                </div>
-            </div>
-            <div class="pumkm-topbar-right">
-                <span class="pumkm-role-badge">Petugas Desa</span>
-            </div>
-        </header>
-
+@section('content')
         <main class="pumkm-content">
             <a href="{{ route('petugas.umkm.verifikasi') }}" class="pumkm-back-link">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -393,7 +367,6 @@
                     </div>
             </div>
         </main>
-    </div>
 
     <div class="pumkm-dialog-overlay" id="dialogVerifikasi" role="dialog" aria-modal="true" onclick="tutupModalVerifikasi(event)">
         <div class="pumkm-dialog" onclick="event.stopPropagation()">
@@ -470,15 +443,6 @@
     </div>
 
     <script>
-        function togglePumkmSidebar() {
-            var sidebar = document.getElementById('pumkmSidebar');
-            var overlay = document.getElementById('pumkmSidebarOverlay');
-            if (sidebar && overlay) {
-                sidebar.classList.toggle('pumkm-sidebar-open');
-                overlay.classList.toggle('pumkm-sidebar-overlay-open');
-            }
-        }
-
         function bukaModalVerifikasi() {
             document.getElementById('dialogVerifikasi').classList.add('pumkm-dialog-open');
             document.body.style.overflow = 'hidden';
@@ -518,6 +482,4 @@
             }
         });
     </script>
-
-</body>
-</html>
+@endsection
