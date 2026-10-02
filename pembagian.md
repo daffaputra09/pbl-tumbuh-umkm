@@ -548,22 +548,22 @@ Kalau satu orang terhambat, kerjakan baris yang kolom "Bisa mulai"-nya sudah ter
 
 # Bagian G. Timeline semester (minggu 6–12)
 
-Pakai kalender 16 minggu mata kuliah. Laporan progres ke dosen **setiap Rabu**.
+Pakai kalender 16 minggu mata kuliah. Laporan progres ke dosen **setiap Selasa**.
 
-Hari ini Kamis 1 Oktober 2026 = **minggu ke-6**. Target produk fungsional + hasil uji: **minggu ke-12**.
+Hari ini Jumat 2 Oktober 2026 = **minggu ke-6**. Target produk fungsional + hasil uji: **minggu ke-12**.
 
 Bagian E di atas (Minggu 1–4) adalah urutan kerja teknis. Bagian ini adalah minggu semester.
 
 | Minggu semester | Tanggal (Senin–Minggu) | Laporan ke dosen | Titik kalender |
 | --- | --- | --- | --- |
-| 5–7 | 21 Sep – 11 Okt 2026 | Rabu 7 Okt | Pembangunan fitur inti, iterasi 1 |
-| 8 | 12–18 Okt 2026 | Rabu 14 Okt | **Milestone 1.** Demo progres tengah semester |
-| 9–11 | 19 Okt – 8 Nov 2026 | Rabu 21 Okt, 28 Okt, 4 Nov | Integrasi, pengujian mulai |
-| 12 | 9–15 Nov 2026 | Rabu 11 Nov | **Milestone 2.** Demo produk fungsional + hasil uji |
+| 5–7 | 21 Sep – 11 Okt 2026 | Selasa 6 Okt | Pembangunan fitur inti, iterasi 1 |
+| 8 | 12–18 Okt 2026 | Selasa 13 Okt | **Milestone 1.** Demo progres tengah semester |
+| 9–11 | 19 Okt – 8 Nov 2026 | Selasa 20 Okt, 27 Okt, 3 Nov | Integrasi, pengujian mulai |
+| 12 | 9–15 Nov 2026 | Selasa 10 Nov | **Milestone 2.** Demo produk fungsional + hasil uji |
 
 Minggu 13–16 (perbaikan, dokumentasi, expo) di luar target ini. SSO Google tidak wajib hidup di minggu 12.
 
-## G.1 Status 1 Oktober 2026
+## G.1 Status 2 Oktober 2026
 
 Sudah ada di `main` (UI, belum schema baru): landing, login/register, profil UMKM, kebutuhan/kendala, dashboard petugas dummy, dashboard UMKM dummy, verifikasi petugas.
 
@@ -578,11 +578,11 @@ Card To Do yang UI-nya sudah jadi **tidak ditandai selesai**. Yang tersisa: simp
 
 ## G.2 Yang harus selesai tiap minggu
 
-Kolom "Siap dilaporkan Rabu" = yang boleh didemo ke dosen hari itu.
+Kolom "Siap dilaporkan Selasa" = yang boleh didemo ke dosen hari itu.
 
 ### Minggu 6. 28 Sep – 4 Okt 2026
 
-Rabu 30 Sep sudah lewat. Sisa kerja: Kamis 1 Okt sampai Minggu 4 Okt.
+Selasa 29 Sep sudah lewat. Sisa kerja: Jumat 2 Okt sampai Minggu 4 Okt.
 
 Harus selesai minggu ini:
 
@@ -595,11 +595,11 @@ Harus selesai minggu ini:
 
 Belum wajib: login role baru, form simpan ke `businesses`.
 
-### Minggu 7. 5–11 Okt 2026 — laporan Rabu 7 Oktober
+### Minggu 7. 5–11 Okt 2026 — laporan Selasa 6 Oktober
 
 Akhir iterasi 1. Semua migration G1–G4 ada di repo. Satu orang yang men-generate timestamp, `php artisan migrate` dari satu mesin.
 
-Harus selesai sebelum Rabu 7 Okt (laporan pertama setelah hari ini):
+Harus selesai sebelum Selasa 6 Okt (laporan pertama setelah hari ini):
 
 | Pemilik | Tugas |
 | --- | --- |
@@ -608,7 +608,7 @@ Harus selesai sebelum Rabu 7 Okt (laporan pertama setelah hari ini):
 | Hernanda | File 5 `businesses` (ganti stub `umkm`). File 8 `products`, File 9 `assessments` |
 | Radith | Shell menu 3 peran memakai middleware Daffa. File 11 pivot program–kategori (setelah File 7) |
 
-Sisa 7–11 Okt (setelah laporan):
+Sisa 7–11 Okt (setelah laporan Selasa 6 Okt):
 
 | Pemilik | Tugas |
 | --- | --- |
@@ -617,9 +617,9 @@ Sisa 7–11 Okt (setelah laporan):
 | Hernanda | Sambungkan form profil UI ke `businesses` (UC-04a, draf) |
 | Radith | File 12 `assessment_answers` begitu File 9 dan File 10 ada |
 
-**Siap dilaporkan Rabu 7 Okt:** tiga akun (pelaku, petugas, kepala desa) login dan masuk halaman berbeda. Kategori kendala bisa dilihat. Jenis usaha terisi.
+**Siap dilaporkan Selasa 6 Okt:** tiga akun (pelaku, petugas, kepala desa) login dan masuk halaman berbeda. Kategori kendala bisa dilihat. Jenis usaha terisi.
 
-### Minggu 8. 12–18 Okt 2026 — laporan Rabu 14 Oktober — Milestone 1
+### Minggu 8. 12–18 Okt 2026 — laporan Selasa 13 Oktober — Milestone 1
 
 Demo tengah semester: data UMKM masuk, petugas melihat daftar, bukan hanya UI dummy.
 
@@ -632,7 +632,7 @@ Harus selesai:
 | Nazwa | UC-04c tabel master UMKM dari `businesses`. Bank soal bisa dikelola. UC-08 CRUD program + taut kategori |
 | Radith | UC-14a dashboard pimpinan UI (dummy antrean boleh). File 15 `follow_ups` setelah File 14 ada; kalau File 14 belum, kerjakan UI pengajuan dulu |
 
-**Demo Milestone 1 (Rabu 14 Okt):**
+**Demo Milestone 1 (Selasa 13 Okt):**
 
 1. Daftar sebagai pelaku UMKM, isi profil dan satu produk.
 2. Petugas buka daftar UMKM dan detail.
@@ -641,7 +641,7 @@ Harus selesai:
 
 Belum wajib: kuesioner tersimpan, skor, rekomendasi, pengajuan, ekspor.
 
-### Minggu 9. 19–25 Okt 2026 — laporan Rabu 21 Oktober
+### Minggu 9. 19–25 Okt 2026 — laporan Selasa 20 Oktober
 
 Alur kuesioner → skor → rekomendasi. Mulai tes otomatis.
 
@@ -656,9 +656,9 @@ Harus selesai:
 
 Tes (siapa saja yang pegang Pest, utamakan Daffa + 1 orang lain): login 3 peran, simpan `businesses`.
 
-**Siap dilaporkan Rabu 21 Okt:** satu UMKM selesai kuesioner, muncul tingkat kendala, muncul daftar program. Petugas bisa verifikasi.
+**Siap dilaporkan Selasa 20 Okt:** satu UMKM selesai kuesioner, muncul tingkat kendala, muncul daftar program. Petugas bisa verifikasi.
 
-### Minggu 10. 26 Okt – 1 Nov 2026 — laporan Rabu 28 Oktober
+### Minggu 10. 26 Okt – 1 Nov 2026 — laporan Selasa 27 Oktober
 
 Integrasi tampilan. Dashboard dummy diganti data nyata.
 
@@ -673,9 +673,9 @@ Harus selesai:
 
 Tes: kuesioner → skor → rekomendasi (satu happy path).
 
-**Siap dilaporkan Rabu 28 Okt:** petugas ajukan program, kepala desa setujui atau tolak, pelaku lihat program di dashboardnya.
+**Siap dilaporkan Selasa 27 Okt:** petugas ajukan program, kepala desa setujui atau tolak, pelaku lihat program di dashboardnya.
 
-### Minggu 11. 2–8 Nov 2026 — laporan Rabu 4 November
+### Minggu 11. 2–8 Nov 2026 — laporan Selasa 3 November
 
 Pembinaan dan laporan. Tutup lubang integrasi.
 
@@ -684,15 +684,15 @@ Harus selesai:
 | Pemilik | Tugas |
 | --- | --- |
 | Radith | UC-12 catat pembinaan. Monitoring per UMKM. Riwayat petugas dan riwayat milik UMKM |
-| Nazwa | UC-15 ekspor PDF atau Excel (cukup salah satu dulu, yang kedua menyusul sebelum Rabu 11 Nov) |
+| Nazwa | UC-15 ekspor PDF atau Excel (cukup salah satu dulu, yang kedua menyusul sebelum Selasa 10 Nov) |
 | Hernanda | Rapikan form pelaku (profil, produk, kuesioner) setelah data nyata masuk. Pelaku tidak melihat UMKM lain |
 | Daffa | Perbaiki bug auth/scoring yang muncul di minggu 9–10. SSO tetap boleh nonaktif |
 
 Tes: follow-up `approved` → sesi pembinaan tersimpan.
 
-**Siap dilaporkan Rabu 4 Nov:** alur pengajuan sampai catatan pembinaan. Laporan bisa dibuka. Ekspor boleh masih kasar.
+**Siap dilaporkan Selasa 3 Nov:** alur pengajuan sampai catatan pembinaan. Laporan bisa dibuka. Ekspor boleh masih kasar.
 
-### Minggu 12. 9–15 Nov 2026 — laporan Rabu 11 November — Milestone 2
+### Minggu 12. 9–15 Nov 2026 — laporan Selasa 10 November — Milestone 2
 
 Produk fungsional + hasil uji. Tidak menambah fitur baru.
 
@@ -706,7 +706,7 @@ Harus selesai:
 | Daffa | Kumpulan tes inti di repo (Pest): login 3 peran, profil tersimpan, kuesioner + skor, rekomendasi, pengajuan + keputusan |
 | Hernanda | Cek form pelaku (profil, produk, kuesioner, rekomendasi, riwayat) tanpa data UMKM lain bocor |
 
-**Demo Milestone 2 (Rabu 11 Nov):**
+**Demo Milestone 2 (Selasa 10 Nov):**
 
 1. Pelaku: daftar, profil, produk, kuesioner, lihat rekomendasi dan riwayat.
 2. Petugas: daftar UMKM, verifikasi, program, ajukan tindak lanjut, catat pembinaan, lihat laporan/ekspor.
