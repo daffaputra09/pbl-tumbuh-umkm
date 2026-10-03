@@ -1,21 +1,13 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import LandingPage from '@/pages/LandingPage';
-import UmkmProfileForm from '@/pages/UmkmProfileForm';
-
-const pages = {
-    landing: LandingPage,
-    umkmProfile: UmkmProfileForm,
-};
 
 const rootElement = document.getElementById('app');
 
 if (rootElement) {
-    const Page = pages[rootElement.dataset.page] ?? LandingPage;
-
     createRoot(rootElement).render(
         <StrictMode>
-            <Page />
+            <LandingPage />
         </StrictMode>,
     );
 }

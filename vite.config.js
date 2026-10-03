@@ -8,7 +8,16 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.jsx'],
+            input: [
+                'resources/css/app.css',
+                'resources/css/petugas-umkm.css',
+                'resources/js/app.jsx',
+                'resources/js/entries/dashboard.jsx',
+                'resources/js/entries/umkm-dashboard.jsx',
+                'resources/js/entries/umkm-profile.jsx',
+                'resources/js/entries/umkm-needs.jsx',
+                'resources/js/entries/jenis-usaha.jsx',
+            ],
             refresh: true,
             fonts: [
                 bunny('Plus Jakarta Sans', {
