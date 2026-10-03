@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PetugasUmkmController;
+use App\Http\Controllers\BusinessTypeController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
@@ -39,6 +40,17 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(functio
     Route::get('/petugas/umkm/{id}', [PetugasUmkmController::class, 'detail'])->name('petugas.umkm.detail');
     Route::post('/petugas/umkm/{id}/verifikasi', [PetugasUmkmController::class, 'prosesVerifikasi'])->name('petugas.umkm.proses-verifikasi');
     Route::post('/petugas/umkm/{id}/tolak', [PetugasUmkmController::class, 'prosesTolak'])->name('petugas.umkm.proses-tolak');
+
+    Route::view('/petugas/jenis-usaha', 'petugas.umkm.jenis-usaha')->name('petugas.jenis-usaha');
+
+    Route::prefix('api/business-types')->name('api.business-types.')->group(function () {
+        Route::get('/', [BusinessTypeController::class, 'index'])->name('index');
+        Route::post('/', [BusinessTypeController::class, 'store'])->name('store');
+        Route::put('/{businessType}', [BusinessTypeController::class, 'update'])->name('update');
+        Route::patch('/{businessType}/toggle', [BusinessTypeController::class, 'toggle'])->name('toggle');
+        Route::get('/petugas/jenis-usaha', [BusinessTypeController::class, 'index']);
+    });
+
 });
 
 Route::middleware(['auth', 'active', 'role:'.User::ROLE_VILLAGE_HEAD])->group(function () {

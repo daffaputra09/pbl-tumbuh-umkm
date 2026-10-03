@@ -9,11 +9,6 @@ use Illuminate\Validation\Rule;
 
 class BusinessTypeController extends Controller
 {
-    // TODO: tambahkan middleware role petugas begitu sistem login/role sudah ada.
-	public function __construct(){
-		$this->middleware('role:officer');	
-	}
-
     public function index()
     {
         return BusinessType::orderBy('name')->get();
