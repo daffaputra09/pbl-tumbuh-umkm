@@ -1,6 +1,6 @@
 @extends('layouts.app-shell')
 
-@section('title', 'Profil UMKM')
+@section('title', 'Pendataan UMKM')
 
 @push('head')
     @viteReactRefresh
@@ -8,6 +8,6 @@
 @endpush
 
 @section('content')
-    <div id="app" data-page="umkmProfile"></div>
+    <div id="app" data-page="petugasPendataanUmkm"></div>
     <script type="application/json" id="page-props">@json(['business' => $business, 'businessTypes' => $businessTypes, 'mode' => $mode])</script>
 @endsection
