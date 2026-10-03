@@ -76,6 +76,7 @@ class RoleNavigation
             ['title' => 'Pengelolaan', 'items' => [
                 ['label' => 'Data UMKM', 'href' => '/petugas/umkm', 'icon' => 'Store01Icon'],
                 ['label' => 'Verifikasi data', 'href' => '/petugas/umkm', 'icon' => 'CheckListIcon'],
+                ['label' => 'Jenis usaha', 'href' => '/petugas/jenis-usaha', 'icon' => 'Store04Icon'],
                 ['label' => 'Kategori kendala', 'href' => null, 'icon' => 'Tag01Icon'],
                 ['label' => 'Program bantuan', 'href' => null, 'icon' => 'GiftIcon'],
             ]],

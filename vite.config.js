@@ -16,6 +16,7 @@ export default defineConfig({
                 'resources/js/entries/umkm-dashboard.jsx',
                 'resources/js/entries/umkm-profile.jsx',
                 'resources/js/entries/umkm-needs.jsx',
+                'resources/js/entries/jenis-usaha.jsx',
             ],
             refresh: true,
             fonts: [
