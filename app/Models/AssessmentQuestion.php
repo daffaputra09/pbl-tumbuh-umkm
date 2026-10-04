@@ -2,11 +2,16 @@
 
 namespace App\Models;
 
+use Database\Factories\AssessmentQuestionFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AssessmentQuestion extends Model
 {
+    /** @use HasFactory<AssessmentQuestionFactory> */
+    use HasFactory;
+
     protected $table = 'assessment_questions';
 
     protected $fillable = [

@@ -2,14 +2,18 @@
 
 namespace App\Models;
 
+use Database\Factories\BusinessFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Business extends Model
 {
-    use SoftDeletes;
+    /** @use HasFactory<BusinessFactory> */
+    use HasFactory, SoftDeletes;
 
     protected $primaryKey = 'user_id';
+
     public $incrementing = false;
 
     protected $fillable = [

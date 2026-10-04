@@ -2,10 +2,15 @@
 
 namespace App\Models;
 
+use Database\Factories\ObstacleCategoryFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ObstacleCategory extends Model
 {
+    /** @use HasFactory<ObstacleCategoryFactory> */
+    use HasFactory;
+
     protected $table = 'obstacle_categories';
 
     protected $fillable = [
