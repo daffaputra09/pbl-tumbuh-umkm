@@ -59,7 +59,7 @@ class RoleNavigation
             ]],
             ['title' => 'Usaha', 'items' => [
                 ['label' => 'Profil usaha', 'href' => '/umkm/profil', 'icon' => 'Store04Icon'],
-                ['label' => 'Produk', 'href' => null, 'icon' => 'Factory01Icon'],
+                ['label' => 'Produk', 'href' => '/umkm/produk', 'icon' => 'Factory01Icon'],
                 ['label' => 'Kebutuhan dan kendala', 'href' => '/umkm/kebutuhan', 'icon' => 'CheckListIcon'],
             ]],
             ['title' => 'Hasil', 'items' => [
