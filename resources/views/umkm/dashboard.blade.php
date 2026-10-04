@@ -9,4 +9,6 @@
 
 @section('content')
     <div id="app" data-page="umkmDashboard"></div>
+    <script type="application/json" id="page-props">@json(['business' => $business, 'ownerName'
+    => $ownerName])</script>
 @endsection

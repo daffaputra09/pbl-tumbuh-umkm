@@ -7,6 +7,7 @@ use App\Http\Controllers\PetugasUmkmController;
 use App\Http\Controllers\BusinessTypeController;
 use App\Http\Controllers\BusinessProfileController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\UmkmDashboardController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +22,7 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_BUSINESS_OWNER])->group(
     
     Route::get('/umkm/produk', [ProductController::class, 'page'])->name('umkm.produk');
     Route::get('/umkm/produk/data', [ProductController::class, 'index'])->name('umkm.produk.index');
+    Route::get('/umkm/dashboard', [UmkmDashboardController::class, 'index'])->name('umkm.dashboard');
     Route::post('/umkm/produk', [ProductController::class, 'store'])->name('umkm.produk.store');
     Route::put('/umkm/produk/{product}', [ProductController::class, 'update'])->name('umkm.produk.update');
     Route::patch('/umkm/produk/{product}/toggle', [ProductController::class, 'toggle'])->name('umkm.produk.toggle');
