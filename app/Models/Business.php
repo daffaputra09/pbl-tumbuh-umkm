@@ -9,6 +9,9 @@ class Business extends Model
 {
     use SoftDeletes;
 
+    protected $primaryKey = 'user_id';
+    public $incrementing = false;
+
     protected $fillable = [
         'user_id',
         'business_type_id',
