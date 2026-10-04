@@ -3,10 +3,15 @@ function getCsrfToken() {
 }
 
 export async function apiFetch(url, options = {}) {
+    // Kalau body-nya FormData (ada file di dalamnya), biarkan browser yang
+    // nentuin Content-Type sendiri (perlu boundary multipart otomatis).
+    // Maksa 'application/json' di sini bakal bikin upload file gagal.
+    const isFormData = options.body instanceof FormData;
+
     const response = await fetch(url, {
         ...options,
         headers: {
-            'Content-Type': 'application/json',
+            ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
             Accept: 'application/json',
             'X-CSRF-TOKEN': getCsrfToken(),
             ...options.headers,
