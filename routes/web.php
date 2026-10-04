@@ -5,13 +5,16 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PetugasUmkmController;
 use App\Http\Controllers\BusinessTypeController;
+use App\Http\Controllers\BusinessProfileController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'landing')->name('landing');
 
 Route::middleware(['auth', 'active', 'role:'.User::ROLE_BUSINESS_OWNER])->group(function () {
-    Route::view('/umkm/profil', 'umkm.profil')->name('umkm.profil');
+    Route::get('/umkm/profil', [BusinessProfileController::class, 'edit'])->name('umkm.profil');
+    Route::post('/umkm/profil', [BusinessProfileController::class, 'save'])->name('umkm.profil.save');
+    
     Route::view('/umkm/kebutuhan', 'umkm.kebutuhan')->name('umkm.kebutuhan');
     Route::view('/umkm/dashboard', 'umkm.dashboard')->name('umkm.dashboard');
 });
