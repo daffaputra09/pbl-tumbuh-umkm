@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('businesses', function (Blueprint $table) {
+	    $table->id();
             // Kosong kalau UMKM didata petugas dan belum punya akun sendiri.
             $table->foreignId('user_id')->nullable()->unique()->constrained()->nullOnDelete();
             $table->foreignId('business_type_id')->constrained();
