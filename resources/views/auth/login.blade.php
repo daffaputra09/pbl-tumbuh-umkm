@@ -20,7 +20,11 @@
 
         <x-password-field />
 
-        <button type="submit" class="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary px-6 text-[15px] font-semibold text-primary-foreground shadow-[0_1px_0_0_rgb(255_255_255/0.2)_inset,0_8px_20px_-8px_rgb(15_118_110/0.7)] hover:bg-brand-hover">
+        <div class="-mt-1 text-right">
+            <a href="{{ route('password.request') }}" class="text-sm font-semibold text-brand hover:text-brand-hover">Lupa kata sandi?</a>
+        </div>
+
+        <button type="submit" class="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary px-6 text-[15px] font-semibold text-primary-foreground shadow-[0_1px_0_0_rgb(255_255_255/0.2)_inset,0_8px_20px_-8px_rgb(15_118_110/0.7)] hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60">
             Masuk
             <x-hugeicon name="ArrowRight02Icon" :size="18" class="text-primary-foreground" />
         </button>

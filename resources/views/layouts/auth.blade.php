@@ -5,6 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title') — Tumbuh UMKM</title>
     @vite(['resources/css/app.css'])
+    <style>
+        @keyframes auth-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .auth-spinner {
+            width: 1rem;
+            height: 1rem;
+            flex: none;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 999px;
+            animation: auth-spin 0.7s linear infinite;
+        }
+    </style>
 </head>
 <body class="bg-canvas font-sans text-foreground antialiased">
     <div class="relative isolate min-h-svh overflow-hidden">
@@ -69,6 +84,12 @@
                     <h1 class="text-2xl font-extrabold tracking-tight text-ink">@yield('heading')</h1>
                     <p class="mt-1.5 text-sm leading-relaxed text-muted-foreground">@yield('subheading')</p>
 
+                    @if (session('status'))
+                        <div class="mt-5 rounded-2xl border border-brand-200 bg-brand-50 px-3 py-2.5 text-sm text-brand-900" role="status">
+                            {{ session('status') }}
+                        </div>
+                    @endif
+
                     @if ($errors->any())
                         <div class="mt-5 rounded-2xl border border-destructive/20 bg-destructive/10 px-3 py-2.5 text-sm text-destructive" role="alert">
                             <ul class="space-y-1">
@@ -95,6 +116,43 @@
     </div>
 
     <script>
+        document.querySelectorAll('form').forEach((form) => {
+            form.addEventListener('submit', (event) => {
+                if (form.dataset.submitting === 'true') {
+                    event.preventDefault();
+
+                    return;
+                }
+
+                form.dataset.submitting = 'true';
+
+                const button = event.submitter;
+
+                if (button instanceof HTMLButtonElement) {
+                    button.style.opacity = '0.6';
+                    button.style.cursor = 'not-allowed';
+                    button.setAttribute('aria-busy', 'true');
+
+                    button.querySelectorAll('svg').forEach((icon) => {
+                        icon.style.display = 'none';
+                    });
+
+                    if (!button.querySelector('.auth-spinner')) {
+                        const spinner = document.createElement('span');
+                        spinner.className = 'auth-spinner';
+                        spinner.setAttribute('aria-hidden', 'true');
+                        button.prepend(spinner);
+                    }
+                }
+
+                window.setTimeout(() => {
+                    if (button instanceof HTMLButtonElement) {
+                        button.disabled = true;
+                    }
+                }, 0);
+            });
+        });
+
         document.querySelectorAll('[data-password-toggle]').forEach((button) => {
             button.addEventListener('click', () => {
                 const input = document.getElementById(button.getAttribute('data-password-toggle'));

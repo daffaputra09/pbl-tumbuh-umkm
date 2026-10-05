@@ -24,6 +24,7 @@ class GoogleAuthTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Lanjutkan dengan Google');
+        $response->assertSee('form.dataset.submitting', false);
         $response->assertSee('#4285F4', false);
         $response->assertSee('Tampilkan kata sandi');
         $response->assertSee('Dari data, menjadi');
