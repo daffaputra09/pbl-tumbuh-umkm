@@ -1,6 +1,6 @@
 @extends('layouts.app-shell')
 
-@section('title', 'Master Data UMKM — TUMBUH UMKM')
+@section('title', 'Kelola Data UMKM — TUMBUH UMKM')
 
 @push('head')
     @vite(['resources/css/petugas-umkm.css'])
@@ -49,7 +49,7 @@
         </a>
 
         <div class="pumkm-page-header">
-            <h1 class="pumkm-page-title">Master Data UMKM</h1>
+            <h1 class="pumkm-page-title">Kelola Data UMKM</h1>
             <p class="pumkm-page-subtitle">
                 Pantau seluruh data UMKM desa yang terdaftar. Gunakan pencarian dan filter untuk meninjau status, lalu klik tombol <strong>Detail</strong> untuk melihat profil lengkap.
             </p>
