@@ -124,7 +124,7 @@ class RoleNavigation
                 ['label' => 'Laporan', 'href' => null, 'icon' => 'FileExportIcon'],
             ]],
             ['title' => 'Keputusan', 'items' => [
-                ['label' => 'Persetujuan tindak lanjut', 'href' => null, 'icon' => 'CheckListIcon'],
+                ['label' => 'Persetujuan tindak lanjut', 'href' => '/pimpinan/persetujuan-tindak-lanjut', 'icon' => 'CheckListIcon'],
                 ['label' => 'Riwayat pembinaan', 'href' => null, 'icon' => 'TeachingIcon'],
             ]],
             ['title' => 'Akun', 'items' => [
