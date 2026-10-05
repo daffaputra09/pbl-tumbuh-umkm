@@ -94,7 +94,7 @@ class RoleNavigation
                 ['label' => 'Program bantuan', 'href' => null, 'icon' => 'GiftIcon'],
             ]],
             ['title' => 'Tindak lanjut', 'items' => [
-                ['label' => 'Ajukan tindak lanjut', 'href' => null, 'icon' => 'TeachingIcon'],
+                ['label' => 'Ajukan tindak lanjut', 'href' => '/petugas/tindak-lanjut', 'icon' => 'TeachingIcon'],
                 ['label' => 'Riwayat pembinaan', 'href' => null, 'icon' => 'TeachingIcon'],
             ]],
             ['title' => 'Analisis', 'items' => [
