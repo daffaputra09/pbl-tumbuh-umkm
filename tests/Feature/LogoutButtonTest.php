@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Business;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -69,6 +70,10 @@ class LogoutButtonTest extends TestCase
         $this->withoutVite();
 
         $user = User::factory()->create(['role' => User::ROLE_BUSINESS_OWNER]);
+        Business::factory()->create([
+            'user_id' => $user->id,
+            'created_by' => $user->id,
+        ]);
 
         $this->actingAs($user)->get('/umkm/dashboard')->assertOk()->assertSee('Profil usaha', false)->assertSee('Keluar', false);
         $this->actingAs($user)->get('/umkm/profil')->assertOk()->assertSee('Kebutuhan dan kendala', false);

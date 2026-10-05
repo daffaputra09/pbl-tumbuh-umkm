@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'landing')->name('landing');
 
-Route::middleware(['auth', 'active', 'role:'.User::ROLE_BUSINESS_OWNER])->group(function () {
+Route::middleware(['auth', 'active', 'role:'.User::ROLE_BUSINESS_OWNER, 'business.profile'])->group(function () {
     Route::get('/umkm/profil', [BusinessProfileController::class, 'edit'])->name('umkm.profil');
     Route::post('/umkm/profil', [BusinessProfileController::class, 'save'])->name('umkm.profil.save');
 

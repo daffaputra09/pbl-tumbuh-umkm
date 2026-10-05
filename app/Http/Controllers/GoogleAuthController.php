@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Models\SocialAccount;
-use App\Models\Umkm;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,20 +16,8 @@ use Throwable;
 
 class GoogleAuthController extends Controller
 {
-    private const BUSINESS_NAME_SESSION_KEY = 'oauth.business_name';
-
-    public function redirect(Request $request): RedirectResponse
+    public function redirect(): RedirectResponse
     {
-        $businessName = $request->string('nama_usaha')->trim()->toString();
-
-        if ($businessName !== '') {
-            $request->validate([
-                'nama_usaha' => ['string', 'max:255'],
-            ]);
-
-            $request->session()->put(self::BUSINESS_NAME_SESSION_KEY, $businessName);
-        }
-
         return Socialite::driver('google')->redirect();
     }
 
@@ -40,7 +27,6 @@ class GoogleAuthController extends Controller
             $googleUser = $this->googleUser();
         } catch (Throwable $exception) {
             Log::warning('Google sign-in failed.', ['exception' => $exception]);
-            $request->session()->forget(self::BUSINESS_NAME_SESSION_KEY);
 
             return redirect()->route('login')->withErrors([
                 'login' => 'Masuk dengan Google gagal. Coba lagi.',
@@ -53,7 +39,7 @@ class GoogleAuthController extends Controller
             ]);
         }
 
-        $user = $this->resolveUser($request, $googleUser);
+        $user = $this->resolveUser($googleUser);
 
         if (! $user instanceof User) {
             return redirect()->route('login')->withErrors([
@@ -87,7 +73,7 @@ class GoogleAuthController extends Controller
         return redirect()->route($user->homeRouteName());
     }
 
-    private function resolveUser(Request $request, GoogleUser $googleUser): ?User
+    private function resolveUser(GoogleUser $googleUser): ?User
     {
         $emailVerified = $this->emailIsVerified($googleUser);
         $email = $googleUser->getEmail();
@@ -107,21 +93,15 @@ class GoogleAuthController extends Controller
             }
 
             if ($existing instanceof User && ! $emailVerified) {
-                $request->session()->forget(self::BUSINESS_NAME_SESSION_KEY);
-
                 return null;
             }
         }
 
         if ($user instanceof User) {
-            $request->session()->forget(self::BUSINESS_NAME_SESSION_KEY);
-
             return $user;
         }
 
         if (! is_string($email) || $email === '') {
-            $request->session()->forget(self::BUSINESS_NAME_SESSION_KEY);
-
             return null;
         }
 
@@ -136,15 +116,6 @@ class GoogleAuthController extends Controller
         $user->password = null;
         $user->email_verified_at = $emailVerified ? now() : null;
         $user->save();
-
-        $businessName = $request->session()->pull(self::BUSINESS_NAME_SESSION_KEY);
-
-        if (is_string($businessName) && $businessName !== '') {
-            Umkm::query()->create([
-                'id_user' => $user->id,
-                'nama_usaha' => $businessName,
-            ]);
-        }
 
         return $user;
     }

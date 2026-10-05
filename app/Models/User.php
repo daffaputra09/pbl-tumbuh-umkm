@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use SensitiveParameter;
@@ -50,6 +51,21 @@ class User extends Authenticatable
         return $this->hasMany(SocialAccount::class);
     }
 
+    public function business(): HasOne
+    {
+        return $this->hasOne(Business::class, 'user_id');
+    }
+
+    public function hasBusinessProfile(): bool
+    {
+        return $this->business()->exists();
+    }
+
+    public function hasPassword(): bool
+    {
+        return is_string($this->password) && $this->password !== '';
+    }
+
     public function hasRole(string ...$roles): bool
     {
         return in_array($this->role, $roles, true);
@@ -60,7 +76,7 @@ class User extends Authenticatable
         return match ($this->role) {
             self::ROLE_OFFICER => 'dashboard',
             self::ROLE_VILLAGE_HEAD => 'dashboard',
-            self::ROLE_BUSINESS_OWNER => 'umkm.dashboard',
+            self::ROLE_BUSINESS_OWNER => $this->hasBusinessProfile() ? 'umkm.dashboard' : 'umkm.profil',
             default => 'landing',
         };
     }
