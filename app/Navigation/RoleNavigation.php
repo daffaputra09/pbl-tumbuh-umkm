@@ -36,16 +36,21 @@ class RoleNavigation
         }
 
         $path = trim($href, '/');
-	$currentPath = request()->path();
+        $currentPath = request()->path();
 
-	if ($currentPath == $path) {
-		return true;
-	}
+        if ($currentPath === $path) {
+            return true;
+        }
 
-	if ($path !== 'petugas/umkm' && request()->is($path.'/*')) {
-		return true;
-	}
-	return false;
+        if ($path === 'petugas/umkm') {
+            return request()->is('petugas/umkm/*') && ! request()->is('petugas/umkm/pendataan-umkm*');
+        }
+
+        if (request()->is($path.'/*')) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -82,9 +87,9 @@ class RoleNavigation
                 ['label' => 'Dashboard', 'href' => '/dashboard', 'icon' => 'DashboardSquare01Icon'],
             ]],
             ['title' => 'Pengelolaan', 'items' => [
-                ['label' => 'Data UMKM', 'href' => '/petugas/umkm/pendataan-umkm', 'icon' => 'Store01Icon'],
-                ['label' => 'Verifikasi data', 'href' => '/petugas/umkm', 'icon' => 'CheckListIcon'],
-                ['label' => 'Jenis usaha', 'href' => '/petugas/jenis-usaha', 'icon' => 'Store04Icon'],
+                ['label' => 'Data UMKM', 'href' => '/petugas/umkm', 'icon' => 'Store01Icon'],
+                ['label' => 'Pendataan UMKM', 'href' => '/petugas/umkm/pendataan-umkm', 'icon' => 'Store04Icon'],
+                ['label' => 'Jenis usaha', 'href' => '/petugas/jenis-usaha', 'icon' => 'CheckListIcon'],
                 ['label' => 'Kategori kendala', 'href' => null, 'icon' => 'Tag01Icon'],
                 ['label' => 'Program bantuan', 'href' => null, 'icon' => 'GiftIcon'],
             ]],

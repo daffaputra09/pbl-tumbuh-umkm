@@ -54,6 +54,11 @@ class Business extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function verifiedBy()
+    {
+        return $this->belongsTo(User::class, 'verified_by');
+    }
+
     public function products()
     {
         return $this->hasMany(Product::class, 'user_id');
