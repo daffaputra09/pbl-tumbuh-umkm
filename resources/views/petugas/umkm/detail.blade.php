@@ -83,12 +83,12 @@
                         <span>•</span>
                         <div class="pumkm-detail-meta-item">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                            <span>Kategori: <strong>{{ $umkm['business_type'] ?? $umkm['kategori_produk'] }}</strong></span>
+                            <span>Kategori: <strong>{{ $umkm->businessType->name ?? ($umkm['business_type'] ?? ($umkm['kategori_produk'] ?? '-')) }}</strong></span>
                         </div>
                         <span>•</span>
                         <div class="pumkm-detail-meta-item">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            <span>Masuk: {{ \Carbon\Carbon::parse($umkm['created_at'] ?? $umkm['tanggal_daftar'])->isoFormat('D MMMM YYYY') }}</span>
+                            <span>Masuk: {{ \Carbon\Carbon::parse($umkm->created_at ?? $umkm['tanggal_daftar'])->isoFormat('D MMMM YYYY') }}</span>
                         </div>
                     </div>
                 </div>
@@ -177,18 +177,37 @@
                         <div class="pumkm-card-body">
                             <div class="pumkm-data-grid">
                                 <div class="pumkm-data-item">
-                                    <span class="pumkm-data-label">Kategori Produk</span>
-                                    <span class="pumkm-data-value">{{ $umkm['business_type'] ?? $umkm['kategori_produk'] }}</span>
+                                    <span class="pumkm-data-label">Kategori Usaha</span>
+                                    <span class="pumkm-data-value">{{ $umkm->businessType->name ?? ($umkm['business_type'] ?? ($umkm['kategori_produk'] ?? '-')) }}</span>
                                 </div>
                                 <div class="pumkm-data-item">
-                                    <span class="pumkm-data-label">Kisaran Harga</span>
-                                    <span class="pumkm-data-value">{{ $umkm['price_range'] ?? $umkm['kisaran_harga'] }}</span>
+                                    <span class="pumkm-data-label">Status Operasional</span>
+                                    <span class="pumkm-data-value">{{ ucfirst($umkm->operational_status ?? ($umkm['operational_status'] ?? 'Active')) }}</span>
                                 </div>
                                 <div class="pumkm-data-item pumkm-data-item--full">
-                                    <span class="pumkm-data-label">Deskripsi Produk</span>
-                                    <span class="pumkm-data-value">{{ $umkm['product_description'] ?? $umkm['deskripsi_produk'] }}</span>
+                                    <span class="pumkm-data-label">Deskripsi Usaha</span>
+                                    <span class="pumkm-data-value">{{ $umkm->description ?? ($umkm['product_description'] ?? ($umkm['deskripsi_produk'] ?? 'Tidak ada keterangan tambahan.')) }}</span>
                                 </div>
                             </div>
+
+                            @if(isset($umkm->products) && $umkm->products->isNotEmpty())
+                                <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+                                    <span class="pumkm-data-label" style="margin-bottom: 0.5rem; display: block;">Daftar Produk Terdaftar ({{ $umkm->products->count() }})</span>
+                                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                        @foreach($umkm->products as $prod)
+                                            <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 0.625rem 0.875rem; border-radius: 0.5rem; border: 1px solid #e2e8f0;">
+                                                <div>
+                                                    <span style="font-weight: 600; color: #1e293b;">{{ $prod->name }}</span>
+                                                    <span style="font-size: 0.75rem; color: #64748b; margin-left: 0.5rem;">({{ $prod->category }})</span>
+                                                </div>
+                                                <div style="font-size: 0.8125rem; font-weight: 600; color: #0f766e;">
+                                                    {{ $prod->price ? 'Rp ' . number_format($prod->price, 0, ',', '.') : '-' }}
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
@@ -304,7 +323,7 @@
                                     </div>
                                     @if(!empty($umkm['verified_at']))
                                         <div style="margin-top:0.75rem; font-size:0.75rem; color:#64748b; border-top:1px dashed #cbd5e1; padding-top:0.5rem;">
-                                            Diproses oleh: <strong>{{ $umkm['verified_by'] ?? 'Petugas Desa' }}</strong> pada {{ \Carbon\Carbon::parse($umkm['verified_at'])->isoFormat('D MMMM YYYY, HH:mm') }} WIB
+                                            Diproses oleh: <strong>{{ $umkm->verifiedBy->name ?? ($umkm['verified_by'] ?? 'Petugas Desa') }}</strong> pada {{ \Carbon\Carbon::parse($umkm['verified_at'])->isoFormat('D MMMM YYYY, HH:mm') }} WIB
                                         </div>
                                     @endif
                                 </div>
