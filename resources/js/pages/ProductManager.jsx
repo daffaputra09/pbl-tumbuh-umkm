@@ -1,13 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import PageBackground from '@/components/umkm/PageBackground';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api';
 import { cn } from '@/lib/utils';
+
+const UNIT_OPTIONS = ['Pcs', 'Kg', 'Gram', 'Liter', 'Porsi', 'Lusin', 'Lainnya'];
 
 function buildEmptyForm() {
     return {
@@ -15,7 +18,8 @@ function buildEmptyForm() {
         category: '',
         description: '',
         price: '',
-        unit: '',
+        unitChoice: '',
+        customUnit: '',
         photoFile: null,
     };
 }
@@ -45,12 +49,23 @@ export default function ProductManager({ business, mode = 'self' }) {
     const [errorMessage, setErrorMessage] = useState('');
 
     const [formData, setFormData] = useState(buildEmptyForm);
+    const [photoPreview, setPhotoPreview] = useState(null);
     const [editingId, setEditingId] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const fileInputRef = useRef(null);
 
     useEffect(() => {
         loadProducts();
     }, []);
+
+    useEffect(
+        () => () => {
+            if (photoPreview && photoPreview.startsWith('blob:')) {
+                URL.revokeObjectURL(photoPreview);
+            }
+        },
+        [photoPreview],
+    );
 
     async function loadProducts() {
         setIsLoading(true);
@@ -70,22 +85,36 @@ export default function ProductManager({ business, mode = 'self' }) {
         setFormData((prev) => ({ ...prev, [field]: value }));
     }
 
+    function handlePhotoChange(event) {
+        const file = event.target.files?.[0] ?? null;
+        updateField('photoFile', file);
+        setPhotoPreview(file ? URL.createObjectURL(file) : null);
+    }
+
     function startEdit(product) {
+        const isKnownUnit = UNIT_OPTIONS.slice(0, -1).includes(product.unit);
+
         setEditingId(product.id);
         setFormData({
             name: product.name,
             category: product.category,
             description: product.description ?? '',
             price: product.price !== null ? String(product.price) : '',
-            unit: product.unit ?? '',
+            unitChoice: product.unit ? (isKnownUnit ? product.unit : 'Lainnya') : '',
+            customUnit: product.unit && !isKnownUnit ? product.unit : '',
             photoFile: null,
         });
+        setPhotoPreview(product.photo_path ? `/storage/${product.photo_path}` : null);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function cancelEdit() {
         setEditingId(null);
         setFormData(buildEmptyForm());
+        setPhotoPreview(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
     }
 
     async function handleSubmit(event) {
@@ -99,17 +128,18 @@ export default function ProductManager({ business, mode = 'self' }) {
         setIsSubmitting(true);
         setErrorMessage('');
 
+        const finalUnit = formData.unitChoice === 'Lainnya' ? formData.customUnit.trim() : formData.unitChoice;
+
         const payload = new FormData();
         payload.append('name', formData.name.trim());
         payload.append('category', formData.category.trim());
         if (formData.description.trim()) payload.append('description', formData.description.trim());
         if (formData.price !== '') payload.append('price', formData.price);
-        if (formData.unit.trim()) payload.append('unit', formData.unit.trim());
+        if (finalUnit) payload.append('unit', finalUnit);
         if (formData.photoFile) payload.append('photo', formData.photoFile);
 
         try {
             if (editingId) {
-                // Laravel baca method PUT lewat _method kalau dikirim via FormData.
                 payload.append('_method', 'PUT');
                 const updated = await apiFetch(itemUrl(editingId), { method: 'POST', body: payload });
                 setProducts((prev) => prev.map((item) => (item.id === editingId ? updated : item)));
@@ -138,7 +168,7 @@ export default function ProductManager({ business, mode = 'self' }) {
     }
 
     const content = (
-        <div className="mx-auto max-w-3xl px-5 py-10 sm:py-14">
+        <div className="mx-auto max-w-3xl">
             <header className="mb-8">
                 <p className="text-sm font-semibold text-primary">
                     {isOfficerMode ? 'Pendampingan Produk' : 'Kelola Produk'}
@@ -185,22 +215,39 @@ export default function ProductManager({ business, mode = 'self' }) {
 
                         <div className="flex flex-col">
                             <Label className="mb-1.5">Harga (opsional)</Label>
-                            <Input
-                                type="number"
-                                min="0"
-                                value={formData.price}
-                                onChange={(event) => updateField('price', event.target.value)}
-                                placeholder="Contoh: 15000"
-                            />
+                            <div className="relative">
+                                <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-sm text-muted-foreground">
+                                    Rp
+                                </span>
+                                <Input
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={formData.price}
+                                    onChange={(event) => updateField('price', event.target.value.replace(/\D/g, ''))}
+                                    placeholder="15000"
+                                    className="pl-10"
+                                />
+                            </div>
                         </div>
 
                         <div className="flex flex-col">
                             <Label className="mb-1.5">Satuan (opsional)</Label>
-                            <Input
-                                value={formData.unit}
-                                onChange={(event) => updateField('unit', event.target.value)}
-                                placeholder="Contoh: pcs, kg, porsi"
-                            />
+                            <Select value={formData.unitChoice} onChange={(event) => updateField('unitChoice', event.target.value)}>
+                                <option value="">Pilih satuan</option>
+                                {UNIT_OPTIONS.map((unit) => (
+                                    <option key={unit} value={unit}>
+                                        {unit}
+                                    </option>
+                                ))}
+                            </Select>
+                            {formData.unitChoice === 'Lainnya' && (
+                                <Input
+                                    value={formData.customUnit}
+                                    onChange={(event) => updateField('customUnit', event.target.value)}
+                                    placeholder="Tulis satuan sendiri"
+                                    className="mt-2"
+                                />
+                            )}
                         </div>
 
                         <div className="flex flex-col sm:col-span-2">
@@ -215,11 +262,28 @@ export default function ProductManager({ business, mode = 'self' }) {
 
                         <div className="flex flex-col sm:col-span-2">
                             <Label className="mb-1.5">Foto (opsional)</Label>
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="flex items-center gap-4 rounded-xl border border-dashed border-border bg-white p-4 text-left transition-colors hover:border-primary/50"
+                            >
+                                {photoPreview ? (
+                                    <img src={photoPreview} alt="Pratinjau produk" className="size-16 shrink-0 rounded-lg object-cover" />
+                                ) : (
+                                    <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-muted text-[10px] text-muted-foreground">
+                                        Belum ada
+                                    </div>
+                                )}
+                                <span className="text-sm font-medium text-primary">
+                                    {photoPreview ? 'Ganti foto' : 'Klik untuk pilih foto'}
+                                </span>
+                            </button>
                             <input
+                                ref={fileInputRef}
                                 type="file"
                                 accept="image/*"
-                                onChange={(event) => updateField('photoFile', event.target.files?.[0] ?? null)}
-                                className="text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-primary"
+                                onChange={handlePhotoChange}
+                                className="hidden"
                             />
                         </div>
 
@@ -293,11 +357,11 @@ export default function ProductManager({ business, mode = 'self' }) {
     );
 
     if (isOfficerMode) {
-        return <div className={cn('min-h-screen bg-background')}>{content}</div>;
+        return <div className="relative isolate overflow-hidden">{content}</div>;
     }
 
     return (
-        <div className="relative isolate min-h-screen overflow-hidden bg-background">
+        <div className="relative isolate overflow-hidden">
             <PageBackground />
             {content}
         </div>
