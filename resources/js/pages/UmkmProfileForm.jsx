@@ -45,6 +45,9 @@ export default function UmkmProfileForm({ business = null, businessTypes = [], m
     const [submitStatus, setSubmitStatus] = useState('idle');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [serverError, setServerError] = useState('');
+    const [yearPickerOpen, setYearPickerOpen] = useState(false);
+    const [pickerDecade, setPickerDecade] = useState(
+    Math.floor(CURRENT_YEAR / 10) * 10);
 
     const isOfficerMode = mode === 'officer';
     const submitUrl = isOfficerMode ? '/petugas/umkm/pendataan-umkm' : '/umkm/profil';
@@ -53,6 +56,20 @@ export default function UmkmProfileForm({ business = null, businessTypes = [], m
         setFormData((prev) => ({ ...prev, [field]: value }));
         setErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
     }
+
+    function selectYear(year) {
+    updateField('establishedYear', String(year));
+    setYearPickerOpen(false);
+    }
+
+    function changeDecade(offset) {
+    setPickerDecade((prev) => prev + offset);
+    }
+
+    const pickerYears = Array.from(
+    { length: 12 },
+    (_, index) => pickerDecade - 1 + index
+    );
 
     function validate() {
         const nextErrors = {};
@@ -211,7 +228,7 @@ export default function UmkmProfileForm({ business = null, businessTypes = [], m
                             <Input
                                 value={formData.businessName}
                                 onChange={(event) => updateField('businessName', event.target.value)}
-                                placeholder="Contoh: Warung Ibu Sari"
+                                placeholder="Contoh: Warung Nasi Padang"
                                 aria-invalid={Boolean(errors.businessName)}
                             />
                         </Field>
@@ -274,14 +291,109 @@ export default function UmkmProfileForm({ business = null, businessTypes = [], m
                         </div>
 
                         <Field label="Tahun Berdiri" required error={errors.establishedYear}>
-                            <Input
-                                type="number"
-                                value={formData.establishedYear}
-                                onChange={(event) => updateField('establishedYear', event.target.value)}
-                                placeholder="Contoh: 2019"
-                                aria-invalid={Boolean(errors.establishedYear)}
-                            />
-                        </Field>
+    <div className="relative">
+        <button
+            type="button"
+            onClick={() => {
+                setYearPickerOpen((prev) => !prev);
+
+                const selectedYear = Number(formData.establishedYear);
+
+                if (
+                    selectedYear >= 1900 &&
+                    selectedYear <= CURRENT_YEAR
+                ) {
+                    setPickerDecade(
+                        Math.floor(selectedYear / 10) * 10
+                    );
+                } else {
+                    setPickerDecade(
+                        Math.floor(CURRENT_YEAR / 10) * 10
+                    );
+                }
+            }}
+            className={cn(
+                'flex h-10 w-full items-center justify-between rounded-md border bg-background px-3 text-sm shadow-sm',
+                errors.establishedYear
+                    ? 'border-destructive'
+                    : 'border-input'
+            )}
+        >
+            <span
+                className={
+                    formData.establishedYear
+                        ? 'text-foreground'
+                        : 'text-muted-foreground'
+                }
+            >
+                {formData.establishedYear || 'Pilih tahun'}
+            </span>
+
+            <span className="text-muted-foreground">
+                ▦
+            </span>
+        </button>
+
+        {yearPickerOpen && (
+            <div className="absolute z-50 mt-2 w-full min-w-[280px] rounded-xl border bg-background p-3 shadow-lg">
+                <div className="mb-3 flex items-center justify-between">
+                    <button
+                        type="button"
+                        onClick={() => changeDecade(-10)}
+                        disabled={pickerDecade <= 1900}
+                        className="rounded-md px-2 py-1 text-sm font-semibold hover:bg-muted disabled:opacity-30"
+                    >
+                        «
+                    </button>
+
+                    <span className="text-sm font-semibold">
+                        {pickerDecade}–{pickerDecade + 9}
+                    </span>
+
+                    <button
+                        type="button"
+                        onClick={() => changeDecade(10)}
+                        disabled={pickerDecade + 10 > CURRENT_YEAR}
+                        className="rounded-md px-2 py-1 text-sm font-semibold hover:bg-muted disabled:opacity-30"
+                    >
+                        »
+                    </button>
+                </div>
+
+                <div className="grid grid-cols-4 gap-1">
+                    {pickerYears.map((year) => {
+                        const isSelected =
+                            Number(formData.establishedYear) === year;
+
+                        const isDisabled =
+                            year < 1900 || year > CURRENT_YEAR;
+
+                        return (
+                            <button
+                                key={year}
+                                type="button"
+                                disabled={isDisabled}
+                                onClick={() => selectYear(year)}
+                                className={cn(
+                                    'rounded-md px-2 py-2 text-sm transition',
+                                    isSelected &&
+                                        'bg-primary text-primary-foreground font-semibold',
+                                    !isSelected &&
+                                        !isDisabled &&
+                                        'hover:bg-muted',
+                                    isDisabled &&
+                                        'cursor-not-allowed text-muted-foreground/40'
+                                )}
+                            >
+                                {year}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+        )}
+    </div>
+</Field>
 
                         <Field label="Jumlah Pekerja" required error={errors.employeeCount}>
                             <Input
