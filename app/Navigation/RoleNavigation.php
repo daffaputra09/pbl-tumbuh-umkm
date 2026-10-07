@@ -90,7 +90,7 @@ class RoleNavigation
                 ['label' => 'Data UMKM', 'href' => '/petugas/umkm', 'icon' => 'Store01Icon'],
                 ['label' => 'Pendataan UMKM', 'href' => '/petugas/umkm/pendataan-umkm', 'icon' => 'Store04Icon'],
                 ['label' => 'Jenis usaha', 'href' => '/petugas/jenis-usaha', 'icon' => 'CheckListIcon'],
-                ['label' => 'Kategori kendala', 'href' => null, 'icon' => 'Tag01Icon'],
+                ['label' => 'Kategori kendala', 'href' => '/petugas/kategori-kendala', 'icon' => 'Tag01Icon'],
                 ['label' => 'Program bantuan', 'href' => null, 'icon' => 'GiftIcon'],
             ]],
             ['title' => 'Tindak lanjut', 'items' => [
