@@ -55,7 +55,14 @@ class PetugasUmkmController extends Controller
     public function detail($id)
     {
         $umkm = Business::query()
-            ->with(['businessType', 'products', 'createdBy', 'verifiedBy'])
+            ->with([
+                'businessType',
+                'products',
+                'createdBy',
+                'verifiedBy',
+                'currentAssessment.primaryObstacleCategory',
+                'currentAssessment.categoryScores.obstacleCategory',
+            ])
             ->where('id', $id)
             ->firstOrFail();
 
@@ -68,7 +75,7 @@ class PetugasUmkmController extends Controller
     {
         $umkm = Business::query()->where('id', $id)->firstOrFail();
 
-        if (!in_array($umkm->verification_status, ['pending', 'menunggu'], true)) {
+        if (! in_array($umkm->verification_status, ['pending', 'menunggu'], true)) {
             return redirect()->route('petugas.umkm.detail', $id)
                 ->with('error', 'UMKM ini sudah diproses sebelumnya dan tidak dapat diverifikasi ulang.');
         }
@@ -83,7 +90,7 @@ class PetugasUmkmController extends Controller
         ]);
 
         return redirect()->route('petugas.umkm.detail', $id)
-            ->with('success', 'Data UMKM "' . $umkm->business_name . '" berhasil diverifikasi!');
+            ->with('success', 'Data UMKM "'.$umkm->business_name.'" berhasil diverifikasi!');
     }
 
     public function prosesTolak(Request $request, $id)
@@ -97,7 +104,7 @@ class PetugasUmkmController extends Controller
 
         $umkm = Business::query()->where('id', $id)->firstOrFail();
 
-        if (!in_array($umkm->verification_status, ['pending', 'menunggu'], true)) {
+        if (! in_array($umkm->verification_status, ['pending', 'menunggu'], true)) {
             return redirect()->route('petugas.umkm.detail', $id)
                 ->with('error', 'UMKM ini sudah diproses sebelumnya dan tidak dapat ditolak lagi.');
         }
@@ -110,6 +117,6 @@ class PetugasUmkmController extends Controller
         ]);
 
         return redirect()->route('petugas.umkm.detail', $id)
-            ->with('warning', 'Data UMKM "' . $umkm->business_name . '" telah ditolak dengan catatan penolakan.');
+            ->with('warning', 'Data UMKM "'.$umkm->business_name.'" telah ditolak dengan catatan penolakan.');
     }
 }

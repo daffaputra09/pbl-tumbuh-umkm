@@ -63,4 +63,14 @@ class Business extends Model
     {
         return $this->hasMany(Product::class, 'user_id');
     }
+
+    public function assessments()
+    {
+        return $this->hasMany(Assessment::class, 'business_id', 'user_id');
+    }
+
+    public function currentAssessment()
+    {
+        return $this->hasOne(Assessment::class, 'business_id', 'user_id')->where('is_current', true);
+    }
 }
