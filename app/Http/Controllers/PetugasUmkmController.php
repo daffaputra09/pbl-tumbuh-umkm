@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Business;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class PetugasUmkmController extends Controller
 {
     public function verifikasi(Request $request)
     {
+        Gate::authorize('viewAny', Business::class);
+
         $keyword = trim((string) $request->query('q', ''));
         $filterStatus = (string) $request->query('status', 'semua');
 
@@ -66,6 +69,8 @@ class PetugasUmkmController extends Controller
             ->where('id', $id)
             ->firstOrFail();
 
+        Gate::authorize('view', $umkm);
+
         return view('petugas.umkm.detail', [
             'umkm' => $umkm,
         ]);
@@ -74,6 +79,8 @@ class PetugasUmkmController extends Controller
     public function prosesVerifikasi(Request $request, $id)
     {
         $umkm = Business::query()->where('id', $id)->firstOrFail();
+
+        Gate::authorize('verify', $umkm);
 
         if (! in_array($umkm->verification_status, ['pending', 'menunggu'], true)) {
             return redirect()->route('petugas.umkm.detail', $id)
@@ -103,6 +110,8 @@ class PetugasUmkmController extends Controller
         ]);
 
         $umkm = Business::query()->where('id', $id)->firstOrFail();
+
+        Gate::authorize('verify', $umkm);
 
         if (! in_array($umkm->verification_status, ['pending', 'menunggu'], true)) {
             return redirect()->route('petugas.umkm.detail', $id)

@@ -90,11 +90,11 @@ class RoleNavigation
                 ['label' => 'Data UMKM', 'href' => '/petugas/umkm', 'icon' => 'Store01Icon'],
                 ['label' => 'Pendataan UMKM', 'href' => '/petugas/umkm/pendataan-umkm', 'icon' => 'Store04Icon'],
                 ['label' => 'Jenis usaha', 'href' => '/petugas/jenis-usaha', 'icon' => 'CheckListIcon'],
-                ['label' => 'Kategori kendala', 'href' => null, 'icon' => 'Tag01Icon'],
+                ['label' => 'Kategori kendala', 'href' => '/petugas/kategori-kendala', 'icon' => 'Tag01Icon'],
                 ['label' => 'Program bantuan', 'href' => null, 'icon' => 'GiftIcon'],
             ]],
             ['title' => 'Tindak lanjut', 'items' => [
-                ['label' => 'Ajukan tindak lanjut', 'href' => null, 'icon' => 'TeachingIcon'],
+                ['label' => 'Ajukan tindak lanjut', 'href' => '/petugas/tindak-lanjut', 'icon' => 'TeachingIcon'],
                 ['label' => 'Riwayat pembinaan', 'href' => null, 'icon' => 'TeachingIcon'],
             ]],
             ['title' => 'Analisis', 'items' => [
@@ -124,7 +124,7 @@ class RoleNavigation
                 ['label' => 'Laporan', 'href' => null, 'icon' => 'FileExportIcon'],
             ]],
             ['title' => 'Keputusan', 'items' => [
-                ['label' => 'Persetujuan tindak lanjut', 'href' => null, 'icon' => 'CheckListIcon'],
+                ['label' => 'Persetujuan tindak lanjut', 'href' => '/pimpinan/persetujuan-tindak-lanjut', 'icon' => 'CheckListIcon'],
                 ['label' => 'Riwayat pembinaan', 'href' => null, 'icon' => 'TeachingIcon'],
             ]],
             ['title' => 'Akun', 'items' => [

@@ -6,14 +6,15 @@ use App\Models\Business;
 use App\Models\BusinessType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class BusinessProfileController extends Controller
 {
-   
     public function edit(Request $request): View
     {
         $business = Business::where('user_id', $request->user()->id)->first();
+        $this->authorizeOwnProfile($business);
 
         return view('umkm.profil', [
             'business' => $business,
@@ -22,10 +23,11 @@ class BusinessProfileController extends Controller
         ]);
     }
 
-
     public function save(Request $request): JsonResponse
     {
         $validated = $request->validate($this->rules());
+        $business = Business::where('user_id', $request->user()->id)->first();
+        $this->authorizeOwnProfile($business);
 
         $business = Business::updateOrCreate(
             ['user_id' => $request->user()->id],
@@ -38,9 +40,10 @@ class BusinessProfileController extends Controller
         return response()->json($business, 200);
     }
 
-   
     public function officerEdit(): View
     {
+        Gate::authorize('create', Business::class);
+
         return view('petugas.umkm.pendataan-umkm', [
             'business' => null,
             'businessTypes' => $this->businessTypeOptions(),
@@ -48,9 +51,10 @@ class BusinessProfileController extends Controller
         ]);
     }
 
-    
     public function officerSave(Request $request): JsonResponse
     {
+        Gate::authorize('create', Business::class);
+
         $validated = $request->validate($this->rules());
 
         $business = Business::create([
@@ -60,6 +64,17 @@ class BusinessProfileController extends Controller
         ]);
 
         return response()->json($business, 201);
+    }
+
+    private function authorizeOwnProfile(?Business $business): void
+    {
+        if ($business === null) {
+            Gate::authorize('createOwn', Business::class);
+
+            return;
+        }
+
+        Gate::authorize('update', $business);
     }
 
     private function rules(): array

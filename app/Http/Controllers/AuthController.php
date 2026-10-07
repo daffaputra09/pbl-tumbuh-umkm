@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Middleware\EnsureUserIsActive;
-use App\Models\Umkm;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +21,6 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
-            'nama_usaha' => 'required|string|max:255',
         ]);
 
         $user = User::create([
@@ -30,16 +28,12 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => User::ROLE_BUSINESS_OWNER,
-        ]);
-
-        Umkm::create([
-            'id_user' => $user->id,
-            'nama_usaha' => $request->nama_usaha,
+            'is_active' => true,
         ]);
 
         Auth::login($user);
 
-        return redirect()->route('umkm.dashboard');
+        return redirect()->route($user->homeRouteName());
     }
 
     public function showLoginForm()

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -13,19 +14,26 @@ class AccountController extends Controller
     public function edit(Request $request): View
     {
         $user = $this->accountUser($request);
+        Gate::authorize('view', $user);
 
-        return view('account.edit', ['user' => $user]);
+        return view('account.edit', [
+            'user' => $user,
+            'hasPassword' => $user->hasPassword(),
+            'usesGoogle' => $user->socialAccounts()->where('provider', 'google')->exists(),
+        ]);
     }
 
     public function update(Request $request): RedirectResponse
     {
         $user = $this->accountUser($request);
+        Gate::authorize('update', $user);
+        $hasPassword = $user->hasPassword();
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:20'],
-            'current_password' => [Rule::excludeIf(! $request->filled('password')), 'required', 'current_password'],
+            'current_password' => [Rule::excludeIf(! $hasPassword || ! $request->filled('password')), 'required', 'current_password'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ], [
             'name.required' => 'Nama wajib diisi.',
@@ -44,13 +52,19 @@ class AccountController extends Controller
             'phone' => $validated['phone'] ?? null,
         ]);
 
+        $passwordCreated = ! $hasPassword && filled($validated['password'] ?? null);
+
         if (filled($validated['password'] ?? null)) {
             $user->password = $validated['password'];
         }
 
         $user->save();
 
-        return redirect()->route('account.edit')->with('status', 'Profil akun sudah disimpan.');
+        $status = $passwordCreated
+            ? 'Kata sandi sudah dibuat. Masuk berikutnya bisa memakai email dan kata sandi ini.'
+            : 'Profil akun sudah disimpan.';
+
+        return redirect()->route('account.edit')->with('status', $status);
     }
 
     private function accountUser(Request $request): User

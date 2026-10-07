@@ -45,10 +45,10 @@ export default function Navbar() {
                 </ul>
 
                 <div className="flex items-center gap-2">
-                    <a href="#mulai" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'hidden sm:inline-flex')}>
+                    <a href="/login" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'hidden sm:inline-flex')}>
                         Masuk
                     </a>
-                    <a href="#mulai" className={cn(buttonVariants({ size: 'sm' }), 'hidden sm:inline-flex')}>
+                    <a href="/register" className={cn(buttonVariants({ size: 'sm' }), 'hidden sm:inline-flex')}>
                         Daftarkan Usaha
                         <Icon icon={ArrowRight02Icon} size={16} strokeWidth={2} className="transition-transform group-hover/button:translate-x-0.5" />
                     </a>
@@ -87,10 +87,10 @@ export default function Navbar() {
                             ))}
                         </ul>
                         <div className="mt-2 grid grid-cols-2 gap-2 border-t pt-3">
-                            <a href="#mulai" onClick={() => setIsMenuOpen(false)} className={buttonVariants({ variant: 'outline' })}>
+                            <a href="/login" onClick={() => setIsMenuOpen(false)} className={buttonVariants({ variant: 'outline' })}>
                                 Masuk
                             </a>
-                            <a href="#mulai" onClick={() => setIsMenuOpen(false)} className={buttonVariants()}>
+                            <a href="/register" onClick={() => setIsMenuOpen(false)} className={buttonVariants()}>
                                 Daftarkan Usaha
                             </a>
                         </div>

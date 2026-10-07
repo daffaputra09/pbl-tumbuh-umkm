@@ -6,6 +6,7 @@ use App\Http\Controllers\BusinessProfileController;
 use App\Http\Controllers\BusinessTypeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GoogleAuthController;
+use App\Http\Controllers\ObstacleCategoryController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PetugasUmkmController;
 use App\Http\Controllers\ProductController;
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'landing')->name('landing');
 
-Route::middleware(['auth', 'active', 'role:'.User::ROLE_BUSINESS_OWNER])->group(function () {
+Route::middleware(['auth', 'active', 'role:'.User::ROLE_BUSINESS_OWNER, 'business.profile'])->group(function () {
     Route::get('/umkm/profil', [BusinessProfileController::class, 'edit'])->name('umkm.profil');
     Route::post('/umkm/profil', [BusinessProfileController::class, 'save'])->name('umkm.profil.save');
 
@@ -64,6 +65,12 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(functio
     Route::post('/petugas/umkm/{id}/tolak', [PetugasUmkmController::class, 'prosesTolak'])->name('petugas.umkm.proses-tolak');
 
     Route::view('/petugas/jenis-usaha', 'petugas.umkm.jenis-usaha')->name('petugas.jenis-usaha');
+    Route::get('/petugas/kategori-kendala', [ObstacleCategoryController::class, 'index'])->name('petugas.kategori-kendala.index');
+    Route::post('/petugas/kategori-kendala', [ObstacleCategoryController::class, 'store'])->name('petugas.kategori-kendala.store');
+    Route::put('/petugas/kategori-kendala/{obstacleCategory}', [ObstacleCategoryController::class, 'update'])->name('petugas.kategori-kendala.update');
+    Route::patch('/petugas/kategori-kendala/{obstacleCategory}/toggle', [ObstacleCategoryController::class, 'toggle'])->name('petugas.kategori-kendala.toggle');
+    Route::delete('/petugas/kategori-kendala/{obstacleCategory}', [ObstacleCategoryController::class, 'destroy'])->name('petugas.kategori-kendala.destroy');
+    Route::view('/petugas/tindak-lanjut', 'petugas.tindak-lanjut')->name('petugas.tindak-lanjut');
 
     Route::get('/petugas/umkm/{business}/produk', [ProductController::class, 'officerPage'])->name('petugas.umkm.produk');
     Route::get('/petugas/umkm/{business}/produk/data', [ProductController::class, 'officerIndex'])->name('petugas.umkm.produk.index');
@@ -83,4 +90,5 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(functio
 
 Route::middleware(['auth', 'active', 'role:'.User::ROLE_VILLAGE_HEAD])->group(function () {
     Route::get('/pimpinan/dashboard', [AuthController::class, 'dashboardPimpinan'])->name('pimpinan.dashboard');
+    Route::view('/pimpinan/persetujuan-tindak-lanjut', 'pimpinan.persetujuan-tindak-lanjut')->name('pimpinan.persetujuan-tindak-lanjut');
 });
