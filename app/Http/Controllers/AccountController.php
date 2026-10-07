@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -13,6 +14,7 @@ class AccountController extends Controller
     public function edit(Request $request): View
     {
         $user = $this->accountUser($request);
+        Gate::authorize('view', $user);
 
         return view('account.edit', [
             'user' => $user,
@@ -24,6 +26,7 @@ class AccountController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $user = $this->accountUser($request);
+        Gate::authorize('update', $user);
         $hasPassword = $user->hasPassword();
 
         $validated = $request->validate([
