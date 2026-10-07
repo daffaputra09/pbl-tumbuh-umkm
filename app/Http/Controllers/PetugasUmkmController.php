@@ -58,7 +58,14 @@ class PetugasUmkmController extends Controller
     public function detail($id)
     {
         $umkm = Business::query()
-            ->with(['businessType', 'products', 'createdBy', 'verifiedBy'])
+            ->with([
+                'businessType',
+                'products',
+                'createdBy',
+                'verifiedBy',
+                'currentAssessment.primaryObstacleCategory',
+                'currentAssessment.categoryScores.obstacleCategory',
+            ])
             ->where('id', $id)
             ->firstOrFail();
 
