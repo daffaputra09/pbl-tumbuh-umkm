@@ -48,8 +48,8 @@ class GoogleAuthTest extends TestCase
         $response->assertSee('Daftar dengan Google');
         $response->assertSee('#4285F4', false);
         $response->assertSee('Tampilkan kata sandi');
-        $response->assertSee('Data usaha dilengkapi');
-        $response->assertDontSee('Nama usaha');
+        $response->assertSee('Nama usaha dicatat sekarang');
+        $response->assertSee('Nama usaha');
         $response->assertSee('Dari data, menjadi');
     }
 

@@ -2,7 +2,7 @@
 
 @section('title', 'Daftar')
 @section('heading', 'Daftar')
-@section('subheading', 'Buat akun pelaku usaha. Data usaha dilengkapi pada langkah berikutnya.')
+@section('subheading', 'Buat akun pelaku usaha. Nama usaha dicatat sekarang, data lainnya dilengkapi pada langkah berikutnya.')
 
 @section('content')
     <form method="POST" action="{{ route('register') }}" class="space-y-4">
@@ -26,6 +26,15 @@
             :value="old('email')"
             autocomplete="email"
             placeholder="nama@email.com"
+        />
+
+        <x-text-field
+            id="business_name"
+            name="business_name"
+            label="Nama usaha"
+            :value="old('business_name')"
+            autocomplete="organization"
+            placeholder="Nama usaha Anda"
         />
 
         <x-password-field autocomplete="new-password" placeholder="Minimal 8 karakter" />
