@@ -1,44 +1,19 @@
 import { useState } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { TeachingIcon, File02Icon, Calendar01Icon, Tag01Icon, Cancel01Icon } from '@hugeicons/core-free-icons';
-import PageBackground from '@/components/umkm/PageBackground';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
+import { apiFetch } from '@/lib/api';
 
-const DUMMY_DATA = [
-    {
-        id: 1,
-        umkm_name: "Warung Makan Berkah",
-        owner_name: "Budi Santoso",
-        problem_category: "Pemasaran",
-        recommended_program: "Pelatihan Digital Marketing",
-        status: "ready"
-    },
-    {
-        id: 2,
-        umkm_name: "Kerajinan Rotan Indah",
-        owner_name: "Siti Aminah",
-        problem_category: "Modal",
-        recommended_program: "Bantuan Kredit Usaha Rakyat",
-        status: "ready"
-    },
-    {
-        id: 3,
-        umkm_name: "Kopi Desa",
-        owner_name: "Andi Darmawan",
-        problem_category: "Legalitas",
-        recommended_program: "Fasilitasi Sertifikasi Halal",
-        status: "ready"
-    }
-];
-
-export default function TindakLanjutManager() {
-    const [queue, setQueue] = useState(DUMMY_DATA);
+export default function TindakLanjutManager({ queue: initialQueue = [] }) {
+    const [queue, setQueue] = useState(initialQueue);
     const [selectedItem, setSelectedItem] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({
         planned_activity: '',
         planned_on: '',
@@ -55,6 +30,7 @@ export default function TindakLanjutManager() {
     }
 
     function closeModal() {
+        if (isSubmitting) return;
         setSelectedItem(null);
     }
 
@@ -62,27 +38,45 @@ export default function TindakLanjutManager() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     }
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
-        setQueue((prev) => 
-            prev.map(item => 
-                item.id === selectedItem.id ? { ...item, status: 'pending' } : item
-            )
-        );
-        closeModal();
+        setIsSubmitting(true);
+        try {
+            await apiFetch('/petugas/tindak-lanjut', {
+                method: 'POST',
+                body: JSON.stringify({
+                    business_id: selectedItem.business_id,
+                    program_recommendation_id: selectedItem.program_recommendation_id,
+                    planned_activity: formData.planned_activity,
+                    planned_on: formData.planned_on,
+                    submission_note: formData.submission_note,
+                }),
+            });
+
+            setQueue((prev) => 
+                prev.map(item => 
+                    item.id === selectedItem.id ? { ...item, status: 'pending' } : item
+                )
+            );
+            closeModal();
+            alert('Tindak lanjut berhasil diajukan!');
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     return (
-        <div className="relative isolate -mx-4 -mt-5 -mb-5 overflow-hidden bg-background sm:-mx-6 sm:-mt-6 sm:-mb-6 lg:-mx-8 lg:-mt-8 lg:-mb-8">
-            <PageBackground />
-            <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-                <header className="mb-8">
-                    <p className="text-sm font-semibold text-primary">Tindak Lanjut</p>
-                    <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">Ajukan Tindak Lanjut</h1>
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+        <div className="space-y-6">
+            <header>
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">Ajukan Tindak Lanjut</h1>
+                    <p className="mt-1 text-sm text-slate-600 max-w-3xl">
                         Tandai rekomendasi dan ajukan program pembinaan UMKM kepada Kepala Desa untuk disetujui.
                     </p>
-                </header>
+                </div>
+            </header>
 
                 <Card>
                     <CardHeader className="flex-row items-center gap-3 space-y-0">
@@ -141,7 +135,6 @@ export default function TindakLanjutManager() {
                         </div>
                     </CardContent>
                 </Card>
-            </div>
 
             {/* Modal */}
             <AnimatePresence>
@@ -216,8 +209,8 @@ export default function TindakLanjutManager() {
                                         />
                                     </div>
                                     <div className="pt-4">
-                                        <Button type="submit" className="w-full">
-                                            Kirim Pengajuan
+                                        <Button type="submit" className="w-full" disabled={isSubmitting}>
+                                            {isSubmitting ? 'Mengirim...' : 'Kirim Pengajuan'}
                                         </Button>
                                     </div>
                                 </form>
