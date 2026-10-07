@@ -6,6 +6,7 @@ use App\Models\Business;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -16,6 +17,7 @@ class ProductController extends Controller
     public function page(Request $request): View
     {
         $business = $this->ownBusiness($request);
+        Gate::authorize('viewAny', [Product::class, $business]);
 
         return view('umkm.produk', [
             'business' => ['id' => $business->id, 'name' => $business->business_name],
@@ -26,6 +28,7 @@ class ProductController extends Controller
     public function index(Request $request): JsonResponse
     {
         $business = $this->ownBusiness($request);
+        Gate::authorize('viewAny', [Product::class, $business]);
 
         return response()->json($business->products()->orderBy('name')->get());
     }
@@ -33,6 +36,7 @@ class ProductController extends Controller
     public function store(Request $request): JsonResponse
     {
         $business = $this->ownBusiness($request);
+        Gate::authorize('create', [Product::class, $business]);
 
         return response()->json($this->saveProduct($request, $business), 201);
     }
@@ -40,7 +44,7 @@ class ProductController extends Controller
     public function update(Request $request, Product $product): JsonResponse
     {
         $business = $this->ownBusiness($request);
-        abort_unless($product->business_id === $business->user_id, 403);
+        Gate::authorize('update', [$product, $business]);
 
         return response()->json($this->saveProduct($request, $business, $product));
     }
@@ -48,7 +52,7 @@ class ProductController extends Controller
     public function toggle(Request $request, Product $product): JsonResponse
     {
         $business = $this->ownBusiness($request);
-        abort_unless($product->business_id === $business->user_id, 403);
+        Gate::authorize('update', [$product, $business]);
 
         $product->update(['is_active' => ! $product->is_active]);
 
@@ -59,6 +63,8 @@ class ProductController extends Controller
 
     public function officerPage(Business $business): View
     {
+        Gate::authorize('viewAny', [Product::class, $business]);
+
         return view('petugas.umkm.produk', [
             'business' => ['id' => $business->id, 'name' => $business->business_name],
             'mode' => 'officer',
@@ -67,24 +73,28 @@ class ProductController extends Controller
 
     public function officerIndex(Business $business): JsonResponse
     {
+        Gate::authorize('viewAny', [Product::class, $business]);
+
         return response()->json($business->products()->orderBy('name')->get());
     }
 
     public function officerStore(Request $request, Business $business): JsonResponse
     {
+        Gate::authorize('create', [Product::class, $business]);
+
         return response()->json($this->saveProduct($request, $business), 201);
     }
 
     public function officerUpdate(Request $request, Business $business, Product $product): JsonResponse
     {
-        abort_unless($product->business_id === $business->update_id, 403);
+        Gate::authorize('update', [$product, $business]);
 
         return response()->json($this->saveProduct($request, $business, $product));
     }
 
     public function officerToggle(Business $business, Product $product): JsonResponse
     {
-        abort_unless($product->business_id === $business->user_id, 403);
+        Gate::authorize('update', [$product, $business]);
 
         $product->update(['is_active' => ! $product->is_active]);
 
