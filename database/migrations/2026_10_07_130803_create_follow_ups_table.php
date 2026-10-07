@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('follow_ups', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('business_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('business_id')->constrained('businesses', 'user_id')->cascadeOnDelete();
             $table->foreignId('program_recommendation_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('assistance_program_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('submitted_by')->constrained('users')->cascadeOnDelete();
