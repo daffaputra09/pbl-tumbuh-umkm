@@ -6,14 +6,21 @@
     <div class="space-y-6">
         @if(session('success'))
             <div class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
-                <x-hugeicon name="CheckmarkCircle02Icon" :size="20" class="text-emerald-600 shrink-0" />
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-600 shrink-0" aria-hidden="true">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
                 <div>{{ session('success') }}</div>
             </div>
         @endif
 
         @if(session('error'))
             <div class="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
-                <x-hugeicon name="AlertCircleIcon" :size="20" class="text-rose-600 shrink-0" />
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-rose-600 shrink-0" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
                 <div>{{ session('error') }}</div>
             </div>
         @endif
@@ -70,7 +77,9 @@
                 <div class="flex items-center justify-between">
                     <span class="text-xs font-bold tracking-wider text-slate-400 uppercase">Kategori Aktif</span>
                     <span class="grid size-9 place-items-center rounded-xl bg-emerald-50 text-emerald-600">
-                        <x-hugeicon name="CheckmarkCircle02Icon" :size="18" />
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0" aria-hidden="true">
+                            <path d="M20 6 9 17l-5-5"/>
+                        </svg>
                     </span>
                 </div>
                 <div class="mt-2 text-2xl font-bold text-emerald-700">{{ $categories->where('is_active', true)->count() }}</div>
@@ -81,7 +90,10 @@
                 <div class="flex items-center justify-between">
                     <span class="text-xs font-bold tracking-wider text-slate-400 uppercase">Kategori Nonaktif</span>
                     <span class="grid size-9 place-items-center rounded-xl bg-slate-100 text-slate-400">
-                        <x-hugeicon name="UnavailableIcon" :size="18" />
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                        </svg>
                     </span>
                 </div>
                 <div class="mt-2 text-2xl font-bold text-slate-600">{{ $categories->where('is_active', false)->count() }}</div>
@@ -102,7 +114,7 @@
                             <th class="py-3.5 px-3 text-center">Ambang Tinggi</th>
                             <th class="py-3.5 px-3 text-center">Urutan</th>
                             <th class="py-3.5 px-3 text-center">Status</th>
-                            <th class="py-3.5 pl-3 pr-6 text-center w-36">Aksi</th>
+                            <th class="py-3.5 pl-3 pr-6 text-center w-28">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-sm">
@@ -159,22 +171,14 @@
                                             data-category-active="{{ $category->is_active ? '1' : '0' }}"
                                             onclick="openEditModal(this)"
                                             title="Edit Kategori"
+                                            aria-label="Edit Kategori"
                                             class="grid size-8 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:border-brand hover:bg-brand-50 hover:text-brand transition-colors"
                                         >
-                                            <x-hugeicon name="Edit02Icon" :size="16" />
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                                <path d="m15 5 4 4"/>
+                                            </svg>
                                         </button>
-
-                                        <form method="POST" action="{{ route('petugas.kategori-kendala.toggle', $category) }}">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button
-                                                type="submit"
-                                                title="{{ $category->is_active ? 'Nonaktifkan Kategori' : 'Aktifkan Kategori' }}"
-                                                class="grid size-8 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:border-amber-400 hover:bg-amber-50 hover:text-amber-700 transition-colors"
-                                            >
-                                                <x-hugeicon name="{{ $category->is_active ? 'ViewOffSlashIcon' : 'ViewIcon' }}" :size="16" />
-                                            </button>
-                                        </form>
 
                                         @if($category->questions_count === 0 && $category->assistance_programs_count === 0)
                                             <form
@@ -187,9 +191,16 @@
                                                 <button
                                                     type="submit"
                                                     title="Hapus Kategori"
+                                                    aria-label="Hapus Kategori"
                                                     class="grid size-8 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:border-rose-400 hover:bg-rose-50 hover:text-rose-700 transition-colors"
                                                 >
-                                                    <x-hugeicon name="Delete02Icon" :size="16" />
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                        <path d="M3 6h18"/>
+                                                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                                                        <line x1="10" y1="11" x2="10" y2="17"/>
+                                                        <line x1="14" y1="11" x2="14" y2="17"/>
+                                                    </svg>
                                                 </button>
                                             </form>
                                         @else
@@ -197,9 +208,16 @@
                                                 type="button"
                                                 disabled
                                                 title="Kategori tidak dapat dihapus karena sudah memiliki relasi data pertanyaan atau program bantuan. Nonaktifkan kategori jika tidak digunakan."
-                                                class="grid size-8 place-items-center rounded-lg border border-slate-200/50 text-slate-300 cursor-not-allowed"
+                                                aria-label="Kategori tidak dapat dihapus"
+                                                class="grid size-8 place-items-center rounded-lg border border-slate-100 bg-slate-50 text-slate-300 cursor-not-allowed"
                                             >
-                                                <x-hugeicon name="Delete02Icon" :size="16" />
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                    <path d="M3 6h18"/>
+                                                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                                                    <line x1="10" y1="11" x2="10" y2="17"/>
+                                                    <line x1="14" y1="11" x2="14" y2="17"/>
+                                                </svg>
                                             </button>
                                         @endif
                                     </div>
