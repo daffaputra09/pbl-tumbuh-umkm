@@ -21,7 +21,7 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_BUSINESS_OWNER, 'busines
     Route::post('/umkm/profil', [BusinessProfileController::class, 'save'])->name('umkm.profil.save');
 
     Route::view('/umkm/kebutuhan', 'umkm.kebutuhan')->name('umkm.kebutuhan');
-    Route::view('/umkm/dashboard', 'umkm.dashboard')->name('umkm.dashboard');
+    Route::get('/umkm/dashboard', [UmkmDashboardController::class, 'index'])->name('umkm.dashboard');
 
     Route::get('/umkm/produk', [ProductController::class, 'page'])->name('umkm.produk');
     Route::get('/umkm/produk/data', [ProductController::class, 'index'])->name('umkm.produk.index');
