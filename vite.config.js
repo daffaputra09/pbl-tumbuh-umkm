@@ -17,7 +17,9 @@ export default defineConfig({
                 'resources/js/entries/umkm-profile.jsx',
                 'resources/js/entries/umkm-needs.jsx',
                 'resources/js/entries/jenis-usaha.jsx',
-                'resources/js/entries/produk.jsx'
+                'resources/js/entries/produk.jsx',
+                'resources/js/entries/tindak-lanjut.jsx',
+                'resources/js/entries/persetujuan-tindak-lanjut.jsx'
             ],
             refresh: true,
             fonts: [

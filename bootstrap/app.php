@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureBusinessOwnerHasProfile;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Models\User;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
             'active' => EnsureUserIsActive::class,
+            'business.profile' => EnsureBusinessOwnerHasProfile::class,
         ]);
 
         $middleware->redirectGuestsTo(fn () => route('login'));

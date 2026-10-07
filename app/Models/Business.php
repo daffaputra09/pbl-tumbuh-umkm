@@ -2,14 +2,18 @@
 
 namespace App\Models;
 
+use Database\Factories\BusinessFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Business extends Model
 {
-    use SoftDeletes;
+    /** @use HasFactory<BusinessFactory> */
+    use HasFactory, SoftDeletes;
 
     protected $primaryKey = 'user_id';
+
     public $incrementing = false;
 
     protected $fillable = [
@@ -50,8 +54,23 @@ class Business extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function verifiedBy()
+    {
+        return $this->belongsTo(User::class, 'verified_by');
+    }
+
     public function products()
     {
-        return $this->hasMany(Product::class, 'user_id');
+        return $this->hasMany(Product::class, 'business_id', 'user_id');
+    }
+
+    public function assessments()
+    {
+        return $this->hasMany(Assessment::class, 'business_id', 'user_id');
+    }
+
+    public function currentAssessment()
+    {
+        return $this->hasOne(Assessment::class, 'business_id', 'user_id')->where('is_current', true);
     }
 }

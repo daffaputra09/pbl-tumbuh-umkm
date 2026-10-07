@@ -2,10 +2,17 @@
 
 namespace App\Models;
 
+use Database\Factories\ObstacleCategoryFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ObstacleCategory extends Model
 {
+    /** @use HasFactory<ObstacleCategoryFactory> */
+    use HasFactory;
+
     protected $table = 'obstacle_categories';
 
     protected $fillable = [
@@ -24,4 +31,14 @@ class ObstacleCategory extends Model
         'sort_order' => 'integer',
         'is_active' => 'boolean',
     ];
+
+    public function questions(): HasMany
+    {
+        return $this->hasMany(AssessmentQuestion::class);
+    }
+
+    public function assistancePrograms(): BelongsToMany
+    {
+        return $this->belongsToMany(AssistanceProgram::class, 'assistance_program_obstacle_category');
+    }
 }

@@ -83,12 +83,12 @@
                         <span>•</span>
                         <div class="pumkm-detail-meta-item">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                            <span>Kategori: <strong>{{ $umkm['business_type'] ?? $umkm['kategori_produk'] }}</strong></span>
+                            <span>Kategori: <strong>{{ $umkm->businessType->name ?? ($umkm['business_type'] ?? ($umkm['kategori_produk'] ?? '-')) }}</strong></span>
                         </div>
                         <span>•</span>
                         <div class="pumkm-detail-meta-item">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            <span>Masuk: {{ \Carbon\Carbon::parse($umkm['created_at'] ?? $umkm['tanggal_daftar'])->isoFormat('D MMMM YYYY') }}</span>
+                            <span>Masuk: {{ \Carbon\Carbon::parse($umkm->created_at ?? $umkm['tanggal_daftar'])->isoFormat('D MMMM YYYY') }}</span>
                         </div>
                     </div>
                 </div>
@@ -177,68 +177,37 @@
                         <div class="pumkm-card-body">
                             <div class="pumkm-data-grid">
                                 <div class="pumkm-data-item">
-                                    <span class="pumkm-data-label">Kategori Produk</span>
-                                    <span class="pumkm-data-value">{{ $umkm['business_type'] ?? $umkm['kategori_produk'] }}</span>
+                                    <span class="pumkm-data-label">Kategori Usaha</span>
+                                    <span class="pumkm-data-value">{{ $umkm->businessType->name ?? ($umkm['business_type'] ?? ($umkm['kategori_produk'] ?? '-')) }}</span>
                                 </div>
                                 <div class="pumkm-data-item">
-                                    <span class="pumkm-data-label">Kisaran Harga</span>
-                                    <span class="pumkm-data-value">{{ $umkm['price_range'] ?? $umkm['kisaran_harga'] }}</span>
+                                    <span class="pumkm-data-label">Status Operasional</span>
+                                    <span class="pumkm-data-value">{{ ucfirst($umkm->operational_status ?? ($umkm['operational_status'] ?? 'Active')) }}</span>
                                 </div>
                                 <div class="pumkm-data-item pumkm-data-item--full">
-                                    <span class="pumkm-data-label">Deskripsi Produk</span>
-                                    <span class="pumkm-data-value">{{ $umkm['product_description'] ?? $umkm['deskripsi_produk'] }}</span>
+                                    <span class="pumkm-data-label">Deskripsi Usaha</span>
+                                    <span class="pumkm-data-value">{{ $umkm->description ?? ($umkm['product_description'] ?? ($umkm['deskripsi_produk'] ?? 'Tidak ada keterangan tambahan.')) }}</span>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <div class="pumkm-card">
-                        <div class="pumkm-card-header">
-                            <h2 class="pumkm-card-title">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                                Informasi Legalitas Usaha
-                            </h2>
-                        </div>
-                        <div class="pumkm-card-body">
-                            <div class="pumkm-data-grid">
-                                <div class="pumkm-data-item">
-                                    <span class="pumkm-data-label">Nomor Induk Berusaha (NIB)</span>
-                                    <div class="pumkm-data-value" style="margin-top:0.25rem;">
-                                        @if(!empty($umkm['punya_nib']) && !empty($umkm['nomor_nib']))
-                                            <span class="pumkm-legal-badge pumkm-legal-badge--yes">✔ Punya NIB</span>
-                                            <div style="font-family:monospace; margin-top:0.25rem; color:#475569;">{{ $umkm['nomor_nib'] }}</div>
-                                        @else
-                                            <span class="pumkm-legal-badge pumkm-legal-badge--no">✗ Belum Memiliki NIB</span>
-                                        @endif
+                            @if(isset($umkm->products) && $umkm->products->isNotEmpty())
+                                <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+                                    <span class="pumkm-data-label" style="margin-bottom: 0.5rem; display: block;">Daftar Produk Terdaftar ({{ $umkm->products->count() }})</span>
+                                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                        @foreach($umkm->products as $prod)
+                                            <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 0.625rem 0.875rem; border-radius: 0.5rem; border: 1px solid #e2e8f0;">
+                                                <div>
+                                                    <span style="font-weight: 600; color: #1e293b;">{{ $prod->name }}</span>
+                                                    <span style="font-size: 0.75rem; color: #64748b; margin-left: 0.5rem;">({{ $prod->category }})</span>
+                                                </div>
+                                                <div style="font-size: 0.8125rem; font-weight: 600; color: #0f766e;">
+                                                    {{ $prod->price ? 'Rp ' . number_format($prod->price, 0, ',', '.') : '-' }}
+                                                </div>
+                                            </div>
+                                        @endforeach
                                     </div>
                                 </div>
-
-                                <div class="pumkm-data-item">
-                                    <span class="pumkm-data-label">Nomor Pokok Wajib Pajak (NPWP)</span>
-                                    <div class="pumkm-data-value" style="margin-top:0.25rem;">
-                                        @if(!empty($umkm['punya_npwp']) && !empty($umkm['nomor_npwp']))
-                                            <span class="pumkm-legal-badge pumkm-legal-badge--yes">✔ Punya NPWP</span>
-                                            <div style="font-family:monospace; margin-top:0.25rem; color:#475569;">{{ $umkm['nomor_npwp'] }}</div>
-                                        @else
-                                            <span class="pumkm-legal-badge pumkm-legal-badge--no">✗ Belum Memiliki NPWP</span>
-                                        @endif
-                                    </div>
-                                </div>
-
-                                <div class="pumkm-data-item pumkm-data-item--full">
-                                    <span class="pumkm-data-label">Status Sertifikasi Halal</span>
-                                    <div class="pumkm-data-value" style="margin-top:0.25rem;">
-                                        @php $sh = $umkm['status_halal'] ?? 'belum'; @endphp
-                                        @if($sh === 'sudah')
-                                            <span class="pumkm-halal--sudah">✔ Sudah Tersertifikasi Halal</span>
-                                        @elseif($sh === 'proses')
-                                            <span class="pumkm-halal--proses">⏳ Sedang Dalam Proses Pengurusan</span>
-                                        @else
-                                            <span class="pumkm-halal--belum">✗ Belum Memiliki Sertifikasi Halal</span>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
+                            @endif
                         </div>
                     </div>
 
@@ -250,36 +219,125 @@
                             </h2>
                         </div>
                         <div class="pumkm-card-body">
-                            @php
-                                $labels = [
-                                    'modal'        => 'Kendala Modal',
-                                    'pemasaran'    => 'Kendala Pemasaran',
-                                    'legalitas'    => 'Kendala Legalitas',
-                                    'produksi'     => 'Kendala Produksi',
-                                    'digitalisasi' => 'Kendala Digitalisasi',
-                                ];
-                            @endphp
-                            <div class="pumkm-kendala-list">
-                                @foreach($labels as $kKey => $kLabel)
-                                    @php $items = $umkm['kendala'][$kKey] ?? []; @endphp
-                                    <div class="pumkm-kendala-category">
-                                        <div class="pumkm-kendala-category-title">{{ $kLabel }}</div>
-                                        <div class="pumkm-kendala-items">
-                                            @forelse($items as $item)
-                                                <span class="pumkm-kendala-chip">{{ $item }}</span>
-                                            @empty
-                                                <span class="pumkm-kendala-empty">Tidak ada kendala yang dilaporkan pada kategori ini.</span>
-                                            @endforelse
+                            @if($assessment = $umkm->currentAssessment)
+                                <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem; padding-bottom: 0.875rem; border-bottom: 1px solid #e2e8f0; margin-bottom: 1rem;">
+                                    <div style="font-size: 0.8125rem; color: #64748b;">
+                                        Tanggal Asesmen: <strong style="color: #1e293b;">{{ $assessment->completed_at ? \Carbon\Carbon::parse($assessment->completed_at)->isoFormat('D MMMM YYYY, HH:mm') . ' WIB' : '-' }}</strong>
+                                    </div>
+                                    <div>
+                                        <span class="pumkm-badge pumkm-badge--verified" style="font-size: 0.75rem; padding: 0.25rem 0.625rem;">
+                                            Selesai Diasesmen
+                                        </span>
+                                    </div>
+                                </div>
+
+                                @if($assessment->primaryObstacleCategory)
+                                    <div style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border: 1px solid #fdba74; border-radius: 0.75rem; padding: 1rem; margin-bottom: 1.25rem;">
+                                        <div style="display: flex; align-items: center; gap: 0.5rem; color: #c2410c; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                            </svg>
+                                            Kendala Utama (Prioritas Intervensi)
+                                        </div>
+                                        <div style="font-size: 1.05rem; font-weight: 800; color: #9a3412; margin-top: 0.25rem;">
+                                            {{ $assessment->primaryObstacleCategory->name }}
+                                        </div>
+                                        @if($assessment->primaryObstacleCategory->description)
+                                            <div style="font-size: 0.8125rem; color: #7c2d12; margin-top: 0.25rem; line-height: 1.4;">
+                                                {{ $assessment->primaryObstacleCategory->description }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endif
+
+                                @php
+                                    $levelConfig = [
+                                        'high' => [
+                                            'label' => 'Tinggi',
+                                            'bg' => '#fef2f2',
+                                            'border' => '#fecaca',
+                                            'color' => '#dc2626',
+                                            'bar' => '#ef4444',
+                                        ],
+                                        'moderate' => [
+                                            'label' => 'Sedang',
+                                            'bg' => '#fffbeb',
+                                            'border' => '#fde68a',
+                                            'color' => '#b45309',
+                                            'bar' => '#f59e0b',
+                                        ],
+                                        'low' => [
+                                            'label' => 'Rendah',
+                                            'bg' => '#f0fdf4',
+                                            'border' => '#bbf7d0',
+                                            'color' => '#16a34a',
+                                            'bar' => '#22c55e',
+                                        ],
+                                    ];
+                                @endphp
+
+                                <div style="margin-bottom: 1rem;">
+                                    <div style="font-size: 0.8125rem; font-weight: 700; color: #334155; margin-bottom: 0.625rem; text-transform: uppercase; letter-spacing: 0.03em;">
+                                        Hasil Skor &amp; Tingkat Kendala per Kategori
+                                    </div>
+                                    @if($assessment->categoryScores && $assessment->categoryScores->isNotEmpty())
+                                        <div class="pumkm-kendala-list">
+                                            @foreach($assessment->categoryScores as $cs)
+                                                @php
+                                                    $lvl = strtolower((string) $cs->level);
+                                                    $cfg = $levelConfig[$lvl] ?? [
+                                                        'label' => ucfirst($lvl),
+                                                        'bg' => '#f8fafc',
+                                                        'border' => '#e2e8f0',
+                                                        'color' => '#475569',
+                                                        'bar' => '#94a3b8',
+                                                    ];
+                                                    $scoreVal = (float) $cs->score;
+                                                @endphp
+                                                <div class="pumkm-kendala-category" style="background: #ffffff; border: 1px solid #e2e8f0;">
+                                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.375rem;">
+                                                        <span style="font-size: 0.875rem; font-weight: 700; color: #1e293b;">
+                                                            {{ $cs->obstacleCategory->name ?? 'Kategori Kendala' }}
+                                                        </span>
+                                                        <span style="display: inline-flex; align-items: center; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: 999px; background: {{ $cfg['bg'] }}; color: {{ $cfg['color'] }}; border: 1px solid {{ $cfg['border'] }};">
+                                                            Kendala {{ $cfg['label'] }} ({{ rtrim(rtrim(number_format($scoreVal, 1), '0'), '.') }}%)
+                                                        </span>
+                                                    </div>
+                                                    <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 999px; overflow: hidden;">
+                                                        <div style="height: 100%; width: {{ min(100, max(0, $scoreVal)) }}%; background: {{ $cfg['bar'] }}; border-radius: 999px;"></div>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <div class="pumkm-kendala-empty" style="padding: 0.75rem 0;">
+                                            Tidak ada rincian skor kategori kendala yang tercatat.
+                                        </div>
+                                    @endif
+                                </div>
+
+                                @if(!empty($assessment->other_obstacle))
+                                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+                                        <span class="pumkm-data-label">Kendala Lain yang Disampaikan Pelaku Usaha</span>
+                                        <div style="font-size: 0.875rem; color: #475569; font-style: italic; margin-top: 0.35rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.75rem 1rem;">
+                                            "{{ $assessment->other_obstacle }}"
                                         </div>
                                     </div>
-                                @endforeach
-                            </div>
-
-                            @if(!empty($umkm['catatan_kebutuhan']))
-                                <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
-                                    <span class="pumkm-data-label">Catatan Tambahan Pelaku Usaha</span>
-                                    <div style="font-size:0.875rem; color:#475569; font-style:italic; margin-top:0.25rem;">
-                                        "{{ $umkm['catatan_kebutuhan'] }}"
+                                @endif
+                            @else
+                                <div style="text-align: center; padding: 2rem 1rem;">
+                                    <div style="width: 44px; height: 44px; margin: 0 auto 0.75rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                        </svg>
+                                    </div>
+                                    <div style="font-size: 0.9375rem; font-weight: 700; color: #334155; margin-bottom: 0.25rem;">
+                                        Belum Mengisi Kuesioner Kebutuhan &amp; Kendala
+                                    </div>
+                                    <div style="font-size: 0.8125rem; color: #64748b; max-width: 440px; margin: 0 auto; line-height: 1.5;">
+                                        Pelaku UMKM ini belum mengisi atau menyelesaikan kuesioner asesmen kendala usaha, sehingga rekomendasi program dan peta kendala belum tersedia.
                                     </div>
                                 </div>
                             @endif
@@ -304,7 +362,7 @@
                                     </div>
                                     @if(!empty($umkm['verified_at']))
                                         <div style="margin-top:0.75rem; font-size:0.75rem; color:#64748b; border-top:1px dashed #cbd5e1; padding-top:0.5rem;">
-                                            Diproses oleh: <strong>{{ $umkm['verified_by'] ?? 'Petugas Desa' }}</strong> pada {{ \Carbon\Carbon::parse($umkm['verified_at'])->isoFormat('D MMMM YYYY, HH:mm') }} WIB
+                                            Diproses oleh: <strong>{{ $umkm->verifiedBy->name ?? ($umkm['verified_by'] ?? 'Petugas Desa') }}</strong> pada {{ \Carbon\Carbon::parse($umkm['verified_at'])->isoFormat('D MMMM YYYY, HH:mm') }} WIB
                                         </div>
                                     @endif
                                 </div>
@@ -319,7 +377,7 @@
 
                         @if($isPending)
                             <p class="pumkm-decision-box-desc">
-                                Setelah memeriksa seluruh data usaha, produk, legalitas, dan kebutuhan di atas, tentukan keputusan verifikasi data UMKM ini:
+                                Setelah memeriksa seluruh data profil usaha, produk, dan kebutuhan di atas, tentukan keputusan verifikasi data UMKM ini:
                             </p>
 
                             <div class="pumkm-decision-btn-group">
@@ -425,7 +483,7 @@
                         name="verification_note"
                         id="reject_note"
                         class="pumkm-dialog-textarea"
-                        placeholder="Tuliskan alasan penolakan secara jelas agar pemilik UMKM dapat memperbaiki atau melengkapi datanya (misal: Legalitas NIB belum dicantumkan)..."
+                        placeholder="Tuliskan alasan penolakan secara jelas agar pemilik UMKM dapat memperbaiki atau melengkapi datanya (misal: Data profil usaha belum sesuai atau foto produk belum jelas)..."
                         required
                     ></textarea>
                 </div>

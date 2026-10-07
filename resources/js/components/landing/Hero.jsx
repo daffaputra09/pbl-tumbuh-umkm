@@ -69,7 +69,7 @@ export default function Hero() {
                     transition={{ duration: 0.7, delay: 1.05 }}
                     className="mt-9 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row"
                 >
-                    <a href="#mulai" className={cn(buttonVariants({ size: 'lg' }), 'w-full sm:w-auto')}>
+                    <a href="/register" className={cn(buttonVariants({ size: 'lg' }), 'w-full sm:w-auto')}>
                         Daftarkan Usaha Anda
                         <Icon icon={ArrowRight02Icon} size={18} strokeWidth={2} className="transition-transform group-hover/button:translate-x-1" />
                     </a>

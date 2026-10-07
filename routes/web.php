@@ -2,10 +2,13 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\PetugasUmkmController;
-use App\Http\Controllers\BusinessTypeController;
 use App\Http\Controllers\BusinessProfileController;
+use App\Http\Controllers\BusinessTypeController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GoogleAuthController;
+use App\Http\Controllers\ObstacleCategoryController;
+use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\PetugasUmkmController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UmkmDashboardController;
 use App\Models\User;
@@ -13,13 +16,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'landing')->name('landing');
 
-Route::middleware(['auth', 'active', 'role:'.User::ROLE_BUSINESS_OWNER])->group(function () {
+Route::middleware(['auth', 'active', 'role:'.User::ROLE_BUSINESS_OWNER, 'business.profile'])->group(function () {
     Route::get('/umkm/profil', [BusinessProfileController::class, 'edit'])->name('umkm.profil');
     Route::post('/umkm/profil', [BusinessProfileController::class, 'save'])->name('umkm.profil.save');
 
     Route::view('/umkm/kebutuhan', 'umkm.kebutuhan')->name('umkm.kebutuhan');
     Route::view('/umkm/dashboard', 'umkm.dashboard')->name('umkm.dashboard');
-    
+
     Route::get('/umkm/produk', [ProductController::class, 'page'])->name('umkm.produk');
     Route::get('/umkm/produk/data', [ProductController::class, 'index'])->name('umkm.produk.index');
     Route::get('/umkm/dashboard', [UmkmDashboardController::class, 'index'])->name('umkm.dashboard');
@@ -37,6 +40,12 @@ Route::middleware('guest')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::get('login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('login', [AuthController::class, 'login']);
+    Route::get('auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
+    Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+    Route::get('forgot-password', [PasswordResetController::class, 'create'])->name('password.request');
+    Route::post('forgot-password', [PasswordResetController::class, 'store'])->name('password.email');
+    Route::get('reset-password/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
+    Route::post('reset-password', [PasswordResetController::class, 'update'])->name('password.update');
 });
 
 Route::post('logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
@@ -58,12 +67,18 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(functio
     Route::post('/petugas/umkm/{id}/tolak', [PetugasUmkmController::class, 'prosesTolak'])->name('petugas.umkm.proses-tolak');
 
     Route::view('/petugas/jenis-usaha', 'petugas.umkm.jenis-usaha')->name('petugas.jenis-usaha');
+    Route::get('/petugas/kategori-kendala', [ObstacleCategoryController::class, 'index'])->name('petugas.kategori-kendala.index');
+    Route::post('/petugas/kategori-kendala', [ObstacleCategoryController::class, 'store'])->name('petugas.kategori-kendala.store');
+    Route::put('/petugas/kategori-kendala/{obstacleCategory}', [ObstacleCategoryController::class, 'update'])->name('petugas.kategori-kendala.update');
+    Route::patch('/petugas/kategori-kendala/{obstacleCategory}/toggle', [ObstacleCategoryController::class, 'toggle'])->name('petugas.kategori-kendala.toggle');
+    Route::delete('/petugas/kategori-kendala/{obstacleCategory}', [ObstacleCategoryController::class, 'destroy'])->name('petugas.kategori-kendala.destroy');
+    Route::view('/petugas/tindak-lanjut', 'petugas.tindak-lanjut')->name('petugas.tindak-lanjut');
 
     Route::get('/petugas/umkm/{business}/produk', [ProductController::class, 'officerPage'])->name('petugas.umkm.produk');
     Route::get('/petugas/umkm/{business}/produk/data', [ProductController::class, 'officerIndex'])->name('petugas.umkm.produk.index');
     Route::post('/petugas/umkm/{business}/produk', [ProductController::class, 'officerStore'])->name('petugas.umkm.produk.store');
     Route::put('/petugas/umkm/{business}/produk/{product}', [ProductController::class, 'officerUpdate'])->name('petugas.umkm.produk.update');
-    Route::patch('/petugas/umkm/{business}/produk/{product}/toggle', [ProductController::class, 'officerToggle'])->name('petugas.umkm.produk.toggle');   
+    Route::patch('/petugas/umkm/{business}/produk/{product}/toggle', [ProductController::class, 'officerToggle'])->name('petugas.umkm.produk.toggle');
 
     Route::prefix('api/business-types')->name('api.business-types.')->group(function () {
         Route::get('/', [BusinessTypeController::class, 'index'])->name('index');
@@ -77,4 +92,5 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(functio
 
 Route::middleware(['auth', 'active', 'role:'.User::ROLE_VILLAGE_HEAD])->group(function () {
     Route::get('/pimpinan/dashboard', [AuthController::class, 'dashboardPimpinan'])->name('pimpinan.dashboard');
+    Route::view('/pimpinan/persetujuan-tindak-lanjut', 'pimpinan.persetujuan-tindak-lanjut')->name('pimpinan.persetujuan-tindak-lanjut');
 });
