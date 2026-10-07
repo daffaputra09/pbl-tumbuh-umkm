@@ -2,11 +2,16 @@
 
 namespace App\Models;
 
+use Database\Factories\AssistanceProgramFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AssistanceProgram extends Model
 {
+    /** @use HasFactory<AssistanceProgramFactory> */
+    use HasFactory;
+
     protected $table = 'assistance_programs';
 
     protected $fillable = [

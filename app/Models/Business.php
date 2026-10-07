@@ -39,6 +39,18 @@ class Business extends Model
         'verified_at' => 'datetime',
     ];
 
+    public function hasCompleteProfile(): bool
+    {
+        return filled($this->business_type_id)
+            && filled($this->business_name)
+            && filled($this->owner_name)
+            && filled($this->phone)
+            && filled($this->address)
+            && filled($this->hamlet)
+            && filled($this->established_year)
+            && filled($this->employee_count);
+    }
+
     public function businessType()
     {
         return $this->belongsTo(BusinessType::class);

@@ -58,7 +58,9 @@ class User extends Authenticatable
 
     public function hasBusinessProfile(): bool
     {
-        return $this->business()->exists();
+        $business = $this->business()->first();
+
+        return $business instanceof Business && $business->hasCompleteProfile();
     }
 
     public function hasPassword(): bool
