@@ -12,9 +12,11 @@ class Business extends Model
     /** @use HasFactory<BusinessFactory> */
     use HasFactory, SoftDeletes;
 
-    protected $primaryKey = 'user_id';
-
-    public $incrementing = false;
+    // CATATAN: primary key tabel ini tetap "id" bawaan Eloquent, JANGAN
+    // di-override jadi "user_id". user_id boleh kosong (nullable, lihat
+    // migration), jadi tidak bisa dipakai sebagai primary key atau sebagai
+    // target foreign key dari tabel lain (products, assessments, dst).
+    // Semua relasi dari tabel lain ke businesses WAJIB menunjuk ke id.
 
     protected $fillable = [
         'user_id',
@@ -73,16 +75,16 @@ class Business extends Model
 
     public function products()
     {
-        return $this->hasMany(Product::class, 'business_id', 'user_id');
+        return $this->hasMany(Product::class);
     }
 
     public function assessments()
     {
-        return $this->hasMany(Assessment::class, 'business_id', 'user_id');
+        return $this->hasMany(Assessment::class, 'business_id', 'id');
     }
 
     public function currentAssessment()
     {
-        return $this->hasOne(Assessment::class, 'business_id', 'user_id')->where('is_current', true);
+        return $this->hasOne(Assessment::class, 'business_id', 'id')->where('is_current', true);
     }
 }
