@@ -36,4 +36,9 @@ class AssessmentQuestion extends Model
     {
         return $this->belongsTo(ObstacleCategory::class);
     }
+
+    public function options()
+    {
+        return $this->hasMany(QuestionOption::class)->orderBy('sort_order');
+    }
 }

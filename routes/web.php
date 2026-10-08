@@ -12,6 +12,7 @@ use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PetugasUmkmController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UmkmDashboardController;
+use App\Http\Controllers\AssessmentController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
@@ -21,7 +22,9 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_BUSINESS_OWNER, 'busines
     Route::get('/umkm/profil', [BusinessProfileController::class, 'edit'])->name('umkm.profil');
     Route::post('/umkm/profil', [BusinessProfileController::class, 'save'])->name('umkm.profil.save');
 
-    Route::view('/umkm/kebutuhan', 'umkm.kebutuhan')->name('umkm.kebutuhan');
+    Route::get('/umkm/kebutuhan', [AssessmentController::class, 'page'])->name('umkm.kebutuhan');
+    Route::post('/umkm/kebutuhan', [AssessmentController::class, 'save'])->name('umkm.kebutuhan.save');
+
     Route::get('/umkm/dashboard', [UmkmDashboardController::class, 'index'])->name('umkm.dashboard');
 
     Route::get('/umkm/produk', [ProductController::class, 'page'])->name('umkm.produk');
