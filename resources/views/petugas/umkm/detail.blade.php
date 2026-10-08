@@ -299,12 +299,27 @@
                                                         <span style="font-size: 0.875rem; font-weight: 700; color: #1e293b;">
                                                             {{ $cs->obstacleCategory->name ?? 'Kategori Kendala' }}
                                                         </span>
-                                                        <span style="display: inline-flex; align-items: center; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: 999px; background: {{ $cfg['bg'] }}; color: {{ $cfg['color'] }}; border: 1px solid {{ $cfg['border'] }};">
+                                                        <span @style([
+                                                            'display: inline-flex',
+                                                            'align-items: center',
+                                                            'font-size: 0.75rem',
+                                                            'font-weight: 700',
+                                                            'padding: 0.2rem 0.55rem',
+                                                            'border-radius: 999px',
+                                                            'background: ' . $cfg['bg'],
+                                                            'color: ' . $cfg['color'],
+                                                            'border: 1px solid ' . $cfg['border'],
+                                                        ])>
                                                             Kendala {{ $cfg['label'] }} ({{ rtrim(rtrim(number_format($scoreVal, 1), '0'), '.') }}%)
                                                         </span>
                                                     </div>
                                                     <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 999px; overflow: hidden;">
-                                                        <div style="height: 100%; width: {{ min(100, max(0, $scoreVal)) }}%; background: {{ $cfg['bar'] }}; border-radius: 999px;"></div>
+                                                        <div @style([
+                                                            'height: 100%',
+                                                            'border-radius: 999px',
+                                                            'width: ' . min(100, max(0, $scoreVal)) . '%',
+                                                            'background: ' . $cfg['bar'],
+                                                        ])></div>
                                                     </div>
                                                 </div>
                                             @endforeach

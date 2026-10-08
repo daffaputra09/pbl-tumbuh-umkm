@@ -89,12 +89,11 @@ class PetugasUmkmController extends Controller
 
         $note = $request->input('verification_note');
 
-        $umkm->update([
-            'verification_status' => 'verified',
-            'verified_at' => Carbon::now(),
-            'verified_by' => $request->user()->id,
-            'verification_note' => $note ? trim($note) : 'Data usaha telah diverifikasi dan dinyatakan valid oleh petugas desa.',
-        ]);
+        $umkm->verification_status = 'verified';
+        $umkm->verified_at = Carbon::now();
+        $umkm->verified_by = $request->user()->id;
+        $umkm->verification_note = $note ? trim($note) : 'Data usaha telah diverifikasi dan dinyatakan valid oleh petugas desa.';
+        $umkm->save();
 
         return redirect()->route('petugas.umkm.detail', $id)
             ->with('success', 'Data UMKM "'.$umkm->business_name.'" berhasil diverifikasi!');
@@ -118,12 +117,11 @@ class PetugasUmkmController extends Controller
                 ->with('error', 'UMKM ini sudah diproses sebelumnya dan tidak dapat ditolak lagi.');
         }
 
-        $umkm->update([
-            'verification_status' => 'rejected',
-            'verified_at' => Carbon::now(),
-            'verified_by' => $request->user()->id,
-            'verification_note' => trim($request->input('verification_note')),
-        ]);
+        $umkm->verification_status = 'rejected';
+        $umkm->verified_at = Carbon::now();
+        $umkm->verified_by = $request->user()->id;
+        $umkm->verification_note = trim($request->input('verification_note'));
+        $umkm->save();
 
         return redirect()->route('petugas.umkm.detail', $id)
             ->with('warning', 'Data UMKM "'.$umkm->business_name.'" telah ditolak dengan catatan penolakan.');

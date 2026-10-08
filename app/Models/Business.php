@@ -12,7 +12,6 @@ class Business extends Model
     /** @use HasFactory<BusinessFactory> */
     use HasFactory, SoftDeletes;
 
-    
     protected $fillable = [
         'user_id',
         'business_type_id',
@@ -28,6 +27,10 @@ class Business extends Model
         'established_year',
         'employee_count',
         'description',
+        'verification_status',
+        'verified_at',
+        'verified_by',
+        'verification_note',
     ];
 
     protected $casts = [
