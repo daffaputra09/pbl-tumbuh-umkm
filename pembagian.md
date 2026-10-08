@@ -416,7 +416,7 @@ Tiap anggota mengerjakan 8 fitur. Kolom "Bisa mulai" dan "Menunggu" dipakai untu
 | SSO | Siapkan Socialite dan `social_accounts` | Tombol Google boleh belum aktif | Setelah File 4 | Tidak wajib live |
 | UC-07 | Pengelompokan otomatis | Hitung skor per kategori, isi `level` dan `primary_obstacle_category_id` | Setelah kuesioner bisa disimpan | File 12 dan soal Nazwa |
 | UC-09a | Generate rekomendasi | Cocokkan skor UMKM dengan kategori program | Setelah UC-07 dan program Nazwa | File 11 dan File 14 |
-| UC-13 | Dashboard operasional petugas | Ringkasan UMKM, sebaran kendala, antrean | UI boleh paralel pakai data dummy | Data nyata setelah UC-07 |
+| Navigasi | Shell menu 3 peran | Sidebar / header sesuai `role` | Setelah UC-01 | Login |
 
 Rumus skor kategori:
 
@@ -460,7 +460,7 @@ Nazwa memakai kolom verifikasi di tabel `businesses`. Jangan buat tabel verifika
 
 | Kode | Fitur | Halaman / hasil | Bisa mulai | Menunggu |
 | --- | --- | --- | --- | --- |
-| Navigasi | Shell menu 3 peran | Sidebar / header sesuai `role` | Setelah UC-01 | Login |
+| UC-13 | Dashboard operasional petugas | Ringkasan UMKM, sebaran kendala, antrean | UI dummy sudah ada | Data nyata setelah UC-07 |
 | UC-10 | Ajukan tindak lanjut | Petugas menandai rekomendasi | Setelah File 15 | Rekomendasi |
 | UC-11 | Setujui atau tolak tindak lanjut | Halaman kepala desa | Setelah UC-10 | `follow_ups` |
 | UC-12 | Catat pembinaan | Form kegiatan dan hasil | Setelah File 16 | Tindak lanjut berstatus `approved` |
@@ -479,10 +479,10 @@ Pakai ini saat sprint mingguan.
 
 Bisa paralel:
 
-- Daffa: kolom `users`, login, logout, middleware 3 peran
+- Daffa: kolom `users`, login, logout, middleware 3 peran, shell navigasi statis
 - Nazwa: CRUD kategori (setelah File 2)
 - Hernanda: desain form profil dan seeder jenis usaha
-- Radith: shell navigasi statis
+- Radith: belum mulai File 11 (menunggu File 7)
 
 Belum dikerjakan:
 
@@ -517,7 +517,7 @@ Urutan wajib:
 Bisa paralel di minggu ini:
 
 - Nazwa: verifikasi data
-- Daffa: sambungkan dashboard petugas ke data nyata
+- Radith: sambungkan dashboard petugas ke data nyata
 - Radith: siapkan UI persetujuan
 
 ## Minggu 4. Tindak lanjut
@@ -536,11 +536,11 @@ Urutan wajib:
 
 | Topik | Yang mengerjakan | Yang memakai hasilnya |
 | --- | --- | --- |
-| Password, session, kolom `role`, middleware, Google SSO | Daffa | Anggota lain memakai middleware yang sudah ada |
+| Password, session, kolom `role`, middleware, Google SSO, navigasi | Daffa | Anggota lain memakai middleware dan shell yang sudah ada |
 | Rumus skor dan pencocokan program | Daffa | Hernanda menyimpan jawaban. Nazwa mengatur soal dan program |
 | Form profil, produk, kuesioner | Hernanda | Nazwa memverifikasi data yang masuk |
 | Verifikasi, kategori, soal, program, ekspor | Nazwa | Dashboard dan rekomendasi membaca data ini |
-| Pengajuan, persetujuan, pembinaan, navigasi | Radith | Kepala desa tidak mengubah data operasional UMKM |
+| Pengajuan, persetujuan, pembinaan, dashboard operasional petugas | Radith | Kepala desa tidak mengubah data operasional UMKM |
 
 Kalau satu orang terhambat, kerjakan baris yang kolom "Bisa mulai"-nya sudah terpenuhi. Jangan menukar timestamp migration sendiri.
 
@@ -588,10 +588,10 @@ Harus selesai minggu ini:
 
 | Pemilik | Tugas |
 | --- | --- |
-| Daffa | File 1 `users` (role baru, `phone`, `is_active`, password nullable). File 4 `social_accounts` |
+| Daffa | File 1 `users` (role baru, `phone`, `is_active`, password nullable). File 4 `social_accounts`. Shell navigasi (boleh statis) |
 | Hernanda | File 3 + seeder jenis usaha sudah di-merge. Mulai File 5 `businesses` begitu File 1 masuk |
 | Nazwa | File 2 `obstacle_categories` + seeder 5 kategori |
-| Radith | Siapkan shell navigasi (boleh statis). Jangan nunggu File 11 kalau File 7 belum ada |
+| Radith | Menunggu File 7 sebelum File 11. Jangan mulai pivot kalau program belum ada |
 
 Belum wajib: login role baru, form simpan ke `businesses`.
 
@@ -603,10 +603,10 @@ Harus selesai sebelum Selasa 6 Okt (laporan pertama setelah hari ini):
 
 | Pemilik | Tugas |
 | --- | --- |
-| Daffa | UC-01 login/logout pakai UI Radith, role `business_owner` / `officer` / `village_head`. Authz middleware 3 peran |
+| Daffa | UC-01 login/logout, role `business_owner` / `officer` / `village_head`. Authz middleware 3 peran. Shell menu 3 peran |
 | Nazwa | UC-05c CRUD kategori. File 6 `assessment_questions`, File 7 `assistance_programs` |
 | Hernanda | File 5 `businesses` (ganti stub `umkm`). File 8 `products`, File 9 `assessments` |
-| Radith | Shell menu 3 peran memakai middleware Daffa. File 11 pivot program–kategori (setelah File 7) |
+| Radith | File 11 pivot program–kategori (setelah File 7) |
 
 Sisa 7–11 Okt (setelah laporan Selasa 6 Okt):
 
@@ -667,9 +667,9 @@ Harus selesai:
 | Pemilik | Tugas |
 | --- | --- |
 | Hernanda | UC-09b rekomendasi milik sendiri. Dashboard UMKM baca skor dan program |
-| Daffa | UC-13 dashboard petugas baca UMKM, sebaran kategori, antrean verifikasi |
+| Daffa | Tidak ada fitur baru. Lanjutkan perbaikan skor bila data kuesioner sudah masuk, dan siapkan tes inti |
 | Nazwa | UC-09c rekomendasi seluruh UMKM. UC-14b laporan ringkasan (filter periode / kategori) |
-| Radith | UC-10 ajukan tindak lanjut dari rekomendasi. UC-11 setujui atau tolak |
+| Radith | UC-13 dashboard petugas baca UMKM, sebaran kategori, antrean verifikasi. UC-10 ajukan tindak lanjut dari rekomendasi. UC-11 setujui atau tolak |
 
 Tes: kuesioner → skor → rekomendasi (satu happy path).
 
@@ -717,10 +717,10 @@ Harus selesai:
 
 | Pemilik | M6–M7 | M8 (Milestone 1) | M9–M10 | M11–M12 (Milestone 2) |
 | --- | --- | --- | --- | --- |
-| Daffa | File 1, File 4, login, middleware | Registrasi, proteksi route | Skor, generate rekomendasi, dashboard petugas nyata | Tes inti, perbaiki scoring/auth |
+| Daffa | File 1, File 4, login, middleware, shell menu | Registrasi, proteksi route | Skor, generate rekomendasi | Tes inti, perbaiki scoring/auth |
 | Hernanda | File 5, 8, 9, seeder jenis | Profil, pendataan petugas, produk | Kuesioner simpan, rekomendasi sendiri, dashboard UMKM nyata | Form pelaku rapat, tidak bocor data UMKM lain |
 | Nazwa | File 2, 6, 7, 10, CRUD kategori | Master UMKM, bank soal, program | Verifikasi, rekomendasi semua UMKM, laporan | Ekspor, laporan lengkap |
-| Radith | Shell, File 11, File 12 | Dashboard pimpinan UI, File 15 | Ajukan, setujui/tolak, File 16 | Pembinaan, monitoring, riwayat, dashboard pimpinan nyata |
+| Radith | File 11, File 12 | Dashboard pimpinan UI, File 15 | UC-13 dashboard petugas, ajukan, setujui/tolak, File 16 | Pembinaan, monitoring, riwayat, dashboard pimpinan nyata |
 
 ## G.4 Kalau molor
 
@@ -731,4 +731,4 @@ Harus selesai:
 | CRUD jenis usaha lengkap | Minggu 9 | Seeder jenis usaha |
 | Tes otomatis selain happy path | Minggu 12 sisa hari | Satu alur 3 aktor bisa didemo |
 
-Jangan menukar urutan migration. Kalau File 5 belum siap, Nazwa dan Radith kerjakan bank soal / shell / program, jangan mengarang tabel `businesses`.
+Jangan menukar urutan migration. Kalau File 5 belum siap, Nazwa kerjakan bank soal / program, Daffa kerjakan shell, Radith siapkan UI tindak lanjut. Jangan mengarang tabel `businesses`.

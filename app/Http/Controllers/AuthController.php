@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Middleware\EnsureUserIsActive;
-use App\Models\Umkm;
+use App\Models\Business;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -16,30 +18,38 @@ class AuthController extends Controller
         return view('auth.register');
     }
 
-    public function register(Request $request)
+    public function register(Request $request): RedirectResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
-            'nama_usaha' => 'required|string|max:255',
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'string', 'min:8'],
+            'business_name' => ['required', 'string', 'max:255'],
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => User::ROLE_BUSINESS_OWNER,
-        ]);
+        $user = DB::transaction(function () use ($validated): User {
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => User::ROLE_BUSINESS_OWNER,
+                'is_active' => true,
+            ]);
 
-        Umkm::create([
-            'id_user' => $user->id,
-            'nama_usaha' => $request->nama_usaha,
-        ]);
+            Business::create([
+                'user_id' => $user->id,
+                'created_by' => $user->id,
+                'business_name' => $validated['business_name'],
+                'owner_name' => $validated['name'],
+                'email' => $validated['email'],
+            ]);
+
+            return $user;
+        });
 
         Auth::login($user);
 
-        return redirect()->route('umkm.dashboard');
+        return redirect()->route($user->homeRouteName());
     }
 
     public function showLoginForm()

@@ -79,6 +79,10 @@ return [
             'transport' => 'array',
         ],
 
+        'gmail-api' => [
+            'transport' => 'gmail-api',
+        ],
+
         'failover' => [
             'transport' => 'failover',
             'mailers' => [
@@ -112,7 +116,7 @@ return [
 
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
+        'name' => env('MAIL_FROM_NAME', 'Tumbuh UMKM'),
     ],
 
 ];
