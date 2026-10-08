@@ -94,5 +94,6 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(functio
 
 Route::middleware(['auth', 'active', 'role:'.User::ROLE_VILLAGE_HEAD])->group(function () {
     Route::get('/pimpinan/dashboard', [AuthController::class, 'dashboardPimpinan'])->name('pimpinan.dashboard');
-    Route::view('/pimpinan/persetujuan-tindak-lanjut', 'pimpinan.persetujuan-tindak-lanjut')->name('pimpinan.persetujuan-tindak-lanjut');
+    Route::get('/pimpinan/persetujuan-tindak-lanjut', [\App\Http\Controllers\ApprovalController::class, 'index'])->name('pimpinan.persetujuan-tindak-lanjut');
+    Route::patch('/pimpinan/persetujuan-tindak-lanjut/{followUp}', [\App\Http\Controllers\ApprovalController::class, 'update'])->name('pimpinan.persetujuan-tindak-lanjut.update');
 });

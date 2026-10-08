@@ -8,5 +8,8 @@
 @endpush
 
 @section('content')
+    <script id="page-props" type="application/json">
+        {!! json_encode(['queue' => $queue]) !!}
+    </script>
     <div id="app" data-page="pimpinanPersetujuanTindakLanjut"></div>
 @endsection
