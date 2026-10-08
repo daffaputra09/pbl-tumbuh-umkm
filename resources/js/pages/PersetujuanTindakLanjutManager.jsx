@@ -17,39 +17,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 
-const DUMMY_DATA = [
-    {
-        id: 1,
-        umkm_name: 'Warung Makan Berkah',
-        recommended_program: 'Pelatihan Digital Marketing',
-        planned_activity: 'Mengikuti workshop pemasaran online di Kota Batu',
-        planned_on: '2026-10-15',
-        submission_note:
-            'UMKM ini perlu meningkatkan penjualan secara online. Saat ini seluruh penjualan masih bersifat offline. Pelatihan ini diharapkan membuka peluang baru.',
-        status: 'pending',
-    },
-    {
-        id: 2,
-        umkm_name: 'Kerajinan Rotan Indah',
-        recommended_program: 'Bantuan Kredit Usaha Rakyat',
-        planned_activity: 'Mengurus permohonan kredit ke Bank Jatim',
-        planned_on: '2026-10-20',
-        submission_note:
-            'Kapasitas produksi menurun drastis karena kekurangan modal kerja. Bantuan KUR diharapkan dapat membantu pembelian bahan baku rotan.',
-        status: 'pending',
-    },
-    {
-        id: 3,
-        umkm_name: 'Kopi Desa',
-        recommended_program: 'Fasilitasi Sertifikasi Halal',
-        planned_activity: 'Melengkapi dokumen pengajuan sertifikasi ke BPJPH',
-        planned_on: '2026-10-25',
-        submission_note:
-            'Produk kopi kemasan sudah siap jual ke ritel modern. Namun tanpa sertifikat halal, pengiriman ke supermarket tidak bisa dilakukan. Fasilitasi ini sangat mendesak.',
-        status: 'pending',
-    },
-];
-
 // Modal backdrop with animation
 function Backdrop({ onClick }) {
     return (
@@ -291,8 +258,8 @@ function ConfirmModal({ item, actionType, onClose, onBack, formData, onFormChang
     );
 }
 
-export default function PersetujuanTindakLanjutManager() {
-    const [queue, setQueue] = useState(DUMMY_DATA);
+export default function PersetujuanTindakLanjutManager({ queue: initialQueue = [] }) {
+    const [queue, setQueue] = useState(initialQueue);
     // activeModal: null | 'detail' | 'confirm'
     const [activeModal, setActiveModal] = useState(null);
     const [selectedItem, setSelectedItem] = useState(null);
@@ -330,15 +297,39 @@ export default function PersetujuanTindakLanjutManager() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     }
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
         const finalStatus = actionType === 'approve' ? 'approved' : 'rejected';
-        setQueue((prev) =>
-            prev.map((item) =>
-                item.id === selectedItem.id ? { ...item, status: finalStatus } : item,
-            ),
-        );
-        closeAll();
+        
+        try {
+            const response = await fetch(`/pimpinan/persetujuan-tindak-lanjut/${selectedItem.id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    status: finalStatus,
+                    decision_note: formData.decision_note,
+                }),
+            });
+
+            if (response.ok) {
+                alert('Keputusan berhasil disimpan!');
+                setQueue((prev) =>
+                    prev.map((item) =>
+                        item.id === selectedItem.id ? { ...item, status: finalStatus } : item,
+                    ),
+                );
+                closeAll();
+            } else {
+                const data = await response.json();
+                alert(data.message || 'Gagal menyimpan keputusan.');
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan sistem atau koneksi.');
+        }
     }
 
     return (
