@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\ApprovalController;
+use App\Http\Controllers\AssessmentController;
+use App\Http\Controllers\AssessmentQuestionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BusinessProfileController;
 use App\Http\Controllers\BusinessTypeController;
@@ -12,7 +15,6 @@ use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PetugasUmkmController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UmkmDashboardController;
-use App\Http\Controllers\AssessmentController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
@@ -76,6 +78,15 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(functio
     Route::put('/petugas/kategori-kendala/{obstacleCategory}', [ObstacleCategoryController::class, 'update'])->name('petugas.kategori-kendala.update');
     Route::patch('/petugas/kategori-kendala/{obstacleCategory}/toggle', [ObstacleCategoryController::class, 'toggle'])->name('petugas.kategori-kendala.toggle');
     Route::delete('/petugas/kategori-kendala/{obstacleCategory}', [ObstacleCategoryController::class, 'destroy'])->name('petugas.kategori-kendala.destroy');
+
+    Route::get('/petugas/bank-soal', [AssessmentQuestionController::class, 'index'])->name('petugas.bank-soal.index');
+    Route::post('/petugas/bank-soal', [AssessmentQuestionController::class, 'store'])->name('petugas.bank-soal.store');
+    Route::put('/petugas/bank-soal/{assessmentQuestion}', [AssessmentQuestionController::class, 'update'])->name('petugas.bank-soal.update');
+    Route::patch('/petugas/bank-soal/{assessmentQuestion}/toggle', [AssessmentQuestionController::class, 'toggle'])->name('petugas.bank-soal.toggle');
+    Route::delete('/petugas/bank-soal/{assessmentQuestion}', [AssessmentQuestionController::class, 'destroy'])->name('petugas.bank-soal.destroy');
+    Route::post('/petugas/bank-soal/{assessmentQuestion}/options', [AssessmentQuestionController::class, 'storeOption'])->name('petugas.bank-soal.options.store');
+    Route::put('/petugas/bank-soal/options/{questionOption}', [AssessmentQuestionController::class, 'updateOption'])->name('petugas.bank-soal.options.update');
+    Route::delete('/petugas/bank-soal/options/{questionOption}', [AssessmentQuestionController::class, 'destroyOption'])->name('petugas.bank-soal.options.destroy');
     Route::get('/petugas/tindak-lanjut', [FollowUpController::class, 'index'])->name('petugas.tindak-lanjut');
     Route::post('/petugas/tindak-lanjut', [FollowUpController::class, 'store'])->name('petugas.tindak-lanjut.store');
 
@@ -97,6 +108,6 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(functio
 
 Route::middleware(['auth', 'active', 'role:'.User::ROLE_VILLAGE_HEAD])->group(function () {
     Route::get('/pimpinan/dashboard', [AuthController::class, 'dashboardPimpinan'])->name('pimpinan.dashboard');
-    Route::get('/pimpinan/persetujuan-tindak-lanjut', [\App\Http\Controllers\ApprovalController::class, 'index'])->name('pimpinan.persetujuan-tindak-lanjut');
-    Route::patch('/pimpinan/persetujuan-tindak-lanjut/{followUp}', [\App\Http\Controllers\ApprovalController::class, 'update'])->name('pimpinan.persetujuan-tindak-lanjut.update');
+    Route::get('/pimpinan/persetujuan-tindak-lanjut', [ApprovalController::class, 'index'])->name('pimpinan.persetujuan-tindak-lanjut');
+    Route::patch('/pimpinan/persetujuan-tindak-lanjut/{followUp}', [ApprovalController::class, 'update'])->name('pimpinan.persetujuan-tindak-lanjut.update');
 });

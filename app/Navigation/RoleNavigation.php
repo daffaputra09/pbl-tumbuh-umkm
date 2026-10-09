@@ -91,6 +91,7 @@ class RoleNavigation
                 ['label' => 'Pendataan UMKM', 'href' => '/petugas/umkm/pendataan-umkm', 'icon' => 'Store04Icon'],
                 ['label' => 'Jenis usaha', 'href' => '/petugas/jenis-usaha', 'icon' => 'CheckListIcon'],
                 ['label' => 'Kategori kendala', 'href' => '/petugas/kategori-kendala', 'icon' => 'Tag01Icon'],
+                ['label' => 'Bank soal', 'href' => '/petugas/bank-soal', 'icon' => 'CheckListIcon'],
                 ['label' => 'Program bantuan', 'href' => null, 'icon' => 'GiftIcon'],
             ]],
             ['title' => 'Tindak lanjut', 'items' => [
