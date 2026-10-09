@@ -122,6 +122,31 @@ class AssessmentQuestionManagementTest extends TestCase
         $this->assertSame(5, $options[4]->value);
     }
 
+    public function test_officer_can_create_likert_question_even_when_form_sends_empty_options(): void
+    {
+        $response = $this->actingAs($this->officer)->post(route('petugas.bank-soal.store'), [
+            'obstacle_category_id' => $this->category->id,
+            'type' => 'likert',
+            'prompt' => 'Saya kesulitan memisahkan uang pribadi dan usaha.',
+            'help_text' => 'Pencatatan kas UMKM',
+            'weight' => 1.00,
+            'is_reverse_scored' => 0,
+            'sort_order' => 2,
+            'is_active' => 1,
+            'options' => [
+                ['label' => '', 'score' => '', 'value' => 1],
+                ['label' => '', 'score' => '', 'value' => 2],
+            ],
+        ]);
+
+        $response->assertRedirect(route('petugas.bank-soal.index'));
+        $response->assertSessionHas('success');
+
+        $question = AssessmentQuestion::where('prompt', 'Saya kesulitan memisahkan uang pribadi dan usaha.')->first();
+        $this->assertNotNull($question);
+        $this->assertCount(5, $question->options);
+    }
+
     public function test_officer_can_create_single_choice_question_with_custom_options(): void
     {
         $response = $this->actingAs($this->officer)->post(route('petugas.bank-soal.store'), [
@@ -199,7 +224,13 @@ class AssessmentQuestionManagementTest extends TestCase
             'sort_order' => -1,
         ]);
 
-        $response->assertSessionHasErrors(['obstacle_category_id', 'type', 'prompt', 'weight', 'sort_order']);
+        $response->assertSessionHasErrors([
+            'obstacle_category_id' => 'Kategori kendala yang dipilih tidak ditemukan.',
+            'type' => 'Tipe pertanyaan harus berupa Likert atau Pilihan Tunggal.',
+            'prompt' => 'Teks pertanyaan wajib diisi.',
+            'weight' => 'Bobot pertanyaan harus berupa angka.',
+            'sort_order' => 'Urutan tampilan minimal bernilai 0.',
+        ]);
     }
 
     public function test_officer_can_manage_question_options(): void
