@@ -6,6 +6,7 @@ use Database\Factories\AssessmentQuestionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AssessmentQuestion extends Model
 {
@@ -37,8 +38,13 @@ class AssessmentQuestion extends Model
         return $this->belongsTo(ObstacleCategory::class);
     }
 
-    public function options()
+    public function options(): HasMany
     {
         return $this->hasMany(QuestionOption::class)->orderBy('sort_order');
+    }
+
+    public function answers(): HasMany
+    {
+        return $this->hasMany(AssessmentAnswer::class);
     }
 }

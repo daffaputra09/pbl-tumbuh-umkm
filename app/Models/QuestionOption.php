@@ -6,6 +6,7 @@ use Database\Factories\QuestionOptionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class QuestionOption extends Model
 {
@@ -31,5 +32,10 @@ class QuestionOption extends Model
     public function assessmentQuestion(): BelongsTo
     {
         return $this->belongsTo(AssessmentQuestion::class);
+    }
+
+    public function answers(): HasMany
+    {
+        return $this->hasMany(AssessmentAnswer::class);
     }
 }
