@@ -261,18 +261,21 @@
                                             <div class="text-xs text-slate-600">
                                                 <span class="font-semibold">{{ $question->options->count() }} opsi:</span>
                                                 <span class="text-slate-500 truncate block max-w-xs">
-                                                    {{ $question->options->pluck('label')->take(2)->join(', ') }}@if($question->options->count() > 2)...@endif
+                                                    {{ $question->options->pluck('label')->take(2)->join(', ') }}{{ $question->options->count() > 2 ? '...' : '' }}
                                                 </span>
                                             </div>
                                         @endif
                                         <button
                                             type="button"
-                                            onclick='openOptionsModal(@json($question), @json($question->options))'
+                                            data-question-id="{{ $question->id }}"
+                                            data-question-prompt="{{ $question->prompt }}"
+                                            onclick="openOptionsModal(this)"
                                             class="text-xs font-semibold text-brand hover:underline inline-flex items-center gap-1 mt-0.5"
                                         >
                                             <x-hugeicon name="CheckListIcon" :size="13" />
                                             Kelola Opsi Jawaban
                                         </button>
+                                        <script type="application/json" id="options-data-{{ $question->id }}">@json($question->options)</script>
                                     </div>
                                 </td>
                                 <td class="py-4 px-3 text-center font-semibold text-slate-700">
@@ -896,10 +899,22 @@
         document.getElementById('edit-modal').classList.add('hidden');
     }
 
-    function openOptionsModal(question, options) {
-        document.getElementById('options-modal-prompt').textContent = question.prompt;
+    function openOptionsModal(button) {
+        let questionId, questionPrompt, options;
+        if (button instanceof HTMLElement) {
+            questionId = button.getAttribute('data-question-id');
+            questionPrompt = button.getAttribute('data-question-prompt');
+            const dataScript = document.getElementById(`options-data-${questionId}`);
+            options = dataScript ? JSON.parse(dataScript.textContent || '[]') : [];
+        } else {
+            questionId = button.id;
+            questionPrompt = button.prompt;
+            options = arguments[1] || [];
+        }
+
+        document.getElementById('options-modal-prompt').textContent = questionPrompt;
         const addForm = document.getElementById('add-option-form');
-        addForm.action = `/petugas/bank-soal/${question.id}/options`;
+        addForm.action = `/petugas/bank-soal/${questionId}/options`;
 
         const tbody = document.getElementById('options-modal-table-body');
         tbody.innerHTML = '';
@@ -922,8 +937,7 @@
                     <div class="flex items-center justify-center gap-1">
                         <button
                             type="button"
-                            onclick='startEditOption(${JSON.stringify(opt)})'
-                            class="grid size-6 place-items-center rounded text-slate-600 hover:text-brand"
+                            class="edit-opt-btn grid size-6 place-items-center rounded text-slate-600 hover:text-brand"
                             title="Edit Opsi"
                         >
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
@@ -942,6 +956,10 @@
                     </div>
                 </td>
             `;
+            const editBtn = tr.querySelector('.edit-opt-btn');
+            if (editBtn) {
+                editBtn.addEventListener('click', () => startEditOption(opt));
+            }
             tbody.appendChild(tr);
         });
 
