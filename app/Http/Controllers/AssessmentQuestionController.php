@@ -76,7 +76,9 @@ class AssessmentQuestionController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
+        $type = $request->string('type')->value();
+
+        $rules = [
             'obstacle_category_id' => ['required', 'integer', 'exists:obstacle_categories,id'],
             'type' => ['required', 'string', 'in:likert,single_choice'],
             'prompt' => ['required', 'string'],
@@ -85,12 +87,40 @@ class AssessmentQuestionController extends Controller
             'is_reverse_scored' => ['nullable', 'boolean'],
             'sort_order' => ['required', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
-            'options' => ['nullable', 'array'],
-            'options.*.label' => ['required_with:options', 'string', 'max:255'],
-            'options.*.value' => ['nullable', 'integer', 'min:0', 'max:255'],
-            'options.*.score' => ['required_with:options', 'integer', 'min:0', 'max:100'],
-            'options.*.sort_order' => ['nullable', 'integer', 'min:0'],
-        ]);
+        ];
+
+        if ($type === 'single_choice') {
+            $rules['options'] = ['required', 'array', 'min:2'];
+            $rules['options.*.label'] = ['required', 'string', 'max:255'];
+            $rules['options.*.value'] = ['nullable', 'integer', 'min:0', 'max:255'];
+            $rules['options.*.score'] = ['required', 'integer', 'min:0', 'max:100'];
+            $rules['options.*.sort_order'] = ['nullable', 'integer', 'min:0'];
+        }
+
+        $messages = [
+            'obstacle_category_id.required' => 'Kategori kendala wajib dipilih.',
+            'obstacle_category_id.integer' => 'Kategori kendala tidak valid.',
+            'obstacle_category_id.exists' => 'Kategori kendala yang dipilih tidak ditemukan.',
+            'type.required' => 'Tipe pertanyaan wajib dipilih.',
+            'type.in' => 'Tipe pertanyaan harus berupa Likert atau Pilihan Tunggal.',
+            'prompt.required' => 'Teks pertanyaan wajib diisi.',
+            'weight.required' => 'Bobot pertanyaan wajib diisi.',
+            'weight.numeric' => 'Bobot pertanyaan harus berupa angka.',
+            'weight.min' => 'Bobot pertanyaan minimal bernilai 0.',
+            'weight.max' => 'Bobot pertanyaan maksimal bernilai 99.99.',
+            'sort_order.required' => 'Urutan tampilan wajib diisi.',
+            'sort_order.integer' => 'Urutan tampilan harus berupa angka bulat.',
+            'sort_order.min' => 'Urutan tampilan minimal bernilai 0.',
+            'options.required' => 'Opsi jawaban wajib disediakan untuk tipe pilihan tunggal.',
+            'options.min' => 'Pertanyaan pilihan tunggal membutuhkan minimal 2 opsi jawaban.',
+            'options.*.label.required' => 'Label setiap opsi jawaban wajib diisi.',
+            'options.*.score.required' => 'Skor setiap opsi jawaban wajib diisi.',
+            'options.*.score.integer' => 'Skor setiap opsi jawaban harus berupa angka bulat.',
+            'options.*.score.min' => 'Skor opsi minimal bernilai 0.',
+            'options.*.score.max' => 'Skor opsi maksimal bernilai 100.',
+        ];
+
+        $validated = $request->validate($rules, $messages);
 
         $isReverseScored = $request->boolean('is_reverse_scored');
         $isActive = $request->boolean('is_active', true);
@@ -153,7 +183,21 @@ class AssessmentQuestionController extends Controller
             $rules['is_reverse_scored'] = ['nullable', 'boolean'];
         }
 
-        $validated = $request->validate($rules);
+        $messages = [
+            'prompt.required' => 'Teks pertanyaan wajib diisi.',
+            'weight.required' => 'Bobot pertanyaan wajib diisi.',
+            'weight.numeric' => 'Bobot pertanyaan harus berupa angka.',
+            'weight.min' => 'Bobot pertanyaan minimal bernilai 0.',
+            'weight.max' => 'Bobot pertanyaan maksimal bernilai 99.99.',
+            'sort_order.required' => 'Urutan tampilan wajib diisi.',
+            'sort_order.integer' => 'Urutan tampilan harus berupa angka bulat.',
+            'sort_order.min' => 'Urutan tampilan minimal bernilai 0.',
+            'obstacle_category_id.required' => 'Kategori kendala wajib dipilih.',
+            'obstacle_category_id.integer' => 'Kategori kendala tidak valid.',
+            'obstacle_category_id.exists' => 'Kategori kendala yang dipilih tidak ditemukan.',
+        ];
+
+        $validated = $request->validate($rules, $messages);
 
         $payload = [
             'prompt' => $validated['prompt'],
@@ -206,12 +250,24 @@ class AssessmentQuestionController extends Controller
 
     public function storeOption(Request $request, AssessmentQuestion $assessmentQuestion): RedirectResponse
     {
+        $messages = [
+            'label.required' => 'Label opsi jawaban wajib diisi.',
+            'label.max' => 'Label opsi jawaban maksimal 255 karakter.',
+            'score.required' => 'Skor opsi jawaban wajib diisi.',
+            'score.integer' => 'Skor opsi jawaban harus berupa angka bulat.',
+            'score.min' => 'Skor opsi minimal bernilai 0.',
+            'score.max' => 'Skor opsi maksimal bernilai 100.',
+            'sort_order.required' => 'Urutan opsi wajib diisi.',
+            'sort_order.integer' => 'Urutan opsi harus berupa angka bulat.',
+            'sort_order.min' => 'Urutan opsi minimal bernilai 0.',
+        ];
+
         $validated = $request->validate([
             'label' => ['required', 'string', 'max:255'],
             'value' => ['nullable', 'integer', 'min:0', 'max:255'],
             'score' => ['required', 'integer', 'min:0', 'max:100'],
             'sort_order' => ['required', 'integer', 'min:0'],
-        ]);
+        ], $messages);
 
         $assessmentQuestion->options()->create($validated);
 
@@ -220,12 +276,24 @@ class AssessmentQuestionController extends Controller
 
     public function updateOption(Request $request, QuestionOption $questionOption): RedirectResponse
     {
+        $messages = [
+            'label.required' => 'Label opsi jawaban wajib diisi.',
+            'label.max' => 'Label opsi jawaban maksimal 255 karakter.',
+            'score.required' => 'Skor opsi jawaban wajib diisi.',
+            'score.integer' => 'Skor opsi jawaban harus berupa angka bulat.',
+            'score.min' => 'Skor opsi minimal bernilai 0.',
+            'score.max' => 'Skor opsi maksimal bernilai 100.',
+            'sort_order.required' => 'Urutan opsi wajib diisi.',
+            'sort_order.integer' => 'Urutan opsi harus berupa angka bulat.',
+            'sort_order.min' => 'Urutan opsi minimal bernilai 0.',
+        ];
+
         $validated = $request->validate([
             'label' => ['required', 'string', 'max:255'],
             'value' => ['nullable', 'integer', 'min:0', 'max:255'],
             'score' => ['required', 'integer', 'min:0', 'max:100'],
             'sort_order' => ['required', 'integer', 'min:0'],
-        ]);
+        ], $messages);
 
         $questionOption->update($validated);
 

@@ -191,111 +191,150 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="border-b border-slate-200 bg-slate-50/75 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+                        <tr class="border-b border-slate-200 bg-slate-50/80 text-[11px] font-bold tracking-wider text-slate-600 uppercase">
                             <th class="py-3.5 pl-6 pr-3 w-12 text-center">No.</th>
-                            <th class="py-3.5 px-3 min-w-[280px]">Pertanyaan &amp; Bantuan</th>
-                            <th class="py-3.5 px-3">Kategori</th>
-                            <th class="py-3.5 px-3 text-center">Tipe</th>
-                            <th class="py-3.5 px-3 text-center">Bobot</th>
-                            <th class="py-3.5 px-3 min-w-[220px]">Opsi Jawaban</th>
-                            <th class="py-3.5 px-3 text-center">Urutan</th>
-                            <th class="py-3.5 px-3 text-center">Status</th>
-                            <th class="py-3.5 pl-3 pr-6 text-center w-32">Aksi</th>
+                            <th class="py-3.5 px-4 min-w-[320px]">Pertanyaan &amp; Bantuan</th>
+                            <th class="py-3.5 px-4">Kategori</th>
+                            <th class="py-3.5 px-4 text-center w-32">Tipe</th>
+                            <th class="py-3.5 px-3 text-center w-20">Bobot</th>
+                            <th class="py-3.5 px-4 whitespace-nowrap min-w-[190px]">Opsi Jawaban</th>
+                            <th class="py-3.5 px-3 text-center w-20">Urutan</th>
+                            <th class="py-3.5 px-4 text-center w-28">Status</th>
+                            <th class="py-3.5 pl-3 pr-6 text-center w-24">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-sm">
                         @forelse($questions as $index => $question)
-                            <tr class="hover:bg-slate-50/60 transition-colors">
-                                <td class="py-4 pl-6 pr-3 text-center font-semibold text-slate-400">
+                            <tr class="hover:bg-slate-50/70 transition-colors">
+                                {{-- Nomor --}}
+                                <td class="py-3.5 pl-6 pr-3 text-center align-middle font-semibold text-slate-500">
                                     {{ $index + 1 }}
                                 </td>
-                                <td class="py-4 px-3">
-                                    <div class="font-bold text-ink leading-snug">{{ $question->prompt }}</div>
-                                    @if($question->help_text)
-                                        <div class="text-xs text-slate-500 mt-1 flex items-start gap-1">
-                                            <span class="text-slate-400 shrink-0">Bantuan:</span>
-                                            <span>{{ $question->help_text }}</span>
+
+                                {{-- Pertanyaan & Bantuan --}}
+                                <td class="py-3.5 px-4 align-middle">
+                                    <div class="min-w-[320px] max-w-lg">
+                                        <div class="font-bold text-ink leading-snug text-sm">
+                                            {{ $question->prompt }}
                                         </div>
-                                    @endif
-                                    @if($question->answers_count > 0)
-                                        <div class="text-[11px] text-amber-700 font-semibold mt-1">
-                                            &bull; {{ $question->answers_count }} jawaban asesmen tercatat
-                                        </div>
-                                    @endif
+                                        @if(filled($question->help_text))
+                                            <p class="mt-1 text-xs italic text-slate-500 leading-relaxed line-clamp-2" title="{{ $question->help_text }}">
+                                                <span class="font-semibold text-slate-400 not-italic">Bantuan:</span> {{ $question->help_text }}
+                                            </p>
+                                        @endif
+                                        @if($question->answers_count > 0)
+                                            <div class="mt-1">
+                                                <span class="inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[10.5px] font-semibold text-amber-800 border border-amber-200/60">
+                                                    <span class="size-1.5 rounded-full bg-amber-500"></span>
+                                                    {{ $question->answers_count }} jawaban asesmen UMKM tercatat
+                                                </span>
+                                            </div>
+                                        @endif
+                                    </div>
                                 </td>
-                                <td class="py-4 px-3">
-                                    <span class="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
-                                        <x-hugeicon name="Tag01Icon" :size="13" />
+
+                                {{-- Kategori --}}
+                                <td class="py-3.5 px-4 align-middle whitespace-nowrap">
+                                    <span class="inline-flex items-center gap-1.5 rounded-lg bg-slate-100/90 px-2.5 py-1 text-xs font-semibold text-slate-700 border border-slate-200/60">
+                                        <x-hugeicon name="Tag01Icon" :size="13" class="text-slate-400" />
                                         {{ $question->obstacleCategory->name ?? '-' }}
                                     </span>
                                 </td>
-                                <td class="py-4 px-3 text-center">
+
+                                {{-- Tipe Soal --}}
+                                <td class="py-3.5 px-4 text-center align-middle whitespace-nowrap">
                                     @if($question->type === 'likert')
-                                        <span class="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand border border-brand-200">
-                                            Likert (5)
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand border border-brand-200/80">
+                                            <span class="size-1.5 rounded-full bg-brand"></span>
+                                            Likert (5 Skala)
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 border border-amber-200">
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 border border-amber-200/80">
+                                            <span class="size-1.5 rounded-full bg-amber-500"></span>
                                             Pilihan Tunggal
                                         </span>
                                     @endif
                                 </td>
-                                <td class="py-4 px-3 text-center">
-                                    <div class="font-semibold text-slate-700">{{ number_format((float)$question->weight, 2) }}</div>
+
+                                {{-- Bobot --}}
+                                <td class="py-3.5 px-3 text-center align-middle whitespace-nowrap">
+                                    <div class="font-bold text-slate-800 text-sm">
+                                        {{ number_format((float)$question->weight, 2) }}
+                                    </div>
                                     @if($question->is_reverse_scored)
-                                        <span class="inline-block mt-0.5 text-[10px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200" title="Skor terbalik (100 - nilai)">
+                                        <span class="inline-block mt-0.5 text-[10px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200" title="Skor terbalik (100 - nilai opsi)">
                                             Reverse
                                         </span>
                                     @endif
                                 </td>
-                                <td class="py-4 px-3">
-                                    <div class="space-y-1">
+
+                                {{-- Opsi Jawaban --}}
+                                <td class="py-3.5 px-4 align-middle whitespace-nowrap">
+                                    <div class="space-y-1.5">
                                         @if($question->type === 'likert')
-                                            <div class="flex items-center gap-1 text-[11px] font-medium text-slate-600">
-                                                <span class="rounded bg-slate-100 px-1.5 py-0.5 font-bold text-slate-500">1: 0%</span>
-                                                <span>&rarr;</span>
-                                                <span class="rounded bg-brand-50 px-1.5 py-0.5 font-bold text-brand">5: 100%</span>
-                                                <span class="text-slate-400">({{ $question->options->count() }} skala)</span>
+                                            <div class="inline-flex items-center gap-1.5 rounded-md bg-slate-50 border border-slate-200/60 px-2 py-0.5 text-[11px] text-slate-600 whitespace-nowrap">
+                                                <span class="font-medium text-slate-500">Skor:</span>
+                                                <span class="font-bold text-slate-800">0</span>
+                                                <span class="text-slate-400">&ndash;</span>
+                                                <span class="font-bold text-brand">100</span>
+                                                <span class="text-slate-400 font-normal">({{ $question->options->count() }} skala)</span>
                                             </div>
                                         @else
-                                            <div class="text-xs text-slate-600">
-                                                <span class="font-semibold">{{ $question->options->count() }} opsi:</span>
-                                                <span class="text-slate-500 truncate block max-w-xs">
-                                                    {{ $question->options->pluck('label')->take(2)->join(', ') }}{{ $question->options->count() > 2 ? '...' : '' }}
-                                                </span>
+                                            <div class="space-y-0.5">
+                                                <div class="inline-flex items-center gap-1.5 rounded-md bg-amber-50 border border-amber-200/60 px-2 py-0.5 text-[11px] text-amber-800 font-semibold whitespace-nowrap">
+                                                    <span>{{ $question->options->count() }} Opsi</span>
+                                                    @if($question->options->isNotEmpty())
+                                                        <span class="text-amber-500 font-normal">&bull;</span>
+                                                        <span class="font-normal">Skor {{ $question->options->min('score') ?? 0 }}&ndash;{{ $question->options->max('score') ?? 100 }}</span>
+                                                    @endif
+                                                </div>
+                                                @if($question->options->isNotEmpty())
+                                                    <div class="text-[11px] text-slate-500 truncate max-w-[210px] pt-0.5" title="{{ $question->options->pluck('label')->join(', ') }}">
+                                                        {{ $question->options->pluck('label')->take(2)->join(', ') }}{{ $question->options->count() > 2 ? '...' : '' }}
+                                                    </div>
+                                                @endif
                                             </div>
                                         @endif
-                                        <button
-                                            type="button"
-                                            data-question-id="{{ $question->id }}"
-                                            data-question-prompt="{{ $question->prompt }}"
-                                            onclick="openOptionsModal(this)"
-                                            class="text-xs font-semibold text-brand hover:underline inline-flex items-center gap-1 mt-0.5"
-                                        >
-                                            <x-hugeicon name="CheckListIcon" :size="13" />
-                                            Kelola Opsi Jawaban
-                                        </button>
+
+                                        <div>
+                                            <button
+                                                type="button"
+                                                data-question-id="{{ $question->id }}"
+                                                data-question-prompt="{{ $question->prompt }}"
+                                                onclick="openOptionsModal(this)"
+                                                class="text-xs font-semibold text-brand hover:underline inline-flex items-center gap-1.5 whitespace-nowrap transition-colors"
+                                            >
+                                                <x-hugeicon name="CheckListIcon" :size="13" class="shrink-0" />
+                                                Kelola Opsi Jawaban
+                                            </button>
+                                        </div>
                                         <script type="application/json" id="options-data-{{ $question->id }}">@json($question->options)</script>
                                     </div>
                                 </td>
-                                <td class="py-4 px-3 text-center font-semibold text-slate-700">
+
+                                {{-- Urutan --}}
+                                <td class="py-3.5 px-3 text-center align-middle font-bold text-slate-700 whitespace-nowrap">
                                     {{ $question->sort_order }}
                                 </td>
-                                <td class="py-4 px-3 text-center">
-                                    <form method="POST" action="{{ route('petugas.bank-soal.toggle', $question) }}">
+
+                                {{-- Status --}}
+                                <td class="py-3.5 px-4 text-center align-middle whitespace-nowrap">
+                                    <form method="POST" action="{{ route('petugas.bank-soal.toggle', $question) }}" class="inline-block">
                                         @csrf
                                         @method('PATCH')
                                         <button
                                             type="submit"
                                             title="Klik untuk mengubah status aktif/nonaktif"
-                                            class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold border transition-colors cursor-pointer {{ $question->is_active ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200' }}"
+                                            class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold border transition-colors cursor-pointer {{ $question->is_active ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200' }}"
                                         >
                                             <span class="size-1.5 rounded-full {{ $question->is_active ? 'bg-emerald-500' : 'bg-slate-400' }}"></span>
                                             {{ $question->is_active ? 'Aktif' : 'Nonaktif' }}
                                         </button>
                                     </form>
                                 </td>
-                                <td class="py-4 pl-3 pr-6 text-center">
+
+                                {{-- Aksi --}}
+                                <td class="py-3.5 pl-3 pr-6 text-center align-middle whitespace-nowrap">
                                     <div class="flex items-center justify-center gap-1.5">
                                         {{-- Edit Button --}}
                                         <button
@@ -499,6 +538,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center pt-1">
                         <div>
                             <label class="inline-flex items-center gap-2.5 cursor-pointer">
+                                <input type="hidden" name="is_reverse_scored" value="0">
                                 <input
                                     type="checkbox"
                                     name="is_reverse_scored"
@@ -514,6 +554,7 @@
 
                         <div>
                             <label class="inline-flex items-center gap-2.5 cursor-pointer">
+                                <input type="hidden" name="is_active" value="0">
                                 <input
                                     type="checkbox"
                                     name="is_active"
@@ -540,14 +581,14 @@
                         </div>
                         <div id="single-choice-rows" class="space-y-2">
                             <div class="flex items-center gap-2 single-choice-row">
-                                <input type="text" name="options[0][label]" placeholder="Label Opsi 1" class="flex-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs">
-                                <input type="number" name="options[0][score]" placeholder="Skor (0-100)" min="0" max="100" class="w-24 rounded-xl border border-slate-200 px-3 py-1.5 text-xs">
-                                <input type="number" name="options[0][value]" placeholder="Value" min="1" value="1" class="w-16 rounded-xl border border-slate-200 px-3 py-1.5 text-xs">
+                                <input type="text" name="options[0][label]" placeholder="Label Opsi 1" disabled class="flex-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs">
+                                <input type="number" name="options[0][score]" placeholder="Skor (0-100)" min="0" max="100" disabled class="w-24 rounded-xl border border-slate-200 px-3 py-1.5 text-xs">
+                                <input type="number" name="options[0][value]" placeholder="Value" min="1" value="1" disabled class="w-16 rounded-xl border border-slate-200 px-3 py-1.5 text-xs">
                             </div>
                             <div class="flex items-center gap-2 single-choice-row">
-                                <input type="text" name="options[1][label]" placeholder="Label Opsi 2" class="flex-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs">
-                                <input type="number" name="options[1][score]" placeholder="Skor (0-100)" min="0" max="100" class="w-24 rounded-xl border border-slate-200 px-3 py-1.5 text-xs">
-                                <input type="number" name="options[1][value]" placeholder="Value" min="1" value="2" class="w-16 rounded-xl border border-slate-200 px-3 py-1.5 text-xs">
+                                <input type="text" name="options[1][label]" placeholder="Label Opsi 2" disabled class="flex-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs">
+                                <input type="number" name="options[1][score]" placeholder="Skor (0-100)" min="0" max="100" disabled class="w-24 rounded-xl border border-slate-200 px-3 py-1.5 text-xs">
+                                <input type="number" name="options[1][value]" placeholder="Value" min="1" value="2" disabled class="w-16 rounded-xl border border-slate-200 px-3 py-1.5 text-xs">
                             </div>
                         </div>
                     </div>
@@ -680,6 +721,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center pt-1">
                         <div>
                             <label class="inline-flex items-center gap-2.5 cursor-pointer">
+                                <input type="hidden" name="is_reverse_scored" value="0">
                                 <input
                                     type="checkbox"
                                     id="edit_is_reverse_scored"
@@ -693,6 +735,7 @@
 
                         <div>
                             <label class="inline-flex items-center gap-2.5 cursor-pointer">
+                                <input type="hidden" name="is_active" value="0">
                                 <input
                                     type="checkbox"
                                     id="edit_is_active"
@@ -830,6 +873,8 @@
     let singleChoiceCounter = 2;
 
     function openCreateModal() {
+        const typeSelect = document.getElementById('create_type');
+        toggleCreateType(typeSelect ? typeSelect.value : 'likert');
         document.getElementById('create-modal').classList.remove('hidden');
     }
 
@@ -840,12 +885,15 @@
     function toggleCreateType(type) {
         const likertNote = document.getElementById('likert-note');
         const builder = document.getElementById('single-choice-options-builder');
+        const inputs = builder ? builder.querySelectorAll('input') : [];
         if (type === 'likert') {
             likertNote.classList.remove('hidden');
             builder.classList.add('hidden');
+            inputs.forEach(input => input.disabled = true);
         } else {
             likertNote.classList.add('hidden');
             builder.classList.remove('hidden');
+            inputs.forEach(input => input.disabled = false);
         }
     }
 
