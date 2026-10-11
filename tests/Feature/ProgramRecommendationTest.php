@@ -83,7 +83,7 @@ class ProgramRecommendationTest extends TestCase
         User::factory()->create();
         $owner = User::factory()->create();
 
-        Business::factory()->create([
+        $business = Business::factory()->create([
             'user_id' => $owner->id,
             'created_by' => $owner->id,
         ]);
@@ -93,12 +93,12 @@ class ProgramRecommendationTest extends TestCase
             'created_by' => $owner->id,
         ]);
         $assessment = Assessment::factory()->create([
-            'business_id' => $owner->id,
+            'business_id' => $business->id,
             'filled_by' => $owner->id,
         ]);
 
         return [
-            'businessId' => (int) Business::query()->where('user_id', $owner->id)->value('id'),
+            'businessId' => $business->id,
             'ownerId' => $owner->id,
             'assessmentId' => $assessment->id,
             'programId' => $program->id,

@@ -8,6 +8,8 @@ use App\Models\AssessmentQuestion;
 use App\Models\Business;
 use App\Models\ObstacleCategory;
 use App\Models\QuestionOption;
+use App\Services\AssessmentScoringService;
+use App\Services\ProgramRecommendationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -50,8 +52,11 @@ class AssessmentController extends Controller
         ]);
     }
 
-    public function save(Request $request): JsonResponse
-    {
+    public function save(
+        Request $request,
+        AssessmentScoringService $scoring,
+        ProgramRecommendationService $recommendations,
+    ): JsonResponse {
         $business = $this->ownBusiness($request);
 
         $validated = $request->validate([
@@ -61,8 +66,7 @@ class AssessmentController extends Controller
             'otherObstacle' => ['nullable', 'string'],
         ]);
 
-        $assessment = DB::transaction(function () use ($business, $validated, $request) {
-            
+        $assessment = DB::transaction(function () use ($business, $validated, $request, $scoring, $recommendations) {
             Assessment::where('business_id', $business->id)->update(['is_current' => false]);
 
             $assessment = Assessment::create([
@@ -86,6 +90,9 @@ class AssessmentController extends Controller
                     'weight' => $question->weight,
                 ]);
             }
+
+            $scoring->score($assessment);
+            $recommendations->generate($assessment);
 
             return $assessment;
         });

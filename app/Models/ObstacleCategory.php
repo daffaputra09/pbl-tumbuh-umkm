@@ -39,6 +39,8 @@ class ObstacleCategory extends Model
 
     public function assistancePrograms(): BelongsToMany
     {
-        return $this->belongsToMany(AssistanceProgram::class, 'assistance_program_obstacle_category');
+        return $this->belongsToMany(AssistanceProgram::class, 'assistance_program_obstacle_category')
+            ->withPivot('minimum_level')
+            ->withTimestamps();
     }
 }
