@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AssessmentQuestionController;
+use App\Http\Controllers\AssistanceProgramController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BusinessProfileController;
 use App\Http\Controllers\BusinessTypeController;
@@ -87,6 +88,15 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(functio
     Route::post('/petugas/bank-soal/{assessmentQuestion}/options', [AssessmentQuestionController::class, 'storeOption'])->name('petugas.bank-soal.options.store');
     Route::put('/petugas/bank-soal/options/{questionOption}', [AssessmentQuestionController::class, 'updateOption'])->name('petugas.bank-soal.options.update');
     Route::delete('/petugas/bank-soal/options/{questionOption}', [AssessmentQuestionController::class, 'destroyOption'])->name('petugas.bank-soal.options.destroy');
+
+    Route::get('/petugas/program-bantuan', [AssistanceProgramController::class, 'index'])->name('petugas.program-bantuan.index');
+    Route::get('/petugas/program-bantuan/create', [AssistanceProgramController::class, 'create'])->name('petugas.program-bantuan.create');
+    Route::post('/petugas/program-bantuan', [AssistanceProgramController::class, 'store'])->name('petugas.program-bantuan.store');
+    Route::get('/petugas/program-bantuan/{assistanceProgram}', [AssistanceProgramController::class, 'show'])->name('petugas.program-bantuan.show');
+    Route::get('/petugas/program-bantuan/{assistanceProgram}/edit', [AssistanceProgramController::class, 'edit'])->name('petugas.program-bantuan.edit');
+    Route::put('/petugas/program-bantuan/{assistanceProgram}', [AssistanceProgramController::class, 'update'])->name('petugas.program-bantuan.update');
+    Route::delete('/petugas/program-bantuan/{assistanceProgram}', [AssistanceProgramController::class, 'destroy'])->name('petugas.program-bantuan.destroy');
+
     Route::get('/petugas/tindak-lanjut', [FollowUpController::class, 'index'])->name('petugas.tindak-lanjut');
     Route::post('/petugas/tindak-lanjut', [FollowUpController::class, 'store'])->name('petugas.tindak-lanjut.store');
 

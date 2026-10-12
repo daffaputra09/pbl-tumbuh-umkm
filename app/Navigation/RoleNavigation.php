@@ -92,7 +92,7 @@ class RoleNavigation
                 ['label' => 'Jenis usaha', 'href' => '/petugas/jenis-usaha', 'icon' => 'CheckListIcon'],
                 ['label' => 'Kategori kendala', 'href' => '/petugas/kategori-kendala', 'icon' => 'Tag01Icon'],
                 ['label' => 'Bank soal', 'href' => '/petugas/bank-soal', 'icon' => 'CheckListIcon'],
-                ['label' => 'Program bantuan', 'href' => null, 'icon' => 'GiftIcon'],
+                ['label' => 'Program bantuan', 'href' => '/petugas/program-bantuan', 'icon' => 'GiftIcon'],
             ]],
             ['title' => 'Tindak lanjut', 'items' => [
                 ['label' => 'Ajukan tindak lanjut', 'href' => '/petugas/tindak-lanjut', 'icon' => 'TeachingIcon'],
