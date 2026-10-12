@@ -69,6 +69,7 @@
                 $vStatus = $umkm['verification_status'] ?? $umkm['status_verifikasi'];
                 $isPending = in_array($vStatus, ['pending', 'menunggu']);
                 $isVerified = in_array($vStatus, ['verified', 'terverifikasi']);
+                $isNeedsRevision = $vStatus === 'needs_revision';
                 $isRejected = in_array($vStatus, ['rejected', 'ditolak']);
             @endphp
 
@@ -103,6 +104,11 @@
                         <span class="pumkm-badge pumkm-badge--verified" style="font-size: 0.85rem; padding: 0.4rem 1rem;">
                             <span class="pumkm-badge-dot"></span>
                             Terverifikasi
+                        </span>
+                    @elseif($isNeedsRevision)
+                        <span class="pumkm-badge pumkm-badge--revision" style="font-size: 0.85rem; padding: 0.4rem 1rem;">
+                            <span class="pumkm-badge-dot"></span>
+                            Perlu Perbaikan
                         </span>
                     @else
                         <span class="pumkm-badge pumkm-badge--rejected" style="font-size: 0.85rem; padding: 0.4rem 1rem;">
@@ -368,14 +374,14 @@
                                 </h2>
                             </div>
                             <div class="pumkm-card-body">
-                                <div class="pumkm-status-box pumkm-status-box--{{ $isVerified ? 'verified' : ($isRejected ? 'rejected' : 'waiting') }}">
+                                <div class="pumkm-status-box pumkm-status-box--{{ $isVerified ? 'verified' : ($isNeedsRevision ? 'revision' : ($isRejected ? 'rejected' : 'waiting')) }}">
                                     <div class="pumkm-status-box-title">
-                                        {{ $isVerified ? '✔ Catatan Persetujuan' : ($isRejected ? '✗ Alasan Penolakan' : 'Catatan Petugas') }}
+                                        {{ $isVerified ? '✔ Catatan Persetujuan' : ($isNeedsRevision ? 'ℹ Catatan Perlu Perbaikan' : ($isRejected ? '✗ Alasan Penolakan' : 'Catatan Petugas')) }}
                                     </div>
                                     <div class="pumkm-status-box-note" style="margin-top:0.35rem; font-size:0.875rem;">
                                         {{ $umkm['verification_note'] ?? $umkm['catatan_petugas'] }}
                                     </div>
-                                    @if(!empty($umkm['verified_at']))
+                                    @if(!empty($umkm['verified_at']) && !$isPending)
                                         <div style="margin-top:0.75rem; font-size:0.75rem; color:#64748b; border-top:1px dashed #cbd5e1; padding-top:0.5rem;">
                                             Diproses oleh: <strong>{{ $umkm->verifiedBy->name ?? ($umkm['verified_by'] ?? 'Petugas Desa') }}</strong> pada {{ \Carbon\Carbon::parse($umkm['verified_at'])->isoFormat('D MMMM YYYY, HH:mm') }} WIB
                                         </div>
@@ -384,174 +390,161 @@
                             </div>
                         </div>
                     @endif
-                    <div class="pumkm-decision-box {{ $isPending ? 'pumkm-decision--pending' : '' }}">
-                        <h3 class="pumkm-decision-box-title">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                            Keputusan Verifikasi
-                        </h3>
 
-                        @if($isPending)
-                            <p class="pumkm-decision-box-desc">
-                                Setelah memeriksa seluruh data profil usaha, produk, dan kebutuhan di atas, tentukan keputusan verifikasi data UMKM ini:
-                            </p>
+                    <div class="pumkm-decision-box">
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+                            <h3 class="pumkm-decision-box-title" style="margin: 0;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                Formulir Keputusan Verifikasi
+                            </h3>
+                            <div>
+                                @if($isVerified)
+                                    <span class="pumkm-badge pumkm-badge--verified"><span class="pumkm-badge-dot"></span> Terverifikasi</span>
+                                @elseif($isNeedsRevision)
+                                    <span class="pumkm-badge pumkm-badge--revision"><span class="pumkm-badge-dot"></span> Perlu Perbaikan</span>
+                                @elseif($isRejected)
+                                    <span class="pumkm-badge pumkm-badge--rejected"><span class="pumkm-badge-dot"></span> Ditolak</span>
+                                @else
+                                    <span class="pumkm-badge pumkm-badge--waiting"><span class="pumkm-badge-dot"></span> Menunggu Verifikasi</span>
+                                @endif
+                            </div>
+                        </div>
 
-                            <div class="pumkm-decision-btn-group">
+                        <p class="pumkm-decision-box-desc">
+                            Setelah memeriksa rincian profil usaha, data produk, dan kebutuhan di atas, tentukan status verifikasi UMKM ini:
+                        </p>
+
+                        <form method="POST" action="{{ route('petugas.umkm.proses-verifikasi', $umkm['id']) }}">
+                            @csrf
+                            <div style="margin-bottom: 1.25rem;">
+                                <label class="pumkm-data-label" style="display: block; margin-bottom: 0.5rem;">Pilih Status Verifikasi:</label>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem;">
+                                    {{-- Terverifikasi --}}
+                                    <label class="pumkm-status-radio-label" style="border: 1.5px solid {{ $isVerified ? '#0f766e' : '#cbd5e1' }}; background: {{ $isVerified ? '#f0fdfa' : '#ffffff' }}; border-radius: 0.75rem; padding: 0.75rem 1rem; display: flex; align-items: flex-start; gap: 0.625rem; cursor: pointer; transition: all 0.15s ease;">
+                                        <input type="radio" name="verification_status" value="verified" {{ $isVerified ? 'checked' : '' }} style="margin-top: 0.2rem; accent-color: #0f766e;" onchange="sesuaikanCatatan(this.value)">
+                                        <div>
+                                            <div style="font-weight: 700; font-size: 0.875rem; color: #0f766e;">Terverifikasi</div>
+                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.125rem;">Data valid &amp; lengkap</div>
+                                        </div>
+                                    </label>
+
+                                    {{-- Perlu Perbaikan --}}
+                                    <label class="pumkm-status-radio-label" style="border: 1.5px solid {{ $isNeedsRevision ? '#2563eb' : '#cbd5e1' }}; background: {{ $isNeedsRevision ? '#eff6ff' : '#ffffff' }}; border-radius: 0.75rem; padding: 0.75rem 1rem; display: flex; align-items: flex-start; gap: 0.625rem; cursor: pointer; transition: all 0.15s ease;">
+                                        <input type="radio" name="verification_status" value="needs_revision" {{ $isNeedsRevision ? 'checked' : '' }} style="margin-top: 0.2rem; accent-color: #2563eb;" onchange="sesuaikanCatatan(this.value)">
+                                        <div>
+                                            <div style="font-weight: 700; font-size: 0.875rem; color: #1d4ed8;">Perlu Perbaikan</div>
+                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.125rem;">Perlu revisi pemilik</div>
+                                        </div>
+                                    </label>
+
+                                    {{-- Ditolak --}}
+                                    <label class="pumkm-status-radio-label" style="border: 1.5px solid {{ $isRejected ? '#dc2626' : '#cbd5e1' }}; background: {{ $isRejected ? '#fef2f2' : '#ffffff' }}; border-radius: 0.75rem; padding: 0.75rem 1rem; display: flex; align-items: flex-start; gap: 0.625rem; cursor: pointer; transition: all 0.15s ease;">
+                                        <input type="radio" name="verification_status" value="rejected" {{ $isRejected ? 'checked' : '' }} style="margin-top: 0.2rem; accent-color: #dc2626;" onchange="sesuaikanCatatan(this.value)">
+                                        <div>
+                                            <div style="font-weight: 700; font-size: 0.875rem; color: #dc2626;">Ditolak</div>
+                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.125rem;">Pengajuan tidak diterima</div>
+                                        </div>
+                                    </label>
+
+                                    {{-- Menunggu Verifikasi --}}
+                                    <label class="pumkm-status-radio-label" style="border: 1.5px solid {{ $isPending ? '#d97706' : '#cbd5e1' }}; background: {{ $isPending ? '#fffbeb' : '#ffffff' }}; border-radius: 0.75rem; padding: 0.75rem 1rem; display: flex; align-items: flex-start; gap: 0.625rem; cursor: pointer; transition: all 0.15s ease;">
+                                        <input type="radio" name="verification_status" value="pending" {{ $isPending ? 'checked' : '' }} style="margin-top: 0.2rem; accent-color: #d97706;" onchange="sesuaikanCatatan(this.value)">
+                                        <div>
+                                            <div style="font-weight: 700; font-size: 0.875rem; color: #b45309;">Menunggu Verifikasi</div>
+                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.125rem;">Kembalikan ke antrean</div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 1.25rem;">
+                                <label class="pumkm-data-label" for="verification_note" id="label_catatan">
+                                    Catatan Verifikasi:
+                                </label>
+                                <textarea
+                                    name="verification_note"
+                                    id="verification_note"
+                                    class="pumkm-dialog-textarea"
+                                    rows="3"
+                                    placeholder="Tuliskan catatan verifikasi, instruksi perbaikan bagi pemilik UMKM, atau alasan penolakan..."
+                                >{{ old('verification_note', $umkm['verification_note'] ?? '') }}</textarea>
+                                <div id="note_hint" style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;">
+                                    Catatan wajib diisi saat memilih status <strong>Perlu Perbaikan</strong> atau <strong>Ditolak</strong>.
+                                </div>
+                            </div>
+
+                            <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
                                 <button
-                                    type="button"
+                                    type="submit"
                                     class="pumkm-btn-verify-lg"
-                                    onclick="bukaModalVerifikasi()"
-                                    title="Setujui dan verifikasi data UMKM ini"
+                                    id="btn_simpan_status"
                                 >
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                                    Verifikasi UMKM
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="pumkm-btn-reject-lg"
-                                    onclick="bukaModalTolak()"
-                                    title="Tolak data UMKM ini dengan catatan"
-                                >
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                    Tolak Data
+                                    Simpan Keputusan Verifikasi
                                 </button>
                             </div>
-                        @elseif($isVerified)
-                            <div style="background-color: #f0fdfa; border: 1px solid #99f6e4; border-radius: 0.75rem; padding: 1rem; color: #0f766e;">
-                                <div style="font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 0.35rem;">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                                    Data Telah Terverifikasi
-                                </div>
-                                <div style="font-size: 0.8125rem; margin-top: 0.35rem; color: #115e59;">
-                                    Usaha ini telah dinyatakan sah dan valid pada sistem TUMBUH UMKM.
-                                </div>
-                            </div>
-                        @else
-                            <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 0.75rem; padding: 1rem; color: #dc2626;">
-                                <div style="font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 0.35rem;">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                                    Data Telah Ditolak
-                                </div>
-                                <div style="font-size: 0.8125rem; margin-top: 0.35rem; color: #b91c1c;">
-                                    Pengajuan data UMKM ini ditolak. Pemilik UMKM dapat melengkapi data yang kurang sesuai catatan penolakan.
-                                </div>
-                            </div>
-                        @endif
+                        </form>
                     </div>
             </div>
         </main>
 
-    <div class="pumkm-dialog-overlay" id="dialogVerifikasi" role="dialog" aria-modal="true" onclick="tutupModalVerifikasi(event)">
-        <div class="pumkm-dialog" onclick="event.stopPropagation()">
-            <form method="POST" action="{{ route('petugas.umkm.proses-verifikasi', $umkm['id']) }}">
-                @csrf
-                <div class="pumkm-dialog-header">
-                    <h3 class="pumkm-dialog-title" style="color: #0f766e;">Konfirmasi Verifikasi Data</h3>
-                    <button type="button" class="pumkm-modal-close" onclick="tutupModalVerifikasiBtn()" title="Tutup">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                    </button>
-                </div>
-                <div class="pumkm-dialog-body">
-                    <p style="margin: 0 0 1rem;">
-                        Apakah Anda yakin ingin memverifikasi data UMKM <strong>"{{ $umkm['business_name'] ?? $umkm['nama_usaha'] }}"</strong>?
-                    </p>
-                    <p style="font-size: 0.8125rem; color: #64748b; margin: 0 0 1rem;">
-                        Status usaha akan diperbarui menjadi <strong>Terverifikasi</strong> dan dapat dilanjutkan ke tahap program bantuan serta pembinaan desa.
-                    </p>
-                    <label class="pumkm-data-label" for="verify_note">Catatan Verifikasi (Opsional):</label>
-                    <textarea
-                        name="verification_note"
-                        id="verify_note"
-                        class="pumkm-dialog-textarea"
-                        placeholder="Contoh: Data lengkap dan valid, izin usaha sesuai."
-                    ></textarea>
-                </div>
-                <div class="pumkm-dialog-footer">
-                    <button type="button" class="pumkm-btn pumkm-btn--detail" onclick="tutupModalVerifikasiBtn()">
-                        Batal
-                    </button>
-                    <button type="submit" class="pumkm-btn pumkm-btn--verify" style="padding: 0.5rem 1rem;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        Ya, Verifikasi Data
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="pumkm-dialog-overlay" id="dialogTolak" role="dialog" aria-modal="true" onclick="tutupModalTolak(event)">
-        <div class="pumkm-dialog" onclick="event.stopPropagation()">
-            <form method="POST" action="{{ route('petugas.umkm.proses-tolak', $umkm['id']) }}">
-                @csrf
-                <div class="pumkm-dialog-header">
-                    <h3 class="pumkm-dialog-title" style="color: #dc2626;">Tolak Pengajuan UMKM</h3>
-                    <button type="button" class="pumkm-modal-close" onclick="tutupModalTolakBtn()" title="Tutup">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                    </button>
-                </div>
-                <div class="pumkm-dialog-body">
-                    <p style="margin: 0 0 1rem;">
-                        Tolak pengajuan data UMKM <strong>"{{ $umkm['business_name'] ?? $umkm['nama_usaha'] }}"</strong>?
-                    </p>
-                    <label class="pumkm-data-label" for="reject_note">Alasan Penolakan (Wajib Diisi):</label>
-                    <textarea
-                        name="verification_note"
-                        id="reject_note"
-                        class="pumkm-dialog-textarea"
-                        placeholder="Tuliskan alasan penolakan secara jelas agar pemilik UMKM dapat memperbaiki atau melengkapi datanya (misal: Data profil usaha belum sesuai atau foto produk belum jelas)..."
-                        required
-                    ></textarea>
-                </div>
-                <div class="pumkm-dialog-footer">
-                    <button type="button" class="pumkm-btn pumkm-btn--detail" onclick="tutupModalTolakBtn()">
-                        Batal
-                    </button>
-                    <button type="submit" class="pumkm-btn pumkm-btn--reject" style="padding: 0.5rem 1rem;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                        Konfirmasi Tolak Data
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <script>
-        function bukaModalVerifikasi() {
-            document.getElementById('dialogVerifikasi').classList.add('pumkm-dialog-open');
-            document.body.style.overflow = 'hidden';
+        function sesuaikanCatatan(status) {
+            var label = document.getElementById('label_catatan');
+            var hint = document.getElementById('note_hint');
+            var textarea = document.getElementById('verification_note');
+
+            if (status === 'needs_revision') {
+                if (label) label.innerHTML = 'Catatan Perbaikan <span style="color:#dc2626;">(Wajib diisi)</span>:';
+                if (hint) hint.innerHTML = '<span style="color:#dc2626; font-weight:600;">* Wajib diisi</span> agar pemilik UMKM mengetahui bagian data usaha yang harus diperbaiki.';
+                if (textarea && !textarea.value.trim()) {
+                    textarea.placeholder = 'Contoh: Harap perbarui foto produk dan lengkapi surat keterangan usaha RT/RW...';
+                }
+            } else if (status === 'rejected') {
+                if (label) label.innerHTML = 'Alasan Penolakan <span style="color:#dc2626;">(Wajib diisi)</span>:';
+                if (hint) hint.innerHTML = '<span style="color:#dc2626; font-weight:600;">* Wajib diisi</span> agar pemilik UMKM mengetahui alasan pengajuan ditolak.';
+                if (textarea && !textarea.value.trim()) {
+                    textarea.placeholder = 'Contoh: Domisili usaha berada di luar wilayah desa binaan...';
+                }
+            } else if (status === 'verified') {
+                if (label) label.innerHTML = 'Catatan Verifikasi (Opsional):';
+                if (hint) hint.innerHTML = 'Opsional. Jika dikosongkan, sistem akan otomatis mencatat data usaha valid.';
+                if (textarea && !textarea.value.trim()) {
+                    textarea.placeholder = 'Contoh: Data lengkap dan valid, izin usaha sesuai.';
+                }
+            } else {
+                if (label) label.innerHTML = 'Catatan (Opsional):';
+                if (hint) hint.innerHTML = 'Status akan dikembalikan ke antrean pemeriksaan (menunggu verifikasi).';
+            }
+
+            document.querySelectorAll('.pumkm-status-radio-label').forEach(function(card) {
+                var radio = card.querySelector('input[type="radio"]');
+                if (radio && radio.checked) {
+                    var val = radio.value;
+                    if (val === 'verified') {
+                        card.style.borderColor = '#0f766e';
+                        card.style.backgroundColor = '#f0fdfa';
+                    } else if (val === 'needs_revision') {
+                        card.style.borderColor = '#2563eb';
+                        card.style.backgroundColor = '#eff6ff';
+                    } else if (val === 'rejected') {
+                        card.style.borderColor = '#dc2626';
+                        card.style.backgroundColor = '#fef2f2';
+                    } else {
+                        card.style.borderColor = '#d97706';
+                        card.style.backgroundColor = '#fffbeb';
+                    }
+                } else {
+                    card.style.borderColor = '#cbd5e1';
+                    card.style.backgroundColor = '#ffffff';
+                }
+            });
         }
 
-        function tutupModalVerifikasi(e) {
-            if (e.target.id === 'dialogVerifikasi') tutupModalVerifikasiBtn();
-        }
-
-        function tutupModalVerifikasiBtn() {
-            document.getElementById('dialogVerifikasi').classList.remove('pumkm-dialog-open');
-            document.body.style.overflow = '';
-        }
-
-        function bukaModalTolak() {
-            document.getElementById('dialogTolak').classList.add('pumkm-dialog-open');
-            document.body.style.overflow = 'hidden';
-            setTimeout(function() {
-                var ta = document.getElementById('reject_note');
-                if (ta) ta.focus();
-            }, 100);
-        }
-
-        function tutupModalTolak(e) {
-            if (e.target.id === 'dialogTolak') tutupModalTolakBtn();
-        }
-
-        function tutupModalTolakBtn() {
-            document.getElementById('dialogTolak').classList.remove('pumkm-dialog-open');
-            document.body.style.overflow = '';
-        }
-
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                tutupModalVerifikasiBtn();
-                tutupModalTolakBtn();
+        document.addEventListener('DOMContentLoaded', function() {
+            var checked = document.querySelector('input[name="verification_status"]:checked');
+            if (checked) {
+                sesuaikanCatatan(checked.value);
             }
         });
     </script>
