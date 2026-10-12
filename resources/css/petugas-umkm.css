@@ -134,12 +134,18 @@
 
 .pumkm-stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 0.875rem;
     margin-bottom: 1.5rem;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
+    .pumkm-stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
     .pumkm-stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -190,6 +196,11 @@
 .pumkm-stat-icon--verified {
     background-color: #f0fdfa;
     color: #0f766e;
+}
+
+.pumkm-stat-icon--revision {
+    background-color: #eff6ff;
+    color: #2563eb;
 }
 
 .pumkm-stat-icon--rejected {
@@ -320,6 +331,12 @@
     color: #ffffff;
 }
 
+.pumkm-pill--revision-active {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+}
+
 .pumkm-pill--rejected-active {
     background-color: #dc2626;
     border-color: #dc2626;
@@ -419,6 +436,12 @@
     border: 1px solid #99f6e4;
 }
 
+.pumkm-badge--revision {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+
 .pumkm-badge--rejected {
     background-color: #fef2f2;
     color: #dc2626;
@@ -434,6 +457,7 @@
 
 .pumkm-badge--waiting .pumkm-badge-dot  { background-color: #d97706; }
 .pumkm-badge--verified .pumkm-badge-dot { background-color: #0f766e; }
+.pumkm-badge--revision .pumkm-badge-dot { background-color: #2563eb; }
 .pumkm-badge--rejected .pumkm-badge-dot { background-color: #dc2626; }
 
 /* === TOMBOL AKSI TABEL === */
@@ -760,6 +784,11 @@
     border: 1px solid #99f6e4;
 }
 
+.pumkm-status-box--revision {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+}
+
 .pumkm-status-box--rejected {
     background: #fef2f2;
     border: 1px solid #fecaca;
@@ -773,6 +802,7 @@
 
 .pumkm-status-box--waiting  .pumkm-status-box-title { color: #b45309; }
 .pumkm-status-box--verified .pumkm-status-box-title { color: #0f766e; }
+.pumkm-status-box--revision .pumkm-status-box-title { color: #1d4ed8; }
 .pumkm-status-box--rejected .pumkm-status-box-title { color: #dc2626; }
 
 .pumkm-status-box-note {

@@ -96,6 +96,20 @@
             </div>
 
             <div class="pumkm-stat-card">
+                <div class="pumkm-stat-icon pumkm-stat-icon--revision">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                </div>
+                <div class="pumkm-stat-info">
+                    <div class="pumkm-stat-number">{{ $stats['perlu_perbaikan'] }}</div>
+                    <div class="pumkm-stat-label">Perlu Perbaikan</div>
+                </div>
+            </div>
+
+            <div class="pumkm-stat-card">
                 <div class="pumkm-stat-icon pumkm-stat-icon--rejected">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"/>
@@ -134,6 +148,7 @@
                         'semua' => ['label' => 'Semua', 'activeClass' => 'pumkm-pill--active'],
                         'menunggu' => ['label' => 'Menunggu Verifikasi', 'activeClass' => 'pumkm-pill--waiting-active'],
                         'terverifikasi' => ['label' => 'Terverifikasi', 'activeClass' => 'pumkm-pill--verified-active'],
+                        'perlu_perbaikan' => ['label' => 'Perlu Perbaikan', 'activeClass' => 'pumkm-pill--revision-active'],
                         'ditolak' => ['label' => 'Ditolak', 'activeClass' => 'pumkm-pill--rejected-active'],
                     ];
                 @endphp
@@ -188,6 +203,11 @@
                                         <span class="pumkm-badge pumkm-badge--verified">
                                             <span class="pumkm-badge-dot"></span>
                                             Terverifikasi
+                                        </span>
+                                    @elseif($vStatus === 'needs_revision')
+                                        <span class="pumkm-badge pumkm-badge--revision">
+                                            <span class="pumkm-badge-dot"></span>
+                                            Perlu Perbaikan
                                         </span>
                                     @else
                                         <span class="pumkm-badge pumkm-badge--rejected">
