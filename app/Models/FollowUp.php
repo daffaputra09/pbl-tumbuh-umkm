@@ -19,6 +19,7 @@ class FollowUp extends Model
         'decision_note',
         'decided_at',
     ];
+
     protected $casts = [
         'planned_on' => 'date',
         'decided_at' => 'datetime',
@@ -37,5 +38,10 @@ class FollowUp extends Model
     public function programRecommendation()
     {
         return $this->belongsTo(ProgramRecommendation::class, 'program_recommendation_id');
+    }
+
+    public function coachingSession()
+    {
+        return $this->hasOne(CoachingSession::class);
     }
 }

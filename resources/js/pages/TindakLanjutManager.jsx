@@ -10,8 +10,46 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { apiFetch } from '@/lib/api';
 
+const DEMO_ITEMS = [
+    {
+        id: 'demo-rec-1',
+        is_dummy: true,
+        program_recommendation_id: null,
+        business_id: null,
+        umkm_name: 'Kripik Kentang Mak Mur',
+        owner_name: 'Nazwa Azahra',
+        problem_category: 'Pemasaran & Penjualan Online',
+        recommended_program: 'Pelatihan Pemasaran Digital & Social Media',
+        status: 'ready',
+    },
+    {
+        id: 'demo-rec-2',
+        is_dummy: true,
+        program_recommendation_id: null,
+        business_id: null,
+        umkm_name: 'Kerajinan Bambu Lestari',
+        owner_name: 'Bapak Ponijan',
+        problem_category: 'Manajemen Keuangan Usaha',
+        recommended_program: 'Bimbingan Teknis Pembukuan & Laporan Keuangan',
+        status: 'ready',
+    },
+    {
+        id: 'demo-rec-3',
+        is_dummy: true,
+        program_recommendation_id: null,
+        business_id: null,
+        umkm_name: 'Bumbu Masak Bu Hidayah',
+        owner_name: 'Faris Fajar Triawan',
+        problem_category: 'Legalitas & Sertifikasi Produk',
+        recommended_program: 'Fasilitasi Sertifikasi Halal & P-IRT',
+        status: 'pending',
+    },
+];
+
 export default function TindakLanjutManager({ queue: initialQueue = [] }) {
-    const [queue, setQueue] = useState(initialQueue);
+    const [queue, setQueue] = useState(
+        initialQueue && initialQueue.length > 0 ? initialQueue : DEMO_ITEMS
+    );
     const [selectedItem, setSelectedItem] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({
@@ -23,7 +61,7 @@ export default function TindakLanjutManager({ queue: initialQueue = [] }) {
     function openModal(item) {
         setSelectedItem(item);
         setFormData({
-            planned_activity: '',
+            planned_activity: item.recommended_program ? `Pelaksanaan ${item.recommended_program}` : '',
             planned_on: '',
             submission_note: ''
         });
@@ -42,16 +80,21 @@ export default function TindakLanjutManager({ queue: initialQueue = [] }) {
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            await apiFetch('/petugas/tindak-lanjut', {
-                method: 'POST',
-                body: JSON.stringify({
-                    business_id: selectedItem.business_id,
-                    program_recommendation_id: selectedItem.program_recommendation_id,
-                    planned_activity: formData.planned_activity,
-                    planned_on: formData.planned_on,
-                    submission_note: formData.submission_note,
-                }),
-            });
+            if (selectedItem?.is_dummy) {
+                // Simulasi demo tanpa menyimpan ke database
+                await new Promise((resolve) => setTimeout(resolve, 500));
+            } else {
+                await apiFetch('/petugas/tindak-lanjut', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        business_id: selectedItem.business_id,
+                        program_recommendation_id: selectedItem.program_recommendation_id,
+                        planned_activity: formData.planned_activity,
+                        planned_on: formData.planned_on,
+                        submission_note: formData.submission_note,
+                    }),
+                });
+            }
 
             setQueue((prev) => 
                 prev.map(item => 

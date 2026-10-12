@@ -96,7 +96,7 @@ class RoleNavigation
             ]],
             ['title' => 'Tindak lanjut', 'items' => [
                 ['label' => 'Ajukan tindak lanjut', 'href' => '/petugas/tindak-lanjut', 'icon' => 'TeachingIcon'],
-                ['label' => 'Riwayat pembinaan', 'href' => null, 'icon' => 'TeachingIcon'],
+                ['label' => 'Riwayat pembinaan', 'href' => '/petugas/catat-pembinaan', 'icon' => 'TeachingIcon'],
             ]],
             ['title' => 'Analisis', 'items' => [
                 ['label' => 'Pengelompokan', 'href' => null, 'icon' => 'Analytics01Icon'],
