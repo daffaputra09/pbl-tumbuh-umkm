@@ -8,6 +8,7 @@ use App\Http\Controllers\AssistanceProgramController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BusinessProfileController;
 use App\Http\Controllers\BusinessTypeController;
+use App\Http\Controllers\CoachingSessionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FollowUpController;
 use App\Http\Controllers\GoogleAuthController;
@@ -99,6 +100,9 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(functio
 
     Route::get('/petugas/tindak-lanjut', [FollowUpController::class, 'index'])->name('petugas.tindak-lanjut');
     Route::post('/petugas/tindak-lanjut', [FollowUpController::class, 'store'])->name('petugas.tindak-lanjut.store');
+
+    Route::get('/petugas/catat-pembinaan', [CoachingSessionController::class, 'index'])->name('petugas.catat-pembinaan');
+    Route::post('/petugas/catat-pembinaan', [CoachingSessionController::class, 'store'])->name('petugas.catat-pembinaan.store');
 
     Route::get('/petugas/umkm/{business}/produk', [ProductController::class, 'officerPage'])->name('petugas.umkm.produk');
     Route::get('/petugas/umkm/{business}/produk/data', [ProductController::class, 'officerIndex'])->name('petugas.umkm.produk.index');
