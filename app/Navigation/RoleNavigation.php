@@ -68,7 +68,7 @@ class RoleNavigation
                 ['label' => 'Kebutuhan dan kendala', 'href' => '/umkm/kebutuhan', 'icon' => 'CheckListIcon'],
             ]],
             ['title' => 'Hasil', 'items' => [
-                ['label' => 'Rekomendasi program', 'href' => null, 'icon' => 'GiftIcon'],
+                ['label' => 'Rekomendasi program', 'href' => '/umkm/rekomendasi', 'icon' => 'GiftIcon'],
                 ['label' => 'Riwayat pembinaan', 'href' => null, 'icon' => 'TeachingIcon'],
             ]],
             ['title' => 'Akun', 'items' => [
@@ -99,8 +99,8 @@ class RoleNavigation
                 ['label' => 'Riwayat pembinaan', 'href' => '/petugas/catat-pembinaan', 'icon' => 'TeachingIcon'],
             ]],
             ['title' => 'Analisis', 'items' => [
-                ['label' => 'Pengelompokan', 'href' => null, 'icon' => 'Analytics01Icon'],
-                ['label' => 'Rekomendasi', 'href' => null, 'icon' => 'GiftIcon'],
+                ['label' => 'Pengelompokan', 'href' => '/petugas/pengelompokan', 'icon' => 'Analytics01Icon'],
+                ['label' => 'Rekomendasi', 'href' => '/petugas/rekomendasi', 'icon' => 'GiftIcon'],
                 ['label' => 'Laporan', 'href' => null, 'icon' => 'FileExportIcon'],
             ]],
             ['title' => 'Akun', 'items' => [
@@ -120,8 +120,8 @@ class RoleNavigation
             ]],
             ['title' => 'Pemantauan', 'items' => [
                 ['label' => 'Data UMKM', 'href' => null, 'icon' => 'Store01Icon'],
-                ['label' => 'Pengelompokan', 'href' => null, 'icon' => 'Analytics01Icon'],
-                ['label' => 'Rekomendasi', 'href' => null, 'icon' => 'GiftIcon'],
+                ['label' => 'Pengelompokan', 'href' => '/pimpinan/pengelompokan', 'icon' => 'Analytics01Icon'],
+                ['label' => 'Rekomendasi', 'href' => '/pimpinan/rekomendasi', 'icon' => 'GiftIcon'],
                 ['label' => 'Laporan', 'href' => null, 'icon' => 'FileExportIcon'],
             ]],
             ['title' => 'Keputusan', 'items' => [

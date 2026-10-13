@@ -18,6 +18,16 @@ class AssessmentCategoryScore extends Model
 
     public const LEVEL_HIGH = 'high';
 
+    public static function labelFor(?string $level): string
+    {
+        return match ($level) {
+            self::LEVEL_LOW => 'Rendah',
+            self::LEVEL_MODERATE => 'Sedang',
+            self::LEVEL_HIGH => 'Tinggi',
+            default => 'Belum dinilai',
+        };
+    }
+
     protected $fillable = [
         'assessment_id',
         'obstacle_category_id',

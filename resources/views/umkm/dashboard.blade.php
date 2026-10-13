@@ -8,7 +8,14 @@
 @endpush
 
 @section('content')
+    @php
+        $pageProps = [
+            'business' => $business,
+            'ownerName' => $ownerName,
+            'primaryObstacle' => $primaryObstacle,
+            'recommendations' => $recommendations,
+        ];
+    @endphp
     <div id="app" data-page="umkmDashboard"></div>
-    <script type="application/json" id="page-props">@json(['business' => $business, 'ownerName'
-    => $ownerName])</script>
+    <script type="application/json" id="page-props">@json($pageProps)</script>
 @endsection

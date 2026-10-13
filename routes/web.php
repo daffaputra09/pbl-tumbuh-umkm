@@ -13,9 +13,11 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FollowUpController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\ObstacleCategoryController;
+use App\Http\Controllers\OwnerRecommendationController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PetugasUmkmController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\StaffInsightController;
 use App\Http\Controllers\UmkmDashboardController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
@@ -31,9 +33,12 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_BUSINESS_OWNER, 'busines
 
     Route::get('/umkm/dashboard', [UmkmDashboardController::class, 'index'])->name('umkm.dashboard');
 
+    Route::get('/umkm/rekomendasi', [OwnerRecommendationController::class, 'index'])->name('umkm.rekomendasi');
+    Route::get('/umkm/rekomendasi/{programRecommendation}', [OwnerRecommendationController::class, 'show'])->name('umkm.rekomendasi.show');
+    Route::post('/umkm/rekomendasi/{programRecommendation}/daftar', [OwnerRecommendationController::class, 'apply'])->name('umkm.rekomendasi.apply');
+
     Route::get('/umkm/produk', [ProductController::class, 'page'])->name('umkm.produk');
     Route::get('/umkm/produk/data', [ProductController::class, 'index'])->name('umkm.produk.index');
-    Route::get('/umkm/dashboard', [UmkmDashboardController::class, 'index'])->name('umkm.dashboard');
     Route::post('/umkm/produk', [ProductController::class, 'store'])->name('umkm.produk.store');
     Route::put('/umkm/produk/{product}', [ProductController::class, 'update'])->name('umkm.produk.update');
     Route::patch('/umkm/produk/{product}/toggle', [ProductController::class, 'toggle'])->name('umkm.produk.toggle');
@@ -98,6 +103,9 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(functio
     Route::put('/petugas/program-bantuan/{assistanceProgram}', [AssistanceProgramController::class, 'update'])->name('petugas.program-bantuan.update');
     Route::delete('/petugas/program-bantuan/{assistanceProgram}', [AssistanceProgramController::class, 'destroy'])->name('petugas.program-bantuan.destroy');
 
+    Route::get('/petugas/pengelompokan', [StaffInsightController::class, 'grouping'])->name('petugas.pengelompokan');
+    Route::get('/petugas/rekomendasi', [StaffInsightController::class, 'recommendations'])->name('petugas.rekomendasi');
+
     Route::get('/petugas/tindak-lanjut', [FollowUpController::class, 'index'])->name('petugas.tindak-lanjut');
     Route::post('/petugas/tindak-lanjut', [FollowUpController::class, 'store'])->name('petugas.tindak-lanjut.store');
 
@@ -122,6 +130,8 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(functio
 
 Route::middleware(['auth', 'active', 'role:'.User::ROLE_VILLAGE_HEAD])->group(function () {
     Route::get('/pimpinan/dashboard', [AuthController::class, 'dashboardPimpinan'])->name('pimpinan.dashboard');
+    Route::get('/pimpinan/pengelompokan', [StaffInsightController::class, 'grouping'])->name('pimpinan.pengelompokan');
+    Route::get('/pimpinan/rekomendasi', [StaffInsightController::class, 'recommendations'])->name('pimpinan.rekomendasi');
     Route::get('/pimpinan/persetujuan-tindak-lanjut', [ApprovalController::class, 'index'])->name('pimpinan.persetujuan-tindak-lanjut');
     Route::patch('/pimpinan/persetujuan-tindak-lanjut/{followUp}', [ApprovalController::class, 'update'])->name('pimpinan.persetujuan-tindak-lanjut.update');
 });
