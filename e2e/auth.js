@@ -18,3 +18,7 @@ export async function login(page, email, secret = password) {
 export function desktopMenu(page) {
     return page.locator('aside').filter({ has: page.getByRole('navigation', { name: 'Menu dashboard' }) }).first();
 }
+
+export function acceptDialogs(page) {
+    page.on('dialog', (dialog) => dialog.accept());
+}

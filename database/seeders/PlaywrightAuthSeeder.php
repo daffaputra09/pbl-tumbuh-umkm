@@ -13,7 +13,11 @@ class PlaywrightAuthSeeder extends Seeder
 
     public function run(): void
     {
-        $this->call(BusinessTypeSeeder::class);
+        $this->call([
+            BusinessTypeSeeder::class,
+            ObstacleCategorySeeder::class,
+            AssessmentQuestionSeeder::class,
+        ]);
 
         $typeId = BusinessType::query()->where('slug', 'makanan-minuman')->value('id');
 
