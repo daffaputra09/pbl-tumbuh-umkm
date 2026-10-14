@@ -70,7 +70,6 @@
                 $isPending = in_array($vStatus, ['pending', 'menunggu']);
                 $isVerified = in_array($vStatus, ['verified', 'terverifikasi']);
                 $isNeedsRevision = $vStatus === 'needs_revision';
-                $isRejected = in_array($vStatus, ['rejected', 'ditolak']);
             @endphp
 
             <div class="pumkm-detail-header-card">
@@ -95,12 +94,7 @@
                 </div>
 
                 <div>
-                    @if($isPending)
-                        <span class="pumkm-badge pumkm-badge--waiting" style="font-size: 0.85rem; padding: 0.4rem 1rem;">
-                            <span class="pumkm-badge-dot"></span>
-                            Menunggu Verifikasi
-                        </span>
-                    @elseif($isVerified)
+                    @if($isVerified)
                         <span class="pumkm-badge pumkm-badge--verified" style="font-size: 0.85rem; padding: 0.4rem 1rem;">
                             <span class="pumkm-badge-dot"></span>
                             Terverifikasi
@@ -111,9 +105,9 @@
                             Perlu Perbaikan
                         </span>
                     @else
-                        <span class="pumkm-badge pumkm-badge--rejected" style="font-size: 0.85rem; padding: 0.4rem 1rem;">
+                        <span class="pumkm-badge pumkm-badge--waiting" style="font-size: 0.85rem; padding: 0.4rem 1rem;">
                             <span class="pumkm-badge-dot"></span>
-                            Ditolak
+                            Menunggu Verifikasi
                         </span>
                     @endif
                 </div>
@@ -374,9 +368,9 @@
                                 </h2>
                             </div>
                             <div class="pumkm-card-body">
-                                <div class="pumkm-status-box pumkm-status-box--{{ $isVerified ? 'verified' : ($isNeedsRevision ? 'revision' : ($isRejected ? 'rejected' : 'waiting')) }}">
+                                <div class="pumkm-status-box pumkm-status-box--{{ $isVerified ? 'verified' : ($isNeedsRevision ? 'revision' : 'waiting') }}">
                                     <div class="pumkm-status-box-title">
-                                        {{ $isVerified ? '✔ Catatan Persetujuan' : ($isNeedsRevision ? 'ℹ Catatan Perlu Perbaikan' : ($isRejected ? '✗ Alasan Penolakan' : 'Catatan Petugas')) }}
+                                        {{ $isVerified ? '✔ Catatan Persetujuan' : ($isNeedsRevision ? 'ℹ Catatan Perlu Perbaikan' : 'Catatan Petugas') }}
                                     </div>
                                     <div class="pumkm-status-box-note" style="margin-top:0.35rem; font-size:0.875rem;">
                                         {{ $umkm['verification_note'] ?? $umkm['catatan_petugas'] }}
@@ -402,8 +396,6 @@
                                     <span class="pumkm-badge pumkm-badge--verified"><span class="pumkm-badge-dot"></span> Terverifikasi</span>
                                 @elseif($isNeedsRevision)
                                     <span class="pumkm-badge pumkm-badge--revision"><span class="pumkm-badge-dot"></span> Perlu Perbaikan</span>
-                                @elseif($isRejected)
-                                    <span class="pumkm-badge pumkm-badge--rejected"><span class="pumkm-badge-dot"></span> Ditolak</span>
                                 @else
                                     <span class="pumkm-badge pumkm-badge--waiting"><span class="pumkm-badge-dot"></span> Menunggu Verifikasi</span>
                                 @endif
@@ -411,47 +403,32 @@
                         </div>
 
                         <p class="pumkm-decision-box-desc">
-                            Setelah memeriksa rincian profil usaha, data produk, dan kebutuhan di atas, tentukan status verifikasi UMKM ini:
+                            Setelah memeriksa rincian profil usaha, data produk, dan kebutuhan di atas, berikan keputusan verifikasi untuk UMKM ini:
                         </p>
 
                         <form method="POST" action="{{ route('petugas.umkm.proses-verifikasi', $umkm['id']) }}">
                             @csrf
+                            @php
+                                $selectedChoice = old('verification_status', $isNeedsRevision ? 'needs_revision' : 'verified');
+                            @endphp
                             <div style="margin-bottom: 1.25rem;">
-                                <label class="pumkm-data-label" style="display: block; margin-bottom: 0.5rem;">Pilih Status Verifikasi:</label>
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem;">
+                                <label class="pumkm-data-label" style="display: block; margin-bottom: 0.5rem;">Pilih Keputusan Verifikasi:</label>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem;">
                                     {{-- Terverifikasi --}}
-                                    <label class="pumkm-status-radio-label" style="border: 1.5px solid {{ $isVerified ? '#0f766e' : '#cbd5e1' }}; background: {{ $isVerified ? '#f0fdfa' : '#ffffff' }}; border-radius: 0.75rem; padding: 0.75rem 1rem; display: flex; align-items: flex-start; gap: 0.625rem; cursor: pointer; transition: all 0.15s ease;">
-                                        <input type="radio" name="verification_status" value="verified" {{ $isVerified ? 'checked' : '' }} style="margin-top: 0.2rem; accent-color: #0f766e;" onchange="sesuaikanCatatan(this.value)">
+                                    <label class="pumkm-status-radio-label" style="border: 1.5px solid {{ $selectedChoice === 'verified' ? '#0f766e' : '#cbd5e1' }}; background: {{ $selectedChoice === 'verified' ? '#f0fdfa' : '#ffffff' }}; border-radius: 0.75rem; padding: 0.75rem 1rem; display: flex; align-items: flex-start; gap: 0.625rem; cursor: pointer; transition: all 0.15s ease;">
+                                        <input type="radio" name="verification_status" value="verified" {{ $selectedChoice === 'verified' ? 'checked' : '' }} style="margin-top: 0.2rem; accent-color: #0f766e;" onchange="sesuaikanCatatan(this.value)">
                                         <div>
                                             <div style="font-weight: 700; font-size: 0.875rem; color: #0f766e;">Terverifikasi</div>
-                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.125rem;">Data valid &amp; lengkap</div>
+                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.125rem;">Data valid &amp; disetujui</div>
                                         </div>
                                     </label>
 
                                     {{-- Perlu Perbaikan --}}
-                                    <label class="pumkm-status-radio-label" style="border: 1.5px solid {{ $isNeedsRevision ? '#2563eb' : '#cbd5e1' }}; background: {{ $isNeedsRevision ? '#eff6ff' : '#ffffff' }}; border-radius: 0.75rem; padding: 0.75rem 1rem; display: flex; align-items: flex-start; gap: 0.625rem; cursor: pointer; transition: all 0.15s ease;">
-                                        <input type="radio" name="verification_status" value="needs_revision" {{ $isNeedsRevision ? 'checked' : '' }} style="margin-top: 0.2rem; accent-color: #2563eb;" onchange="sesuaikanCatatan(this.value)">
+                                    <label class="pumkm-status-radio-label" style="border: 1.5px solid {{ $selectedChoice === 'needs_revision' ? '#2563eb' : '#cbd5e1' }}; background: {{ $selectedChoice === 'needs_revision' ? '#eff6ff' : '#ffffff' }}; border-radius: 0.75rem; padding: 0.75rem 1rem; display: flex; align-items: flex-start; gap: 0.625rem; cursor: pointer; transition: all 0.15s ease;">
+                                        <input type="radio" name="verification_status" value="needs_revision" {{ $selectedChoice === 'needs_revision' ? 'checked' : '' }} style="margin-top: 0.2rem; accent-color: #2563eb;" onchange="sesuaikanCatatan(this.value)">
                                         <div>
                                             <div style="font-weight: 700; font-size: 0.875rem; color: #1d4ed8;">Perlu Perbaikan</div>
-                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.125rem;">Perlu revisi pemilik</div>
-                                        </div>
-                                    </label>
-
-                                    {{-- Ditolak --}}
-                                    <label class="pumkm-status-radio-label" style="border: 1.5px solid {{ $isRejected ? '#dc2626' : '#cbd5e1' }}; background: {{ $isRejected ? '#fef2f2' : '#ffffff' }}; border-radius: 0.75rem; padding: 0.75rem 1rem; display: flex; align-items: flex-start; gap: 0.625rem; cursor: pointer; transition: all 0.15s ease;">
-                                        <input type="radio" name="verification_status" value="rejected" {{ $isRejected ? 'checked' : '' }} style="margin-top: 0.2rem; accent-color: #dc2626;" onchange="sesuaikanCatatan(this.value)">
-                                        <div>
-                                            <div style="font-weight: 700; font-size: 0.875rem; color: #dc2626;">Ditolak</div>
-                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.125rem;">Pengajuan tidak diterima</div>
-                                        </div>
-                                    </label>
-
-                                    {{-- Menunggu Verifikasi --}}
-                                    <label class="pumkm-status-radio-label" style="border: 1.5px solid {{ $isPending ? '#d97706' : '#cbd5e1' }}; background: {{ $isPending ? '#fffbeb' : '#ffffff' }}; border-radius: 0.75rem; padding: 0.75rem 1rem; display: flex; align-items: flex-start; gap: 0.625rem; cursor: pointer; transition: all 0.15s ease;">
-                                        <input type="radio" name="verification_status" value="pending" {{ $isPending ? 'checked' : '' }} style="margin-top: 0.2rem; accent-color: #d97706;" onchange="sesuaikanCatatan(this.value)">
-                                        <div>
-                                            <div style="font-weight: 700; font-size: 0.875rem; color: #b45309;">Menunggu Verifikasi</div>
-                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.125rem;">Kembalikan ke antrean</div>
+                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.125rem;">Minta pemilik melengkapi data</div>
                                         </div>
                                     </label>
                                 </div>
@@ -466,10 +443,10 @@
                                     id="verification_note"
                                     class="pumkm-dialog-textarea"
                                     rows="3"
-                                    placeholder="Tuliskan catatan verifikasi, instruksi perbaikan bagi pemilik UMKM, atau alasan penolakan..."
+                                    placeholder="Tuliskan catatan verifikasi atau rincian instruksi perbaikan..."
                                 >{{ old('verification_note', $umkm['verification_note'] ?? '') }}</textarea>
                                 <div id="note_hint" style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;">
-                                    Catatan wajib diisi saat memilih status <strong>Perlu Perbaikan</strong> atau <strong>Ditolak</strong>.
+                                    Catatan wajib diisi saat memilih status <strong>Perlu Perbaikan</strong> (minimal 5 karakter).
                                 </div>
                             </div>
 
@@ -496,25 +473,16 @@
 
             if (status === 'needs_revision') {
                 if (label) label.innerHTML = 'Catatan Perbaikan <span style="color:#dc2626;">(Wajib diisi)</span>:';
-                if (hint) hint.innerHTML = '<span style="color:#dc2626; font-weight:600;">* Wajib diisi</span> agar pemilik UMKM mengetahui bagian data usaha yang harus diperbaiki.';
+                if (hint) hint.innerHTML = '<span style="color:#dc2626; font-weight:600;">* Wajib diisi</span> agar pemilik UMKM mengetahui bagian data usaha yang harus diperbaiki (minimal 5 karakter).';
                 if (textarea && !textarea.value.trim()) {
-                    textarea.placeholder = 'Contoh: Harap perbarui foto produk dan lengkapi surat keterangan usaha RT/RW...';
+                    textarea.placeholder = 'Contoh: Harap perbarui data kontak dan lengkapi rincian alamat RT/RW...';
                 }
-            } else if (status === 'rejected') {
-                if (label) label.innerHTML = 'Alasan Penolakan <span style="color:#dc2626;">(Wajib diisi)</span>:';
-                if (hint) hint.innerHTML = '<span style="color:#dc2626; font-weight:600;">* Wajib diisi</span> agar pemilik UMKM mengetahui alasan pengajuan ditolak.';
-                if (textarea && !textarea.value.trim()) {
-                    textarea.placeholder = 'Contoh: Domisili usaha berada di luar wilayah desa binaan...';
-                }
-            } else if (status === 'verified') {
+            } else {
                 if (label) label.innerHTML = 'Catatan Verifikasi (Opsional):';
                 if (hint) hint.innerHTML = 'Opsional. Jika dikosongkan, sistem akan otomatis mencatat data usaha valid.';
                 if (textarea && !textarea.value.trim()) {
-                    textarea.placeholder = 'Contoh: Data lengkap dan valid, izin usaha sesuai.';
+                    textarea.placeholder = 'Contoh: Data lengkap dan valid, usaha sesuai dengan profil binaan.';
                 }
-            } else {
-                if (label) label.innerHTML = 'Catatan (Opsional):';
-                if (hint) hint.innerHTML = 'Status akan dikembalikan ke antrean pemeriksaan (menunggu verifikasi).';
             }
 
             document.querySelectorAll('.pumkm-status-radio-label').forEach(function(card) {
@@ -527,12 +495,6 @@
                     } else if (val === 'needs_revision') {
                         card.style.borderColor = '#2563eb';
                         card.style.backgroundColor = '#eff6ff';
-                    } else if (val === 'rejected') {
-                        card.style.borderColor = '#dc2626';
-                        card.style.backgroundColor = '#fef2f2';
-                    } else {
-                        card.style.borderColor = '#d97706';
-                        card.style.backgroundColor = '#fffbeb';
                     }
                 } else {
                     card.style.borderColor = '#cbd5e1';

@@ -1,7 +1,6 @@
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
     Calendar03Icon,
-    Cancel01Icon,
     CheckmarkCircle02Icon,
     Idea01Icon,
     Notification01Icon,
@@ -30,12 +29,6 @@ const VERIFICATION_META = {
         badgeClass: 'bg-destructive/10 text-destructive',
         icon: Notification01Icon,
     },
-    rejected: {
-        label: 'Ditolak',
-        description: 'Data usaha kamu belum bisa diverifikasi. Hubungi petugas desa untuk info lebih lanjut.',
-        badgeClass: 'bg-destructive/10 text-destructive',
-        icon: Cancel01Icon,
-    },
 };
 
 const TODAY_LABEL = new Intl.DateTimeFormat('id-ID', {
@@ -47,7 +40,7 @@ const TODAY_LABEL = new Intl.DateTimeFormat('id-ID', {
 
 export default function UmkmDashboard({ business, ownerName, primaryObstacle = null, recommendations = [] }) {
     const verification = VERIFICATION_META[business.verificationStatus] ?? VERIFICATION_META.pending;
-    const needsAttention = business.verificationStatus === 'needs_revision' || business.verificationStatus === 'rejected';
+    const needsAttention = business.verificationStatus === 'needs_revision';
     const programCount = recommendations.length;
 
     return (
