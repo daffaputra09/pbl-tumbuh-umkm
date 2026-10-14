@@ -63,14 +63,4 @@ class BusinessFactory extends Factory
             'verification_note' => $note,
         ]);
     }
-
-    public function rejected(?User $officer = null, string $note = 'Usaha berada di luar wilayah desa binaan.'): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'verification_status' => 'rejected',
-            'verified_by' => $officer?->id ?? User::factory()->create(['role' => User::ROLE_OFFICER]),
-            'verified_at' => now(),
-            'verification_note' => $note,
-        ]);
-    }
 }

@@ -2,7 +2,6 @@ export const VERIFICATION_STATUSES = [
     { key: 'verified', label: 'Terverifikasi', color: '#0f766e' },
     { key: 'pending', label: 'Menunggu', color: '#d97706' },
     { key: 'needs_revision', label: 'Perlu perbaikan', color: '#e11d48' },
-    { key: 'rejected', label: 'Ditolak', color: '#64748b' },
 ];
 
 export const NEED_LEVELS = [

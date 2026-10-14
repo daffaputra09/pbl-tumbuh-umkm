@@ -50,7 +50,6 @@ class BusinessVerificationTest extends TestCase
         Business::factory()->pending()->create(['business_type_id' => $this->businessType->id]);
         Business::factory()->verified($this->officer)->create(['business_type_id' => $this->businessType->id]);
         Business::factory()->needsRevision($this->officer)->create(['business_type_id' => $this->businessType->id]);
-        Business::factory()->rejected($this->officer)->create(['business_type_id' => $this->businessType->id]);
 
         $response = $this->actingAs($this->officer)->get(route('petugas.umkm.verifikasi'));
 
@@ -59,7 +58,7 @@ class BusinessVerificationTest extends TestCase
         $response->assertSee('Menunggu Verifikasi');
         $response->assertSee('Terverifikasi');
         $response->assertSee('Perlu Perbaikan');
-        $response->assertSee('Ditolak');
+        $response->assertDontSee('Ditolak');
     }
 
     public function test_officer_can_filter_businesses_by_verification_status(): void
@@ -76,17 +75,13 @@ class BusinessVerificationTest extends TestCase
             'business_type_id' => $this->businessType->id,
             'business_name' => 'Warung Revisi Sejahtera',
         ]);
-        $rejected = Business::factory()->rejected($this->officer)->create([
-            'business_type_id' => $this->businessType->id,
-            'business_name' => 'Warung Ditolak Sentosa',
-        ]);
 
         // Filter: perlu_perbaikan
         $response = $this->actingAs($this->officer)->get(route('petugas.umkm.verifikasi', ['status' => 'perlu_perbaikan']));
         $response->assertOk();
         $response->assertSee('Warung Revisi Sejahtera');
         $response->assertDontSee('Warung Verified Maju');
-        $response->assertDontSee('Warung Ditolak Sentosa');
+        $response->assertDontSee('Warung Pending Barokah');
 
         // Filter: terverifikasi
         $response = $this->actingAs($this->officer)->get(route('petugas.umkm.verifikasi', ['status' => 'terverifikasi']));
@@ -94,11 +89,11 @@ class BusinessVerificationTest extends TestCase
         $response->assertSee('Warung Verified Maju');
         $response->assertDontSee('Warung Revisi Sejahtera');
 
-        // Filter: ditolak
-        $response = $this->actingAs($this->officer)->get(route('petugas.umkm.verifikasi', ['status' => 'ditolak']));
+        // Filter: menunggu
+        $response = $this->actingAs($this->officer)->get(route('petugas.umkm.verifikasi', ['status' => 'menunggu']));
         $response->assertOk();
-        $response->assertSee('Warung Ditolak Sentosa');
-        $response->assertDontSee('Warung Pending Barokah');
+        $response->assertSee('Warung Pending Barokah');
+        $response->assertDontSee('Warung Verified Maju');
     }
 
     public function test_officer_can_view_business_detail_page(): void
@@ -114,6 +109,7 @@ class BusinessVerificationTest extends TestCase
         $response->assertViewIs('petugas.umkm.detail');
         $response->assertSee('Kue Tradisional Bu Sari');
         $response->assertSee('Formulir Keputusan Verifikasi');
+        $response->assertDontSee('Ditolak');
     }
 
     public function test_officer_can_verify_business_and_records_officer_and_timestamp(): void
@@ -131,7 +127,7 @@ class BusinessVerificationTest extends TestCase
         $response->assertSessionHas('success');
 
         $business->refresh();
-        $this->assertSame('verified', $business->verification_status);
+        $this->assertSame(Business::STATUS_VERIFIED, $business->verification_status);
         $this->assertSame($this->officer->id, $business->verified_by);
         $this->assertNotNull($business->verified_at);
         $this->assertSame('Dokumen usaha lengkap dan lokasi fisik sudah ditinjau.', $business->verification_note);
@@ -152,7 +148,7 @@ class BusinessVerificationTest extends TestCase
         $response->assertSessionHas('success');
 
         $business->refresh();
-        $this->assertSame('verified', $business->verification_status);
+        $this->assertSame(Business::STATUS_VERIFIED, $business->verification_status);
         $this->assertSame($this->officer->id, $business->verified_by);
         $this->assertNotNull($business->verified_at);
         $this->assertStringContainsString('diverifikasi', $business->verification_note);
@@ -173,7 +169,7 @@ class BusinessVerificationTest extends TestCase
         $response->assertSessionHas('success');
 
         $business->refresh();
-        $this->assertSame('needs_revision', $business->verification_status);
+        $this->assertSame(Business::STATUS_NEEDS_REVISION, $business->verification_status);
         $this->assertSame($this->officer->id, $business->verified_by);
         $this->assertNotNull($business->verified_at);
         $this->assertSame('Foto produk kurang jelas dan nomor WhatsApp tidak aktif.', $business->verification_note);
@@ -200,7 +196,7 @@ class BusinessVerificationTest extends TestCase
         $responseTooShort->assertSessionHasErrors(['verification_note']);
     }
 
-    public function test_officer_can_reject_business_with_note(): void
+    public function test_officer_cannot_submit_rejected_status(): void
     {
         $business = Business::factory()->pending()->create([
             'business_type_id' => $this->businessType->id,
@@ -211,68 +207,27 @@ class BusinessVerificationTest extends TestCase
             'verification_note' => 'Usaha fiktif dan pemilik bukan warga desa setempat.',
         ]);
 
-        $response->assertRedirect(route('petugas.umkm.detail', $business->id));
-        $response->assertSessionHas('success');
+        $response->assertSessionHasErrors(['verification_status']);
 
         $business->refresh();
-        $this->assertSame('rejected', $business->verification_status);
-        $this->assertSame($this->officer->id, $business->verified_by);
-        $this->assertNotNull($business->verified_at);
-        $this->assertSame('Usaha fiktif dan pemilik bukan warga desa setempat.', $business->verification_note);
+        $this->assertSame(Business::STATUS_PENDING, $business->verification_status);
     }
 
-    public function test_officer_can_reject_business_via_proses_tolak_route(): void
-    {
-        $business = Business::factory()->pending()->create([
-            'business_type_id' => $this->businessType->id,
-        ]);
-
-        $response = $this->actingAs($this->officer)->post(route('petugas.umkm.proses-tolak', $business->id), [
-            'verification_note' => 'Data tidak sesuai dengan kriteria program UMKM desa.',
-        ]);
-
-        $response->assertRedirect(route('petugas.umkm.detail', $business->id));
-
-        $business->refresh();
-        $this->assertSame('rejected', $business->verification_status);
-        $this->assertSame($this->officer->id, $business->verified_by);
-    }
-
-    public function test_rejecting_business_requires_note(): void
-    {
-        $business = Business::factory()->pending()->create([
-            'business_type_id' => $this->businessType->id,
-        ]);
-
-        $response = $this->actingAs($this->officer)->post(route('petugas.umkm.proses-verifikasi', $business->id), [
-            'verification_status' => 'rejected',
-            'verification_note' => '',
-        ]);
-
-        $response->assertSessionHasErrors(['verification_note']);
-    }
-
-    public function test_officer_can_reset_status_back_to_pending_clears_verified_by_and_verified_at(): void
+    public function test_officer_cannot_manually_choose_pending_status(): void
     {
         $business = Business::factory()->verified($this->officer)->create([
             'business_type_id' => $this->businessType->id,
         ]);
 
-        $this->assertNotNull($business->verified_by);
-        $this->assertNotNull($business->verified_at);
-
         $response = $this->actingAs($this->officer)->post(route('petugas.umkm.proses-verifikasi', $business->id), [
             'verification_status' => 'pending',
-            'verification_note' => 'Dikembalikan ke antrean pemeriksaan ulang.',
+            'verification_note' => 'Kembalikan manual ke pending.',
         ]);
 
-        $response->assertRedirect(route('petugas.umkm.detail', $business->id));
-        $response->assertSessionHas('success');
+        $response->assertSessionHasErrors(['verification_status']);
 
         $business->refresh();
-        $this->assertSame('pending', $business->verification_status);
-        $this->assertNull($business->verified_by);
-        $this->assertNull($business->verified_at);
+        $this->assertSame(Business::STATUS_VERIFIED, $business->verification_status);
     }
 
     public function test_validation_rejects_invalid_verification_status(): void
@@ -287,6 +242,103 @@ class BusinessVerificationTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors(['verification_status']);
+    }
+
+    public function test_initial_profile_submission_automatically_sets_status_to_pending(): void
+    {
+        $response = $this->actingAs($this->owner)->post(route('umkm.profil.save'), [
+            'business_type_id' => $this->businessType->id,
+            'business_name' => 'Usaha Baru Barokah',
+            'owner_name' => 'Budi Santoso',
+            'phone' => '081234567890',
+            'address' => 'Jl. Desa No. 10',
+            'hamlet' => 'Dusun Krajan',
+            'established_year' => 2022,
+            'employee_count' => 2,
+        ]);
+
+        $response->assertOk();
+
+        $business = Business::where('user_id', $this->owner->id)->first();
+        $this->assertNotNull($business);
+        $this->assertSame(Business::STATUS_PENDING, $business->verification_status);
+        $this->assertNull($business->verified_by);
+        $this->assertNull($business->verified_at);
+    }
+
+    public function test_resubmitting_profile_after_needs_revision_resets_status_to_pending_and_clears_verification_metadata(): void
+    {
+        $business = Business::factory()->needsRevision($this->officer, 'Perbaiki deskripsi dan nomor telepon')->create([
+            'user_id' => $this->owner->id,
+            'business_type_id' => $this->businessType->id,
+        ]);
+
+        $this->assertSame(Business::STATUS_NEEDS_REVISION, $business->verification_status);
+        $this->assertSame($this->officer->id, $business->verified_by);
+        $this->assertNotNull($business->verified_at);
+
+        $response = $this->actingAs($this->owner)->post(route('umkm.profil.save'), [
+            'business_type_id' => $this->businessType->id,
+            'business_name' => $business->business_name,
+            'owner_name' => $business->owner_name,
+            'phone' => '081987654321',
+            'address' => $business->address,
+            'hamlet' => $business->hamlet,
+            'established_year' => $business->established_year,
+            'employee_count' => $business->employee_count,
+            'description' => 'Deskripsi yang sudah diperbarui.',
+        ]);
+
+        $response->assertOk();
+
+        $business->refresh();
+        $this->assertSame(Business::STATUS_PENDING, $business->verification_status);
+        $this->assertNull($business->verified_by);
+        $this->assertNull($business->verified_at);
+    }
+
+    public function test_resaving_verified_profile_retains_verified_status(): void
+    {
+        $business = Business::factory()->verified($this->officer)->create([
+            'user_id' => $this->owner->id,
+            'business_type_id' => $this->businessType->id,
+        ]);
+
+        $originalVerifiedBy = $business->verified_by;
+        $originalVerifiedAt = $business->verified_at;
+
+        $response = $this->actingAs($this->owner)->post(route('umkm.profil.save'), [
+            'business_type_id' => $this->businessType->id,
+            'business_name' => $business->business_name,
+            'owner_name' => $business->owner_name,
+            'phone' => '081234567899',
+            'address' => $business->address,
+            'hamlet' => $business->hamlet,
+            'established_year' => $business->established_year,
+            'employee_count' => 5,
+        ]);
+
+        $response->assertOk();
+
+        $business->refresh();
+        $this->assertSame(Business::STATUS_VERIFIED, $business->verification_status);
+        $this->assertSame($originalVerifiedBy, $business->verified_by);
+    }
+
+    public function test_business_owner_can_see_revision_note_on_profile_page(): void
+    {
+        $this->withoutVite();
+
+        $business = Business::factory()->needsRevision($this->officer, 'Harap cantumkan izin P-IRT dan nomor RT/RW yang benar.')->create([
+            'user_id' => $this->owner->id,
+            'business_type_id' => $this->businessType->id,
+        ]);
+
+        $response = $this->actingAs($this->owner)->get(route('umkm.profil'));
+
+        $response->assertOk();
+        $response->assertSee('Perhatian: Profil Usaha Memerlukan Perbaikan');
+        $response->assertSee('Harap cantumkan izin P-IRT dan nomor RT/RW yang benar.');
     }
 
     public function test_business_owner_cannot_verify_or_change_verification_status(): void

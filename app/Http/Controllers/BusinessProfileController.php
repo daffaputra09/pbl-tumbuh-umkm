@@ -29,12 +29,24 @@ class BusinessProfileController extends Controller
         $business = Business::where('user_id', $request->user()->id)->first();
         $this->authorizeOwnProfile($business);
 
+        $attributes = [
+            ...$validated,
+            'created_by' => $business ? $business->created_by : $request->user()->id,
+        ];
+
+        if ($business === null || empty($business->verification_status)) {
+            $attributes['verification_status'] = Business::STATUS_PENDING;
+            $attributes['verified_by'] = null;
+            $attributes['verified_at'] = null;
+        } elseif ($business->verification_status === Business::STATUS_NEEDS_REVISION) {
+            $attributes['verification_status'] = Business::STATUS_PENDING;
+            $attributes['verified_by'] = null;
+            $attributes['verified_at'] = null;
+        }
+
         $business = Business::updateOrCreate(
             ['user_id' => $request->user()->id],
-            [
-                ...$validated,
-                'created_by' => $request->user()->id,
-            ],
+            $attributes,
         );
 
         return response()->json($business, 200);
