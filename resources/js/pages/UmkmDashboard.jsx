@@ -1,23 +1,15 @@
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
     Calendar03Icon,
-    Cancel01Icon,
     CheckmarkCircle02Icon,
-    Clock01Icon,
-    Factory01Icon,
     Idea01Icon,
-    LegalDocument01Icon,
-    Megaphone01Icon,
-    Money03Icon,
     Notification01Icon,
-    SmartPhone01Icon,
+    Tag01Icon,
 } from '@hugeicons/core-free-icons';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
-// UC-06b: 4 kemungkinan nilai kolom businesses.verification_status,
-// diisi oleh Nazwa lewat fitur verifikasi dia. Di sini cuma ditampilkan.
 const VERIFICATION_META = {
     pending: {
         label: 'Menunggu Cek',
@@ -37,60 +29,7 @@ const VERIFICATION_META = {
         badgeClass: 'bg-destructive/10 text-destructive',
         icon: Notification01Icon,
     },
-    rejected: {
-        label: 'Ditolak',
-        description: 'Data usaha kamu belum bisa diverifikasi. Hubungi petugas desa untuk info lebih lanjut.',
-        badgeClass: 'bg-destructive/10 text-destructive',
-        icon: Cancel01Icon,
-    },
 };
-
-// TODO: dummy, nantinya diisi otomatis dari hasil scoring assessment
-// (kategori kendala dengan skor tertinggi, dikerjakan bagian Daffa).
-const KENDALA_UTAMA = {
-    nama: 'Pemasaran',
-    penjelasan: 'Kendala paling besar yang kamu hadapi saat ini ada di bagian pemasaran. Makanya rekomendasi program di bawah ini banyak soal promosi dan jualan online.',
-    icon: Megaphone01Icon,
-};
-
-// TODO: dummy, nantinya hasil rekomendasi program asli berdasarkan assessment.
-const RECOMMENDATIONS = [
-    {
-        title: 'Pelatihan Pemasaran Digital',
-        penyelenggara: 'Dinas Koperasi & UKM',
-        description: 'Cocok buat kamu yang mau belajar promosi lewat media sosial dan marketplace supaya jangkauan pembeli lebih luas.',
-        bidang: 'Pemasaran',
-        icon: Megaphone01Icon,
-    },
-    {
-        title: 'Pendampingan Sertifikasi Halal',
-        penyelenggara: 'Kementerian Agama',
-        description: 'Dibantu tahap demi tahap mengurus sertifikasi halal tanpa perlu bingung sendiri.',
-        bidang: 'Legalitas',
-        icon: LegalDocument01Icon,
-    },
-    {
-        title: 'Akses Bantuan Modal Usaha',
-        penyelenggara: 'Program KUR Perbankan',
-        description: 'Informasi program KUR dan bantuan modal yang sesuai dengan skala usahamu.',
-        bidang: 'Modal',
-        icon: Money03Icon,
-    },
-    {
-        title: 'Pendampingan Produksi & Kemasan',
-        penyelenggara: 'Dinas Perindustrian',
-        description: 'Tips mengemas produk supaya lebih menarik dan efisien di ongkos produksi.',
-        bidang: 'Produksi',
-        icon: Factory01Icon,
-    },
-    {
-        title: 'Pengenalan Pembayaran QRIS',
-        penyelenggara: 'Bank Indonesia',
-        description: 'Panduan mendaftar dan memakai QRIS supaya pembeli lebih mudah bertransaksi.',
-        bidang: 'Digitalisasi',
-        icon: SmartPhone01Icon,
-    },
-];
 
 const TODAY_LABEL = new Intl.DateTimeFormat('id-ID', {
     weekday: 'long',
@@ -99,13 +38,13 @@ const TODAY_LABEL = new Intl.DateTimeFormat('id-ID', {
     year: 'numeric',
 }).format(new Date());
 
-export default function UmkmDashboard({ business, ownerName }) {
+export default function UmkmDashboard({ business, ownerName, primaryObstacle = null, recommendations = [] }) {
     const verification = VERIFICATION_META[business.verificationStatus] ?? VERIFICATION_META.pending;
-    const needsAttention = business.verificationStatus === 'needs_revision' || business.verificationStatus === 'rejected';
+    const needsAttention = business.verificationStatus === 'needs_revision';
+    const programCount = recommendations.length;
 
     return (
             <div className="mx-auto max-w-5xl">
-                {/* Welcome banner */}
                 <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-brand-hover px-6 py-7 text-white sm:px-9 sm:py-9">
                     <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                         <div>
@@ -118,7 +57,9 @@ export default function UmkmDashboard({ business, ownerName }) {
                             </h1>
                             <p className="mt-2 max-w-lg text-sm leading-relaxed text-white/85">
                                 {`Data usaha ${business.name}: ${verification.description} `}
-                                {!needsAttention && 'Sambil menunggu, kamu sudah bisa lihat rekomendasi program di bawah ini.'}
+                                {primaryObstacle
+                                    ? 'Rekomendasi di bawah mengikuti kendala yang sudah kamu isi.'
+                                    : 'Isi kebutuhan dan kendala supaya program yang cocok bisa ditampilkan.'}
                             </p>
                         </div>
 
@@ -139,7 +80,6 @@ export default function UmkmDashboard({ business, ownerName }) {
                     </div>
                 </div>
 
-                {/* Tiga ringkasan utama: status verifikasi, kendala utama, program yang cocok */}
                 <div className="mt-6 grid gap-4 sm:grid-cols-3">
                     <SummaryCard
                         icon={verification.icon}
@@ -149,22 +89,25 @@ export default function UmkmDashboard({ business, ownerName }) {
                         description={verification.description}
                     />
                     <SummaryCard
-                        icon={KENDALA_UTAMA.icon}
+                        icon={primaryObstacle ? Tag01Icon : Notification01Icon}
                         badgeClass="bg-sun-50 text-sun-700"
                         title="Kendala Utama"
-                        headline={KENDALA_UTAMA.nama}
-                        description={KENDALA_UTAMA.penjelasan}
+                        headline={primaryObstacle ? primaryObstacle.name : 'Belum ada'}
+                        description={primaryObstacle
+                            ? primaryObstacle.explanation
+                            : 'Isi halaman Kebutuhan dan kendala supaya kendala utama bisa ditampilkan.'}
                     />
                     <SummaryCard
                         icon={Idea01Icon}
                         badgeClass="bg-brand-50 text-primary"
                         title="Program yang Cocok"
-                        headline={`${RECOMMENDATIONS.length} Program`}
-                        description="Sudah kami pilihkan program yang sesuai dengan kendala usahamu."
+                        headline={programCount > 0 ? `${programCount} Program` : 'Belum ada'}
+                        description={programCount > 0
+                            ? 'Program ini dipilih dari kendala yang sudah kamu isi.'
+                            : 'Belum ada program yang cocok dengan kendala usahamu.'}
                     />
                 </div>
 
-                {/* Status verifikasi detail */}
                 <Card id="status-verifikasi" className="mt-6 scroll-mt-6">
                     <CardHeader>
                         <CardTitle className="text-base">Status Verifikasi Data Usahamu</CardTitle>
@@ -194,41 +137,52 @@ export default function UmkmDashboard({ business, ownerName }) {
                     </CardContent>
                 </Card>
 
-                {/* Rekomendasi program */}
                 <section id="rekomendasi" className="mt-8 scroll-mt-6">
                     <div className="mb-4">
                         <h2 className="text-lg font-bold text-ink">Rekomendasi Program Untukmu</h2>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Dipilih berdasarkan kendala yang sudah kamu ceritakan di halaman Kebutuhan &amp; Kendala.
+                            Dipilih berdasarkan kendala yang sudah kamu ceritakan di halaman Kebutuhan dan kendala.
                         </p>
                     </div>
 
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {RECOMMENDATIONS.map((program) => (
-                            <Card key={program.title} className="gap-3">
-                                <CardHeader className="gap-3">
-                                    <div className="flex items-start justify-between gap-2">
-                                        <span className="flex size-10 items-center justify-center rounded-xl bg-brand-50 text-primary">
-                                            <HugeiconsIcon icon={program.icon} size={20} strokeWidth={1.8} aria-hidden="true" />
-                                        </span>
-                                        <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground">
-                                            {program.bidang}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <CardTitle className="text-base">{program.title}</CardTitle>
-                                        <p className="mt-0.5 text-xs font-medium text-primary">{program.penyelenggara}</p>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="flex flex-col gap-4">
-                                    <p className="text-sm leading-relaxed text-muted-foreground">{program.description}</p>
-                                    <Button type="button" size="sm" className="self-start">
-                                        Pelajari &amp; Daftar
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
+                    {programCount === 0 ? (
+                        <Card>
+                            <CardContent className="py-8 text-sm leading-relaxed text-muted-foreground">
+                                {primaryObstacle
+                                    ? 'Belum ada program yang cocok dengan kendala usahamu.'
+                                    : 'Isi kebutuhan dan kendala dulu. Program yang cocok baru muncul setelah kuesioner tersimpan.'}
+                                {' '}
+                                <a href="/umkm/kebutuhan" className="font-semibold text-primary hover:underline">Buka kebutuhan dan kendala</a>
+                            </CardContent>
+                        </Card>
+                    ) : (
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            {recommendations.map((program) => (
+                                <Card key={program.id} className="gap-3">
+                                    <CardHeader className="gap-3">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <span className="flex size-10 items-center justify-center rounded-xl bg-brand-50 text-primary">
+                                                <HugeiconsIcon icon={Idea01Icon} size={20} strokeWidth={1.8} aria-hidden="true" />
+                                            </span>
+                                            <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                                                {program.category}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <CardTitle className="text-base">{program.name}</CardTitle>
+                                            <p className="mt-0.5 text-xs font-medium text-primary">{program.provider}</p>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="flex flex-col gap-4">
+                                        <p className="text-sm leading-relaxed text-muted-foreground">{program.description}</p>
+                                        <a href={program.href} className={cn(buttonVariants({ size: 'sm' }), 'self-start')}>
+                                            Lihat detail
+                                        </a>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
                 </section>
             </div>
     );

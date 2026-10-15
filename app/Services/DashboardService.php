@@ -159,8 +159,7 @@ class DashboardService
         return match (true) {
             $ageInDays <= 14 && $roll <= 75 => 'pending',
             $ageInDays <= 45 && $roll <= 30 => 'pending',
-            $ageInDays <= 90 && $roll <= 12 => 'needs_revision',
-            $roll <= 4 => 'rejected',
+            $ageInDays <= 90 && $roll <= 15 => 'needs_revision',
             default => 'verified',
         };
     }
@@ -181,7 +180,7 @@ class DashboardService
         bool $hasNib,
     ): ?array {
         $shouldAssess = $verificationStatus === 'verified'
-            || ($verificationStatus !== 'rejected' && $random->getInt(1, 100) <= 40);
+            || ($random->getInt(1, 100) <= 40);
 
         if (! $shouldAssess) {
             return null;

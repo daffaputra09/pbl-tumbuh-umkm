@@ -149,4 +149,34 @@ class ProgramRecommendationService
 
         return $candidateCategory->id < $currentCategory->id;
     }
+
+    /**
+     * Recompute matches for one business's current questionnaire.
+     */
+    public function generateForBusiness(int $businessId): void
+    {
+        $assessment = Assessment::query()
+            ->where('business_id', $businessId)
+            ->where('is_current', true)
+            ->where('status', Assessment::STATUS_COMPLETED)
+            ->first();
+
+        if ($assessment instanceof Assessment) {
+            $this->generate($assessment);
+        }
+    }
+
+    /**
+     * Recompute matches for every current questionnaire so programs added later still appear.
+     */
+    public function generateForCurrentAssessments(): void
+    {
+        Assessment::query()
+            ->where('is_current', true)
+            ->where('status', Assessment::STATUS_COMPLETED)
+            ->orderBy('id')
+            ->each(function (Assessment $assessment): void {
+                $this->generate($assessment);
+            });
+    }
 }

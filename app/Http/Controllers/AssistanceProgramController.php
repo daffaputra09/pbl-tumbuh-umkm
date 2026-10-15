@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AssistanceProgram;
 use App\Models\ObstacleCategory;
+use App\Services\ProgramRecommendationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -75,7 +76,7 @@ class AssistanceProgramController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ProgramRecommendationService $recommendations): RedirectResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -134,6 +135,8 @@ class AssistanceProgramController extends Controller
             $program->obstacleCategories()->sync($syncData);
         });
 
+        $recommendations->generateForCurrentAssessments();
+
         return redirect()
             ->route('petugas.program-bantuan.index')
             ->with('success', 'Program bantuan berhasil ditambahkan.');
@@ -168,7 +171,7 @@ class AssistanceProgramController extends Controller
         ]);
     }
 
-    public function update(Request $request, AssistanceProgram $assistanceProgram): RedirectResponse
+    public function update(Request $request, AssistanceProgram $assistanceProgram, ProgramRecommendationService $recommendations): RedirectResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -225,6 +228,8 @@ class AssistanceProgramController extends Controller
 
             $assistanceProgram->obstacleCategories()->sync($syncData);
         });
+
+        $recommendations->generateForCurrentAssessments();
 
         return redirect()
             ->route('petugas.program-bantuan.index')

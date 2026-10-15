@@ -19,11 +19,13 @@ class ProgramRecommendation extends Model
         'obstacle_category_id',
         'score',
         'is_active',
+        'applied_at',
     ];
 
     protected $casts = [
         'score' => 'decimal:2',
         'is_active' => 'boolean',
+        'applied_at' => 'datetime',
     ];
 
     /**

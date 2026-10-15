@@ -10,21 +10,28 @@ class FollowUpController extends Controller
 {
     public function index()
     {
-        $recommendations = ProgramRecommendation::with(['business', 'business.owner', 'assistanceProgram', 'obstacleCategory'])
+        $recommendations = ProgramRecommendation::with(['business.owner', 'assistanceProgram', 'obstacleCategory'])
             ->where('is_active', true)
+            ->whereNotNull('applied_at')
             ->get();
 
-        $queue = $recommendations->map(function ($rec) {
-            $followUp = FollowUp::where('program_recommendation_id', $rec->id)
-                ->whereIn('status', ['pending', 'approved'])
-                ->first();
+        $followUps = FollowUp::query()
+            ->whereIn('program_recommendation_id', $recommendations->pluck('id'))
+            ->whereIn('status', ['pending', 'approved'])
+            ->get()
+            ->keyBy('program_recommendation_id');
+
+        $queue = $recommendations->map(function ($rec) use ($followUps) {
+            $followUp = $followUps->get($rec->id);
 
             return [
                 'id' => $rec->id,
                 'program_recommendation_id' => $rec->id,
-                'business_id' => $rec->business_id,
+                'business_id' => $rec->business?->user_id,
+                'assistance_program_id' => $rec->assistance_program_id,
+                'can_submit' => filled($rec->business?->user_id),
                 'umkm_name' => $rec->business->business_name ?? 'N/A',
-                'owner_name' => $rec->business->owner->name ?? 'N/A',
+                'owner_name' => $rec->business?->owner?->name ?? $rec->business?->owner_name ?? 'N/A',
                 'problem_category' => $rec->obstacleCategory->name ?? 'N/A',
                 'recommended_program' => $rec->assistanceProgram->name ?? 'N/A',
                 'status' => $followUp ? $followUp->status : 'ready',

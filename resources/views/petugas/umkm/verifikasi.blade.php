@@ -108,20 +108,6 @@
                     <div class="pumkm-stat-label">Perlu Perbaikan</div>
                 </div>
             </div>
-
-            <div class="pumkm-stat-card">
-                <div class="pumkm-stat-icon pumkm-stat-icon--rejected">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"/>
-                        <line x1="15" y1="9" x2="9" y2="15"/>
-                        <line x1="9" y1="9" x2="15" y2="15"/>
-                    </svg>
-                </div>
-                <div class="pumkm-stat-info">
-                    <div class="pumkm-stat-number">{{ $stats['ditolak'] }}</div>
-                    <div class="pumkm-stat-label">Ditolak</div>
-                </div>
-            </div>
         </div>
 
         <div class="pumkm-toolbar">
@@ -149,7 +135,6 @@
                         'menunggu' => ['label' => 'Menunggu Verifikasi', 'activeClass' => 'pumkm-pill--waiting-active'],
                         'terverifikasi' => ['label' => 'Terverifikasi', 'activeClass' => 'pumkm-pill--verified-active'],
                         'perlu_perbaikan' => ['label' => 'Perlu Perbaikan', 'activeClass' => 'pumkm-pill--revision-active'],
-                        'ditolak' => ['label' => 'Ditolak', 'activeClass' => 'pumkm-pill--rejected-active'],
                     ];
                 @endphp
                 @foreach($filters as $key => $filter)
@@ -210,9 +195,9 @@
                                             Perlu Perbaikan
                                         </span>
                                     @else
-                                        <span class="pumkm-badge pumkm-badge--rejected">
+                                        <span class="pumkm-badge pumkm-badge--waiting">
                                             <span class="pumkm-badge-dot"></span>
-                                            Ditolak
+                                            Menunggu Verifikasi
                                         </span>
                                     @endif
                                 </td>

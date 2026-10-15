@@ -12,6 +12,18 @@ class Business extends Model
     /** @use HasFactory<BusinessFactory> */
     use HasFactory, SoftDeletes;
 
+    public const STATUS_PENDING = 'pending';
+
+    public const STATUS_NEEDS_REVISION = 'needs_revision';
+
+    public const STATUS_VERIFIED = 'verified';
+
+    public const VERIFICATION_STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_NEEDS_REVISION,
+        self::STATUS_VERIFIED,
+    ];
+
     protected $fillable = [
         'user_id',
         'business_type_id',
@@ -73,7 +85,7 @@ class Business extends Model
 
     public function products()
     {
-        return $this->hasMany(Product::class);
+        return $this->hasMany(Product::class, 'business_id', 'user_id');
     }
 
     public function assessments()

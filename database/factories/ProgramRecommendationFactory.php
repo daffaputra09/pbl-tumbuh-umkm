@@ -29,7 +29,15 @@ class ProgramRecommendationFactory extends Factory
             'obstacle_category_id' => ObstacleCategory::factory(),
             'score' => 64.5,
             'is_active' => true,
+            'applied_at' => null,
         ];
+    }
+
+    public function applied(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'applied_at' => now(),
+        ]);
     }
 
     /**

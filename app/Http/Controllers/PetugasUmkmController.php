@@ -20,14 +20,12 @@ class PetugasUmkmController extends Controller
 
         if ($filterStatus !== 'semua') {
             $statusMap = [
-                'menunggu' => 'pending',
-                'pending' => 'pending',
-                'terverifikasi' => 'verified',
-                'verified' => 'verified',
-                'perlu_perbaikan' => 'needs_revision',
-                'needs_revision' => 'needs_revision',
-                'ditolak' => 'rejected',
-                'rejected' => 'rejected',
+                'menunggu' => Business::STATUS_PENDING,
+                'pending' => Business::STATUS_PENDING,
+                'terverifikasi' => Business::STATUS_VERIFIED,
+                'verified' => Business::STATUS_VERIFIED,
+                'perlu_perbaikan' => Business::STATUS_NEEDS_REVISION,
+                'needs_revision' => Business::STATUS_NEEDS_REVISION,
             ];
 
             $targetStatus = $statusMap[$filterStatus] ?? $filterStatus;
@@ -47,10 +45,9 @@ class PetugasUmkmController extends Controller
 
         $stats = [
             'total' => Business::count(),
-            'menunggu' => Business::where('verification_status', 'pending')->count(),
-            'terverifikasi' => Business::where('verification_status', 'verified')->count(),
-            'perlu_perbaikan' => Business::where('verification_status', 'needs_revision')->count(),
-            'ditolak' => Business::where('verification_status', 'rejected')->count(),
+            'menunggu' => Business::where('verification_status', Business::STATUS_PENDING)->count(),
+            'terverifikasi' => Business::where('verification_status', Business::STATUS_VERIFIED)->count(),
+            'perlu_perbaikan' => Business::where('verification_status', Business::STATUS_NEEDS_REVISION)->count(),
         ];
 
         return view('petugas.umkm.verifikasi', [
@@ -88,78 +85,52 @@ class PetugasUmkmController extends Controller
 
         Gate::authorize('verify', $umkm);
 
-        $rawStatus = (string) $request->input('verification_status', 'verified');
+        $rawStatus = (string) $request->input('verification_status', Business::STATUS_VERIFIED);
         $status = match ($rawStatus) {
-            'menunggu' => 'pending',
-            'terverifikasi' => 'verified',
-            'ditolak' => 'rejected',
-            'perlu_perbaikan' => 'needs_revision',
+            'terverifikasi' => Business::STATUS_VERIFIED,
+            'perlu_perbaikan' => Business::STATUS_NEEDS_REVISION,
             default => $rawStatus,
         };
 
         $request->merge(['verification_status' => $status]);
 
-        $isRevisionOrRejected = in_array($status, ['needs_revision', 'rejected'], true);
+        $isRevision = $status === Business::STATUS_NEEDS_REVISION;
 
         $validated = $request->validate([
-            'verification_status' => ['required', 'string', 'in:pending,verified,needs_revision,rejected'],
+            'verification_status' => ['required', 'string', 'in:verified,needs_revision'],
             'verification_note' => [
-                $isRevisionOrRejected ? 'required' : 'nullable',
+                $isRevision ? 'required' : 'nullable',
                 'string',
-                $isRevisionOrRejected ? 'min:5' : 'nullable',
+                $isRevision ? 'min:5' : 'nullable',
                 'max:1000',
             ],
         ], [
             'verification_status.required' => 'Status verifikasi wajib dipilih.',
-            'verification_status.in' => 'Status verifikasi tidak valid. Pilihan yang diizinkan: pending, verified, needs_revision, atau rejected.',
-            'verification_note.required' => $status === 'needs_revision'
-                ? 'Catatan verifikasi wajib diisi agar pemilik UMKM mengetahui bagian yang perlu diperbaiki.'
-                : 'Alasan penolakan wajib diisi agar pemilik UMKM mengetahui alasan pengajuan ditolak.',
+            'verification_status.in' => 'Status verifikasi tidak valid. Pilihan yang diizinkan: Terverifikasi (verified) atau Perlu Perbaikan (needs_revision).',
+            'verification_note.required' => 'Catatan verifikasi wajib diisi agar pemilik UMKM mengetahui bagian yang perlu diperbaiki.',
             'verification_note.min' => 'Catatan verifikasi minimal berisi 5 karakter.',
             'verification_note.max' => 'Catatan verifikasi maksimal 1000 karakter.',
         ]);
 
         $note = isset($validated['verification_note']) ? trim((string) $validated['verification_note']) : null;
 
-        if ($status === 'verified') {
-            $umkm->verification_status = 'verified';
+        if ($status === Business::STATUS_VERIFIED) {
+            $umkm->verification_status = Business::STATUS_VERIFIED;
             $umkm->verified_at = Carbon::now();
             $umkm->verified_by = $request->user()->id;
             $umkm->verification_note = $note ?: ($umkm->verification_note ?: 'Data usaha telah diverifikasi dan dinyatakan valid oleh petugas desa.');
-        } elseif ($status === 'needs_revision') {
-            $umkm->verification_status = 'needs_revision';
-            $umkm->verified_at = Carbon::now();
-            $umkm->verified_by = $request->user()->id;
-            $umkm->verification_note = $note;
-        } elseif ($status === 'rejected') {
-            $umkm->verification_status = 'rejected';
-            $umkm->verified_at = Carbon::now();
-            $umkm->verified_by = $request->user()->id;
-            $umkm->verification_note = $note;
         } else {
-            $umkm->verification_status = 'pending';
-            $umkm->verified_at = null;
-            $umkm->verified_by = null;
+            $umkm->verification_status = Business::STATUS_NEEDS_REVISION;
+            $umkm->verified_at = Carbon::now();
+            $umkm->verified_by = $request->user()->id;
             $umkm->verification_note = $note;
         }
 
         $umkm->save();
 
-        $label = match ($status) {
-            'verified' => 'diverifikasi',
-            'needs_revision' => 'diminta perbaikan',
-            'rejected' => 'ditolak',
-            'pending' => 'dikembalikan ke status menunggu verifikasi',
-        };
+        $label = $status === Business::STATUS_VERIFIED ? 'diverifikasi' : 'diminta perbaikan';
 
         return redirect()->route('petugas.umkm.detail', $id)
             ->with('success', 'Status verifikasi UMKM "'.$umkm->business_name.'" berhasil diubah menjadi '.$label.'.');
-    }
-
-    public function prosesTolak(Request $request, $id)
-    {
-        $request->merge(['verification_status' => 'rejected']);
-
-        return $this->prosesVerifikasi($request, $id);
     }
 }

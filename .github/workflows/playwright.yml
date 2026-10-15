@@ -1,0 +1,118 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: Tes Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: tumbuh
+          POSTGRES_PASSWORD: tumbuh
+          POSTGRES_DB: tumbuh_umkm
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tumbuh -d tumbuh_umkm"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      APP_ENV: local
+      APP_DEBUG: true
+      APP_URL: http://127.0.0.1:8000
+      PLAYWRIGHT_BASE_URL: http://127.0.0.1:8000
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: tumbuh_umkm
+      DB_USERNAME: tumbuh
+      DB_PASSWORD: tumbuh
+      SESSION_DRIVER: database
+      CACHE_STORE: database
+      QUEUE_CONNECTION: sync
+
+    steps:
+      - name: Ambil kode
+        uses: actions/checkout@v4
+
+      - name: Pasang PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mbstring, pdo_pgsql
+          coverage: none
+
+      - name: Pasang Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Siapkan lingkungan aplikasi
+        run: cp .env.example .env
+
+      - name: Pasang dependensi PHP
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Buat kunci aplikasi
+        run: php artisan key:generate
+
+      - name: Pasang dependensi Node
+        run: npm ci
+
+      - name: Bangun aset tampilan
+        run: npm run build
+
+      - name: Jalankan migrasi
+        run: php artisan migrate --force
+
+      - name: Pasang browser Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Jalankan tes
+        run: npm run test:e2e
+
+      - name: Unggah laporan
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+
+  build:
+    name: Build image
+    needs: e2e
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Ambil kode
+        uses: actions/checkout@v4
+
+      - name: Siapkan Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Bangun image produksi
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: pbl-tumbuh-umkm:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

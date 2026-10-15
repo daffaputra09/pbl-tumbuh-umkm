@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { apiFetch } from '@/lib/api';
 
@@ -23,7 +22,7 @@ export default function TindakLanjutManager({ queue: initialQueue = [] }) {
     function openModal(item) {
         setSelectedItem(item);
         setFormData({
-            planned_activity: '',
+            planned_activity: item.recommended_program ? `Pelaksanaan ${item.recommended_program}` : '',
             planned_on: '',
             submission_note: ''
         });
@@ -42,16 +41,19 @@ export default function TindakLanjutManager({ queue: initialQueue = [] }) {
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            await apiFetch('/petugas/tindak-lanjut', {
-                method: 'POST',
-                body: JSON.stringify({
-                    business_id: selectedItem.business_id,
-                    program_recommendation_id: selectedItem.program_recommendation_id,
-                    planned_activity: formData.planned_activity,
-                    planned_on: formData.planned_on,
-                    submission_note: formData.submission_note,
-                }),
-            });
+            if (selectedItem) {
+                await apiFetch('/petugas/tindak-lanjut', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        business_id: selectedItem.business_id,
+                        program_recommendation_id: selectedItem.program_recommendation_id,
+                        assistance_program_id: selectedItem.assistance_program_id,
+                        planned_activity: formData.planned_activity,
+                        planned_on: formData.planned_on,
+                        submission_note: formData.submission_note,
+                    }),
+                });
+            }
 
             setQueue((prev) => 
                 prev.map(item => 
@@ -73,7 +75,7 @@ export default function TindakLanjutManager({ queue: initialQueue = [] }) {
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">Ajukan Tindak Lanjut</h1>
                     <p className="mt-1 text-sm text-slate-600 max-w-3xl">
-                        Tandai rekomendasi dan ajukan program pembinaan UMKM kepada Kepala Desa untuk disetujui.
+                        Tandai rekomendasi yang sudah diminati pelaku, lalu ajukan program pembinaan kepada Kepala Desa.
                     </p>
                 </div>
             </header>
@@ -111,10 +113,14 @@ export default function TindakLanjutManager({ queue: initialQueue = [] }) {
                                             </td>
                                             <td className="px-4 py-3 text-sm font-medium">{item.recommended_program}</td>
                                             <td className="px-4 py-3">
-                                                {item.status === 'ready' ? (
+                                                {item.status === 'ready' && item.can_submit ? (
                                                     <Button size="sm" onClick={() => openModal(item)}>
                                                         Buat Pengajuan
                                                     </Button>
+                                                ) : item.status === 'ready' ? (
+                                                    <span className="text-xs font-medium text-slate-500">
+                                                        Usaha ini belum punya akun pelaku.
+                                                    </span>
                                                 ) : (
                                                     <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700">
                                                         Menunggu Persetujuan
@@ -126,7 +132,7 @@ export default function TindakLanjutManager({ queue: initialQueue = [] }) {
                                     {queue.length === 0 && (
                                         <tr>
                                             <td colSpan="4" className="px-4 py-8 text-center text-muted-foreground">
-                                                Tidak ada antrean rekomendasi saat ini.
+                                                Belum ada pelaku yang mendaftarkan minat pada program.
                                             </td>
                                         </tr>
                                     )}
