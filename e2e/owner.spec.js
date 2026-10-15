@@ -39,6 +39,37 @@ test('TC_PROD_001 pemilik menambah produk lalu menonaktifkannya', async ({ page 
     await expect(row.getByText('Nonaktif')).toBeVisible();
 });
 
+test('TC_BIZ_003 pemilik menyimpan perubahan profil usaha', async ({ page }) => {
+    await login(page, accounts.owner);
+    await page.goto('/umkm/profil');
+
+    await page.getByPlaceholder('Ceritakan sedikit tentang usaha ini').fill('Usaha keripik rumahan di Krajan.');
+    await page.getByRole('button', { name: 'Simpan Profil Usaha' }).click();
+
+    await expect(page).toHaveURL(/\/umkm\/dashboard$/);
+    await expect(page.getByText('Keripik Bu Sari')).toBeVisible();
+});
+
+test('TC_PROD_003 pemilik mengubah nama produk', async ({ page }) => {
+    const name = `Keripik Edit ${Date.now()}`;
+    const renamed = `${name} Asin`;
+
+    await login(page, accounts.owner);
+    await page.goto('/umkm/produk');
+    await page.getByPlaceholder('Contoh: Keripik Singkong Original').fill(name);
+    await page.getByPlaceholder('Contoh: Makanan Ringan').fill('Makanan Ringan');
+    await page.getByRole('button', { name: 'Tambah Produk' }).click();
+
+    const nameText = page.getByText(name, { exact: true });
+    await expect(nameText).toBeVisible();
+    await nameText.locator('xpath=ancestor::div[contains(@class,"justify-between")][1]').getByRole('button', { name: 'Edit' }).click();
+
+    await page.getByPlaceholder('Contoh: Keripik Singkong Original').fill(renamed);
+    await page.getByRole('button', { name: 'Simpan Perubahan' }).click();
+
+    await expect(page.getByText(renamed, { exact: true })).toBeVisible();
+});
+
 test('TC_PROD_002 produk tanpa nama tidak tersimpan', async ({ page }) => {
     await login(page, accounts.owner);
     await page.goto('/umkm/produk');

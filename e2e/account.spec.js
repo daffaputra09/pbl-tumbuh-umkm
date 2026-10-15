@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { accounts, login } from './auth.js';
+import { accounts, login, password } from './auth.js';
 
 test('TC_ACC_001 ubah nomor HP akun', async ({ page }) => {
     await login(page, accounts.owner);
@@ -36,3 +36,6 @@ test('TC_SSO_001 tombol Google ada di halaman masuk', async ({ page }) => {
 
     await expect(page.getByRole('link', { name: 'Lanjutkan dengan Google' })).toHaveAttribute('href', /\/auth\/google$/);
 });
+    await page.getByRole('textbox', { name: 'Kata sandi saat ini' }).fill(password);
+    await page.getByRole('textbox', { name: 'Kata sandi baru', exact: true }).fill(nextPassword);
+    await page.getByRole('textbox', { name: 'Ulangi kata sandi baru' }).fill(nextPassword);

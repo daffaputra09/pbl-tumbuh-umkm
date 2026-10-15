@@ -66,3 +66,117 @@ test('TC_DASH_003 pengelompokan terbuka untuk petugas', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Pengelompokan' })).toBeVisible();
     await expect(page.getByRole('columnheader', { name: 'Kendala utama' })).toBeVisible();
 });
+
+test('TC_REC_007 petugas membuka daftar rekomendasi', async ({ page }) => {
+    await login(page, accounts.officer);
+    await page.goto('/petugas/rekomendasi');
+
+    await expect(page.getByRole('heading', { name: 'Rekomendasi' })).toBeVisible();
+});
+
+test('TC_TYPE_002 jenis usaha baru bisa dinonaktifkan', async ({ page }) => {
+    const name = `Perikanan ${Date.now()}`;
+
+    await login(page, accounts.officer);
+    await page.goto('/petugas/jenis-usaha');
+    await page.getByPlaceholder('Contoh: Perikanan').fill(name);
+    await page.getByRole('button', { name: 'Tambah' }).click();
+
+    const row = page.locator('div.rounded-xl.border').filter({ hasText: name });
+    await row.getByRole('button', { name: 'Nonaktifkan' }).click();
+
+    await expect(row.getByText('Nonaktif', { exact: true })).toBeVisible();
+});
+
+test('TC_CAT_002 petugas menambah kategori kendala', async ({ page }) => {
+    const name = `Kendala ${Date.now()}`;
+
+    await login(page, accounts.officer);
+    await page.goto('/petugas/kategori-kendala');
+    await page.getByRole('button', { name: 'Tambah Kategori' }).click();
+    await page.locator('#create_name').fill(name);
+    await page.locator('#create_slug').fill(`kendala-${Date.now()}`);
+    await page.getByRole('button', { name: 'Simpan Kategori' }).click();
+
+    await expect(page.getByText('Kategori kendala berhasil ditambahkan.')).toBeVisible();
+    await expect(page.getByText(name)).toBeVisible();
+});
+
+test('TC_Q_002 petugas menambah pertanyaan likert', async ({ page }) => {
+    const prompt = `Pertanyaan uji ${Date.now()}`;
+
+    await login(page, accounts.officer);
+    await page.goto('/petugas/bank-soal');
+    await page.getByRole('button', { name: 'Tambah Pertanyaan' }).click();
+    await page.locator('#create_category_id').selectOption({ label: 'Modal' });
+    await page.locator('#create_prompt').fill(prompt);
+    await page.getByRole('button', { name: 'Simpan Pertanyaan' }).click();
+
+    await expect(page.getByText('Pertanyaan berhasil ditambahkan ke Bank Soal.')).toBeVisible();
+    await expect(page.getByText(prompt)).toBeVisible();
+});
+
+test('TC_PROG_003 petugas membuka detail program yang baru dibuat', async ({ page }) => {
+    const programName = `Program Detail ${Date.now()}`;
+
+    await login(page, accounts.officer);
+    await page.goto('/petugas/program-bantuan/create');
+    await page.locator('#name').fill(programName);
+    await page.locator('#provider').fill('Desa Tumbuh');
+    await page.locator('#description').fill('Program untuk melihat halaman detail.');
+    await page.locator('#status').selectOption('draft');
+    await page.getByRole('checkbox', { name: 'Modal' }).check();
+    await page.getByRole('button', { name: 'Simpan Program Bantuan' }).click();
+    await expect(page.getByText(programName)).toBeVisible();
+
+    await page.getByRole('row').filter({ hasText: programName }).getByRole('link', { name: 'Lihat Detail Program' }).click();
+
+    await expect(page.getByRole('heading', { name: programName })).toBeVisible();
+});
+
+test('TC_BIZ_004 petugas mendata usaha lalu memverifikasi', async ({ page }) => {
+    const businessName = `Warung Uji ${Date.now()}`;
+
+    await login(page, accounts.officer);
+    await page.goto('/petugas/umkm/pendataan-umkm');
+    await page.getByRole('combobox').selectOption({ label: 'Jasa' });
+    await page.getByPlaceholder('Contoh: Warung Nasi Padang').fill(businessName);
+    await page.getByPlaceholder('Nama lengkap pemilik usaha').fill('Bu Warung');
+    await page.getByPlaceholder('08xxxxxxxxxx').fill('081234009988');
+    await page.getByPlaceholder('Alamat lengkap tempat usaha beroperasi').fill('Jl. Melati No. 2');
+    await page.getByPlaceholder('Nama dusun').fill('Krajan');
+    await page.getByRole('button', { name: /Pilih tahun/ }).click();
+    await page.getByRole('button', { name: '«' }).click();
+    await page.getByRole('button', { name: '2018', exact: true }).click();
+    await page.getByPlaceholder('Contoh: 3').fill('2');
+    await page.getByRole('button', { name: 'Simpan Data UMKM' }).click();
+
+    await expect(page.getByText('Data usaha berhasil disimpan.')).toBeVisible();
+
+    await page.goto('/petugas/umkm');
+    await page.getByPlaceholder('Cari nama usaha, nama pemilik, atau kontak…').fill(businessName);
+    await page.getByPlaceholder('Cari nama usaha, nama pemilik, atau kontak…').press('Tab');
+    await page.getByRole('link', { name: 'Detail' }).click();
+    await page.getByRole('button', { name: 'Simpan Keputusan Verifikasi' }).click();
+
+    await expect(page.getByText(`Status verifikasi UMKM "${businessName}" berhasil diubah menjadi diverifikasi.`)).toBeVisible();
+});
+
+test('TC_PROD_004 petugas menambah produk untuk UMKM', async ({ page }) => {
+    const productName = `Produk Petugas ${Date.now()}`;
+
+    await login(page, accounts.officer);
+    await page.goto('/petugas/umkm');
+    await page.getByPlaceholder('Cari nama usaha, nama pemilik, atau kontak…').fill('Keripik Bu Sari');
+    await page.getByPlaceholder('Cari nama usaha, nama pemilik, atau kontak…').press('Tab');
+    await page.getByRole('link', { name: 'Detail' }).first().click();
+
+    const detailUrl = page.url();
+    const businessId = detailUrl.match(/\/petugas\/umkm\/(\d+)/)?.[1];
+    await page.goto(`/petugas/umkm/${businessId}/produk`);
+    await page.getByPlaceholder('Contoh: Keripik Singkong Original').fill(productName);
+    await page.getByPlaceholder('Contoh: Makanan Ringan').fill('Makanan Ringan');
+    await page.getByRole('button', { name: 'Tambah Produk' }).click();
+
+    await expect(page.getByText(productName, { exact: true })).toBeVisible();
+});

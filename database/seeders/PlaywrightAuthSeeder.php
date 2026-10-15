@@ -2,10 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Models\AssessmentQuestion;
 use App\Models\Business;
 use App\Models\BusinessType;
+use App\Models\ObstacleCategory;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 
 class PlaywrightAuthSeeder extends Seeder
 {
@@ -18,6 +21,8 @@ class PlaywrightAuthSeeder extends Seeder
             ObstacleCategorySeeder::class,
             AssessmentQuestionSeeder::class,
         ]);
+
+        $this->restoreQuestionnaireBaseline();
 
         $typeId = BusinessType::query()->where('slug', 'makanan-minuman')->value('id');
 
@@ -41,6 +46,22 @@ class PlaywrightAuthSeeder extends Seeder
                 'employee_count' => 3,
             ],
         );
+    }
+
+    private function restoreQuestionnaireBaseline(): void
+    {
+        /** @var Collection<string, list<string>> $questions */
+        $questions = collect(AssessmentQuestionSeeder::canonicalQuestions());
+
+        ObstacleCategory::query()
+            ->where('is_active', true)
+            ->whereNotIn('slug', $questions->keys()->all())
+            ->update(['is_active' => false]);
+
+        AssessmentQuestion::query()
+            ->where('is_active', true)
+            ->whereNotIn('prompt', $questions->flatten()->all())
+            ->update(['is_active' => false]);
     }
 
     private function account(string $email, string $name, string $role, bool $active): User

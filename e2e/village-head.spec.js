@@ -16,6 +16,14 @@ test('TC_FU_006 halaman persetujuan terbuka', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Persetujuan Tindak Lanjut' })).toBeVisible();
 });
 
+test('TC_DASH_005 kepala desa membuka pengelompokan', async ({ page }) => {
+    await login(page, accounts.villageHead);
+    await page.goto('/pimpinan/pengelompokan');
+
+    await expect(page.getByRole('heading', { name: 'Pengelompokan' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'Kendala utama' })).toBeVisible();
+});
+
 test('TC_REC_008 kepala desa dapat membuka daftar rekomendasi', async ({ page }) => {
     await login(page, accounts.villageHead);
     await page.goto('/pimpinan/rekomendasi');

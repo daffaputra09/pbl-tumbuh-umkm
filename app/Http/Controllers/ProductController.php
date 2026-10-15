@@ -65,7 +65,7 @@ class ProductController extends Controller
     {
         Gate::authorize('viewAny', [Product::class, $business]);
 
-        return view('petugas.umkm.produk', [
+        return view('petugas.umkm.produk-petugas', [
             'business' => ['id' => $business->id, 'name' => $business->business_name],
             'mode' => 'officer',
         ]);

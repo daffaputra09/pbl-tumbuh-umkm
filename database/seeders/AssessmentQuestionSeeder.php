@@ -10,19 +10,11 @@ use Illuminate\Database\Seeder;
 class AssessmentQuestionSeeder extends Seeder
 {
     /**
-     * Run the database seeds for 20 initial Likert assessment questions and options.
+     * @return array<string, list<string>>
      */
-    public function run(): void
+    public static function canonicalQuestions(): array
     {
-        $likertOptions = [
-            ['label' => 'Sangat tidak setuju', 'value' => 1, 'score' => 0, 'sort_order' => 1],
-            ['label' => 'Tidak setuju', 'value' => 2, 'score' => 25, 'sort_order' => 2],
-            ['label' => 'Netral', 'value' => 3, 'score' => 50, 'sort_order' => 3],
-            ['label' => 'Setuju', 'value' => 4, 'score' => 75, 'sort_order' => 4],
-            ['label' => 'Sangat setuju', 'value' => 5, 'score' => 100, 'sort_order' => 5],
-        ];
-
-        $categoryQuestions = [
+        return [
             'modal' => [
                 'Saya kesulitan menyediakan modal untuk mengembangkan usaha.',
                 'Modal yang tersedia belum cukup untuk memenuhi kebutuhan usaha sehari-hari.',
@@ -54,8 +46,19 @@ class AssessmentQuestionSeeder extends Seeder
                 'Saya membutuhkan pendampingan untuk menggunakan alat digital yang sesuai dengan usaha saya.',
             ],
         ];
+    }
 
-        foreach ($categoryQuestions as $categorySlug => $prompts) {
+    public function run(): void
+    {
+        $likertOptions = [
+            ['label' => 'Sangat tidak setuju', 'value' => 1, 'score' => 0, 'sort_order' => 1],
+            ['label' => 'Tidak setuju', 'value' => 2, 'score' => 25, 'sort_order' => 2],
+            ['label' => 'Netral', 'value' => 3, 'score' => 50, 'sort_order' => 3],
+            ['label' => 'Setuju', 'value' => 4, 'score' => 75, 'sort_order' => 4],
+            ['label' => 'Sangat setuju', 'value' => 5, 'score' => 100, 'sort_order' => 5],
+        ];
+
+        foreach (self::canonicalQuestions() as $categorySlug => $prompts) {
             $category = ObstacleCategory::where('slug', $categorySlug)->first();
 
             if (! $category) {
