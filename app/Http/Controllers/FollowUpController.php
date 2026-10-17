@@ -17,8 +17,9 @@ class FollowUpController extends Controller
 
         $followUps = FollowUp::query()
             ->whereIn('program_recommendation_id', $recommendations->pluck('id'))
-            ->whereIn('status', ['pending', 'approved'])
+            ->latest('id')
             ->get()
+            ->unique('program_recommendation_id')
             ->keyBy('program_recommendation_id');
 
         $queue = $recommendations->map(function ($rec) use ($followUps) {
@@ -35,6 +36,12 @@ class FollowUpController extends Controller
                 'problem_category' => $rec->obstacleCategory->name ?? 'N/A',
                 'recommended_program' => $rec->assistanceProgram->name ?? 'N/A',
                 'status' => $followUp ? $followUp->status : 'ready',
+                'follow_up_id' => $followUp?->id,
+                'decision_note' => $followUp?->decision_note,
+                'decided_at' => $followUp?->decided_at?->format('Y-m-d'),
+                'planned_activity' => $followUp?->planned_activity,
+                'planned_on' => $followUp?->planned_on?->format('Y-m-d'),
+                'submission_note' => $followUp?->submission_note,
             ];
         });
 
@@ -55,8 +62,11 @@ class FollowUpController extends Controller
         $validated['submitted_by'] = auth()->id();
         $validated['status'] = 'pending';
 
-        FollowUp::create($validated);
+        $followUp = FollowUp::create($validated);
 
-        return response()->json(['message' => 'Tindak lanjut berhasil diajukan.']);
+        return response()->json([
+            'message' => 'Tindak lanjut berhasil diajukan.',
+            'follow_up' => $followUp,
+        ]);
     }
 }

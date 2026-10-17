@@ -44,4 +44,14 @@ class FollowUp extends Model
     {
         return $this->hasOne(CoachingSession::class);
     }
+
+    public function submitter()
+    {
+        return $this->belongsTo(User::class, 'submitted_by');
+    }
+
+    public function decider()
+    {
+        return $this->belongsTo(User::class, 'decided_by');
+    }
 }
