@@ -4,6 +4,10 @@ import { Plant02Icon } from '@hugeicons/core-free-icons';
 import { cn } from '@/lib/utils';
 
 export function Icon({ icon, size = 20, strokeWidth = 1.8, className }) {
+    if (!icon) {
+        return null;
+    }
+
     return <HugeiconsIcon icon={icon} size={size} strokeWidth={strokeWidth} className={className} aria-hidden="true" />;
 }
 

@@ -48,7 +48,7 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_BUSINESS_OWNER, 'busines
 });
 
 Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER.','.User::ROLE_VILLAGE_HEAD])->group(function () {
-    Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
 
 Route::middleware('guest')->group(function () {
