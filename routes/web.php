@@ -133,4 +133,5 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_VILLAGE_HEAD])->group(fu
     Route::get('/pimpinan/rekomendasi', [StaffInsightController::class, 'recommendations'])->name('pimpinan.rekomendasi');
     Route::get('/pimpinan/persetujuan-tindak-lanjut', [ApprovalController::class, 'index'])->name('pimpinan.persetujuan-tindak-lanjut');
     Route::patch('/pimpinan/persetujuan-tindak-lanjut/{followUp}', [ApprovalController::class, 'update'])->name('pimpinan.persetujuan-tindak-lanjut.update');
+    Route::get('/pimpinan/riwayat-pembinaan', [CoachingSessionController::class, 'pimpinanIndex'])->name('pimpinan.riwayat-pembinaan');
 });
