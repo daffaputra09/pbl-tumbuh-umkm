@@ -35,14 +35,18 @@ export function dominantObstacle(record) {
 }
 
 export function daysSince(dateString, now) {
-    return Math.max(0, Math.floor((now - new Date(`${dateString}T00:00:00`)) / 86_400_000));
+    if (!dateString) return 0;
+    const date = new Date(`${dateString}T00:00:00`);
+    if (isNaN(date.getTime())) return 0;
+
+    return Math.max(0, Math.floor((now - date) / 86_400_000));
 }
 
 export function filterRecords(records, { hamlet, businessType }) {
     return records.filter(
         (record) =>
             (hamlet === 'semua' || record.hamlet === hamlet) &&
-            (businessType === 'semua' || record.businessType.slug === businessType),
+            (businessType === 'semua' || (record.businessType?.slug && record.businessType.slug === businessType)),
     );
 }
 
@@ -72,7 +76,7 @@ function percent(part, total) {
 }
 
 function createdMonth(record) {
-    return record.createdAt.slice(0, 7);
+    return (record.createdAt || '').slice(0, 7);
 }
 
 /**
@@ -179,7 +183,7 @@ export function computeMetrics(records, { references, periodMonths, now }) {
 
     const businessTypeCounts = references.businessTypes
         .map((type) => {
-            const count = records.filter((record) => record.businessType.slug === type.slug).length;
+            const count = records.filter((record) => record.businessType?.slug === type.slug).length;
 
             return { key: type.slug, label: type.name, id: type.id, value: count, share: percent(count, records.length) };
         })
@@ -187,7 +191,7 @@ export function computeMetrics(records, { references, periodMonths, now }) {
 
     const grouping = references.obstacleCategories
         .map((category) => {
-            const value = assessed.filter((record) => record.currentAssessment.primaryObstacleCategoryId === category.id).length;
+            const value = assessed.filter((record) => record.currentAssessment?.primaryObstacleCategoryId === category.id).length;
 
             return { key: category.slug, label: category.name, id: category.id, value, share: percent(value, records.length) };
         })
@@ -237,5 +241,9 @@ export function formatNumber(value) {
 }
 
 export function formatDate(dateString) {
-    return new Date(`${dateString}T00:00:00`).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    if (!dateString) return '-';
+    const date = new Date(`${dateString}T00:00:00`);
+    if (isNaN(date.getTime())) return dateString;
+
+    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 }

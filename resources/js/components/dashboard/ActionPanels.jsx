@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Alert02Icon, Clock01Icon, Location01Icon, Search01Icon } from '@hugeicons/core-free-icons';
 import { Icon } from '@/components/landing/shared';
-import { OBSTACLE_ICONS } from '@/components/dashboard/ObstaclePanel';
+import { getObstacleIcon } from '@/components/dashboard/ObstaclePanel';
 import { EmptyState, Panel } from '@/components/dashboard/Panel';
 import { formatDate, formatNumber } from '@/components/dashboard/lib/metrics';
 import { cn } from '@/lib/utils';
@@ -10,8 +10,10 @@ const INITIAL_VISIBLE_ROWS = 6;
 
 function matchesSearch(record, query) {
     const keyword = query.trim().toLowerCase();
+    const businessName = (record.businessName || '').toLowerCase();
+    const hamlet = (record.hamlet || '').toLowerCase();
 
-    return keyword === '' || record.businessName.toLowerCase().includes(keyword) || record.hamlet.toLowerCase().includes(keyword);
+    return keyword === '' || businessName.includes(keyword) || hamlet.includes(keyword);
 }
 
 function ScoreBadge({ score }) {
@@ -86,15 +88,15 @@ export function AttentionTable({ records, obstacleLabels }) {
                                             <p className="font-semibold text-ink">{record.businessName}</p>
                                             <p className="text-xs text-muted-foreground">{record.employeeCount} tenaga kerja</p>
                                         </td>
-                                        <td className="py-3 pr-4 text-slate-600">{record.hamlet}</td>
+                                        <td className="py-3 pr-4 text-slate-600">{record.hamlet || '-'}</td>
                                         <td className="py-3 pr-4">
                                             <span className="inline-flex items-center gap-2 text-slate-700">
-                                                <Icon icon={OBSTACLE_ICONS[record.dominant.slug]} size={16} className="text-brand" />
-                                                {obstacleLabels[record.dominant.slug]}
+                                                <Icon icon={getObstacleIcon(record.dominant?.slug)} size={16} className="text-brand" />
+                                                {(record.dominant?.slug && obstacleLabels[record.dominant.slug]) || 'Kendala Utama'}
                                             </span>
                                         </td>
                                         <td className="py-3 text-right">
-                                            <ScoreBadge score={Math.round(record.dominant.score)} />
+                                            <ScoreBadge score={Math.round(record.dominant?.score || 0)} />
                                         </td>
                                         <td className="py-3 pl-4 text-right whitespace-nowrap text-slate-600">{formatDate(record.createdAt)}</td>
                                     </tr>
@@ -111,14 +113,14 @@ export function AttentionTable({ records, obstacleLabels }) {
                                         <p className="truncate font-semibold text-ink">{record.businessName}</p>
                                         <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
                                             <Icon icon={Location01Icon} size={13} />
-                                            {record.hamlet} · {record.employeeCount} tenaga kerja
+                                            {record.hamlet || '-'} · {record.employeeCount} tenaga kerja
                                         </p>
                                     </div>
-                                    <ScoreBadge score={Math.round(record.dominant.score)} />
+                                    <ScoreBadge score={Math.round(record.dominant?.score || 0)} />
                                 </div>
                                 <p className="mt-2.5 inline-flex items-center gap-2 rounded-lg bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-hover">
-                                    <Icon icon={OBSTACLE_ICONS[record.dominant.slug]} size={14} />
-                                    Kendala utama: {obstacleLabels[record.dominant.slug]}
+                                    <Icon icon={getObstacleIcon(record.dominant?.slug)} size={14} />
+                                    Kendala utama: {(record.dominant?.slug && obstacleLabels[record.dominant.slug]) || 'Kendala Utama'}
                                 </p>
                             </li>
                         ))}
@@ -137,16 +139,21 @@ export function AttentionTable({ records, obstacleLabels }) {
     );
 }
 
-export function VerificationQueue({ records }) {
+export function VerificationQueue({ records, role }) {
     const [isExpanded, setIsExpanded] = useState(false);
     const visible = isExpanded ? records : records.slice(0, INITIAL_VISIBLE_ROWS);
     const overdueCount = records.filter((record) => record.waitingDays > 7).length;
+    const isHead = role === 'kepala-desa';
 
     return (
         <Panel
             id="antrean-verifikasi"
-            title="Antrean verifikasi"
-            description={overdueCount > 0 ? `${overdueCount} data sudah menunggu lebih dari 7 hari.` : 'Data paling lama menunggu tampil di atas.'}
+            title={isHead ? 'Antrean Persetujuan Tindak Lanjut' : 'Antrean verifikasi'}
+            description={
+                isHead
+                    ? (overdueCount > 0 ? `${overdueCount} pengajuan menunggu lebih dari 7 hari.` : 'Pengajuan tindak lanjut menunggu persetujuan kepala desa.')
+                    : (overdueCount > 0 ? `${overdueCount} data sudah menunggu lebih dari 7 hari.` : 'Data paling lama menunggu tampil di atas.')
+            }
         >
             {records.length === 0 ? (
                 <EmptyState message="Tidak ada data yang menunggu verifikasi." />
@@ -170,7 +177,7 @@ export function VerificationQueue({ records }) {
                                     <div className="min-w-0 flex-1">
                                         <p className="truncate text-sm font-semibold text-ink">{record.businessName}</p>
                                         <p className="text-xs text-muted-foreground">
-                                            {needsFix ? 'Perlu perbaikan' : 'Menunggu dicek'} · {record.hamlet}
+                                            {needsFix ? 'Perlu perbaikan' : 'Menunggu dicek'} · {record.hamlet || 'Desa Junrejo'}
                                         </p>
                                     </div>
                                     <span
