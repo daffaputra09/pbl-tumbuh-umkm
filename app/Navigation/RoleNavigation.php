@@ -69,7 +69,7 @@ class RoleNavigation
             ]],
             ['title' => 'Hasil', 'items' => [
                 ['label' => 'Rekomendasi program', 'href' => '/umkm/rekomendasi', 'icon' => 'GiftIcon'],
-                ['label' => 'Riwayat pembinaan', 'href' => null, 'icon' => 'TeachingIcon'],
+                ['label' => 'Riwayat pembinaan', 'href' => '/umkm/riwayat-pembinaan', 'icon' => 'TeachingIcon'],
             ]],
             ['title' => 'Akun', 'items' => [
                 ['label' => 'Profil akun', 'href' => '/akun', 'icon' => 'User02Icon'],

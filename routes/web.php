@@ -13,6 +13,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FollowUpController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\ObstacleCategoryController;
+use App\Http\Controllers\OwnerCoachingSessionController;
 use App\Http\Controllers\OwnerRecommendationController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PetugasUmkmController;
@@ -36,6 +37,8 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_BUSINESS_OWNER, 'busines
     Route::get('/umkm/rekomendasi', [OwnerRecommendationController::class, 'index'])->name('umkm.rekomendasi');
     Route::get('/umkm/rekomendasi/{programRecommendation}', [OwnerRecommendationController::class, 'show'])->name('umkm.rekomendasi.show');
     Route::post('/umkm/rekomendasi/{programRecommendation}/daftar', [OwnerRecommendationController::class, 'apply'])->name('umkm.rekomendasi.apply');
+
+    Route::get('/umkm/riwayat-pembinaan', [OwnerCoachingSessionController::class, 'index'])->name('umkm.riwayat-pembinaan');
 
     Route::get('/umkm/produk', [ProductController::class, 'page'])->name('umkm.produk');
     Route::get('/umkm/produk/data', [ProductController::class, 'index'])->name('umkm.produk.index');
