@@ -27,7 +27,7 @@ function Backdrop({ onClick }) {
         <motion.button
             type="button"
             aria-label="Tutup modal"
-            className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
+            className="fixed inset-0 bg-ink/50 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -339,6 +339,7 @@ export default function PersetujuanTindakLanjutManager({ queue: initialQueue = [
     const [formData, setFormData] = useState({ decision_note: '' });
     const [statusFilter, setStatusFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [feedback, setFeedback] = useState(null);
 
     const todayDate = new Date().toLocaleDateString('id-ID', {
         year: 'numeric',
@@ -418,7 +419,6 @@ export default function PersetujuanTindakLanjutManager({ queue: initialQueue = [
             });
 
             if (response.ok) {
-                alert('Keputusan berhasil disimpan!');
                 setQueue((prev) =>
                     prev.map((item) =>
                         item.id === selectedItem.id
@@ -432,27 +432,81 @@ export default function PersetujuanTindakLanjutManager({ queue: initialQueue = [
                     ),
                 );
                 closeAll();
+                setFeedback({
+                    type: 'success',
+                    message:
+                        finalStatus === 'approved'
+                            ? `Keputusan disetujui untuk "${selectedItem.umkm_name}" berhasil disimpan.`
+                            : `Keputusan penolakan untuk "${selectedItem.umkm_name}" berhasil disimpan.`,
+                });
             } else {
                 const data = await response.json();
-                alert(data.message || 'Gagal menyimpan keputusan.');
+                setFeedback({
+                    type: 'error',
+                    message: data.message || 'Gagal menyimpan keputusan.',
+                });
             }
         } catch (error) {
-            alert('Terjadi kesalahan sistem atau koneksi.');
+            setFeedback({
+                type: 'error',
+                message: 'Terjadi kesalahan sistem atau koneksi.',
+            });
         }
     }
 
     return (
-        <div className="relative isolate -mx-4 -mt-5 -mb-5 overflow-hidden bg-white sm:-mx-6 sm:-mt-6 sm:-mb-6 lg:-mx-8 lg:-mt-8 lg:-mb-8">
-            <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-                <header className="mb-8">
-                    <p className="text-sm font-semibold text-primary">Keputusan</p>
-                    <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
-                        Persetujuan Tindak Lanjut
-                    </h1>
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+        <div className="space-y-6">
+            <header>
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">Persetujuan Tindak Lanjut</h1>
+                    <p className="mt-1 text-sm text-slate-600 max-w-3xl">
                         Tinjau dan berikan keputusan (Setujui atau Tolak) atas pengajuan program pembinaan UMKM dari Petugas Desa.
                     </p>
-                </header>
+                </div>
+            </header>
+
+            {/* Notification Banner */}
+            <AnimatePresence>
+                {feedback && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className={cn(
+                            'flex items-center justify-between rounded-xl border px-4 py-3 text-sm font-medium shadow-xs',
+                            feedback.type === 'success'
+                                ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                                : 'border-red-200 bg-red-50 text-red-800',
+                        )}
+                        role={feedback.type === 'success' ? 'status' : 'alert'}
+                    >
+                        <div className="flex items-center gap-2.5">
+                            <span
+                                className={cn(
+                                    'flex size-6 shrink-0 items-center justify-center rounded-full',
+                                    feedback.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white',
+                                )}
+                            >
+                                <HugeiconsIcon icon={feedback.type === 'success' ? Tick01Icon : Cancel01Icon} size={14} strokeWidth={2.5} />
+                            </span>
+                            <span>{feedback.message}</span>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setFeedback(null)}
+                            className={cn(
+                                'ml-3 shrink-0 rounded-lg p-1 transition-colors',
+                                feedback.type === 'success'
+                                    ? 'text-emerald-700 hover:bg-emerald-100'
+                                    : 'text-red-700 hover:bg-red-100',
+                            )}
+                            aria-label="Tutup notifikasi"
+                        >
+                            <HugeiconsIcon icon={Cancel01Icon} size={16} />
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
                 {/* Filter Pills & Search */}
                 <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -640,7 +694,6 @@ export default function PersetujuanTindakLanjutManager({ queue: initialQueue = [
                         </div>
                     </CardContent>
                 </Card>
-            </div>
 
             {/* Modal Stack */}
             <AnimatePresence mode="wait">
