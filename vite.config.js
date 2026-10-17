@@ -21,7 +21,8 @@ export default defineConfig({
                 'resources/js/entries/tindak-lanjut.jsx',
                 'resources/js/entries/persetujuan-tindak-lanjut.jsx',
                 'resources/js/entries/catat-pembinaan.jsx',
-                'resources/js/entries/riwayat-pembinaan-pimpinan.jsx'
+                'resources/js/entries/riwayat-pembinaan-pimpinan.jsx',
+                'resources/js/entries/umkm-riwayat-pembinaan.jsx'
             ],
             refresh: true,
             fonts: [
