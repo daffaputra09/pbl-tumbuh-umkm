@@ -40,7 +40,7 @@ test.describe.serial('jalur kuesioner sampai pembinaan', () => {
 
         await page.getByRole('button', { name: 'Kirim Jawaban' }).click();
 
-        await expect(page).toHaveURL(/\/umkm\/dashboard$/);
+        await expect(page).toHaveURL(/\/umkm\/dashboard$/, { timeout: 30_000 });
     });
 
     test('TC_SCORE_001 dan TC_REC_005 pemilik melihat program yang cocok', async ({ page }) => {

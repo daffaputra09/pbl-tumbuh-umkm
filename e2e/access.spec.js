@@ -40,19 +40,19 @@ test('TC_NAV_002 menu kepala desa memuat pemantauan yang sudah ada', async ({ pa
     await login(page, accounts.villageHead);
 
     const menu = desktopMenu(page);
-    for (const label of ['Pengelompokan', 'Rekomendasi', 'Persetujuan tindak lanjut', 'Profil akun']) {
+    for (const label of ['Pengelompokan', 'Rekomendasi', 'Persetujuan tindak lanjut', 'Riwayat pembinaan', 'Profil akun']) {
         await expect(menu.getByRole('link', { name: label })).toBeVisible();
     }
 
+    await expect(menu.getByRole('link', { name: 'Riwayat pembinaan' })).toHaveAttribute('href', '/pimpinan/riwayat-pembinaan');
     await expect(menu.getByRole('link', { name: 'Data UMKM' })).toHaveCount(0);
     await expect(menu.getByRole('link', { name: 'Laporan' })).toHaveCount(0);
-    await expect(menu.getByRole('link', { name: 'Riwayat pembinaan' })).toHaveCount(0);
 });
 
-test('TC_NAV_003 menu pemilik tidak memuat riwayat pembinaan', async ({ page }) => {
+test('TC_NAV_003 menu pemilik memuat riwayat pembinaan', async ({ page }) => {
     await login(page, accounts.owner);
 
     const menu = desktopMenu(page);
-    await expect(menu.getByRole('link', { name: 'Riwayat pembinaan' })).toHaveCount(0);
+    await expect(menu.getByRole('link', { name: 'Riwayat pembinaan' })).toHaveAttribute('href', '/umkm/riwayat-pembinaan');
     await expect(menu.getByRole('link', { name: 'Rekomendasi program' })).toBeVisible();
 });
