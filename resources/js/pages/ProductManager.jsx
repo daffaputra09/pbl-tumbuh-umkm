@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Cancel01Icon, PlusSignIcon, Search01Icon } from '@hugeicons/core-free-icons';
 import PageBackground from '@/components/umkm/PageBackground';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api';
-import { cn } from '@/lib/utils';
 
 const UNIT_OPTIONS = ['Pcs', 'Kg', 'Gram', 'Liter', 'Porsi', 'Lusin', 'Lainnya'];
 
@@ -32,10 +33,33 @@ function formatRupiah(value) {
     return `Rp${Number(value).toLocaleString('id-ID')}`;
 }
 
+// Ikon pensil yang sama dengan tombol edit di halaman Kategori Kendala.
+function PencilIcon() {
+    return (
+        <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+        >
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+            <path d="m15 5 4 4" />
+        </svg>
+    );
+}
+
 /**
  * Dipakai untuk dua hal, dibedakan lewat page-props `mode`:
  * - mode="self"    -> UC-05a, pelaku UMKM kelola produk usahanya sendiri.
  * - mode="officer" -> UC-05a, petugas mendampingi kelola produk UMKM tertentu.
+ *
+ * Form tambah/ubah produk tampil sebagai popup, sama seperti halaman
+ * Kategori Kendala di sisi petugas.
  */
 export default function ProductManager({ business, mode = 'self' }) {
     const isOfficerMode = mode === 'officer';
@@ -47,8 +71,11 @@ export default function ProductManager({ business, mode = 'self' }) {
     const [products, setProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
+    const [query, setQuery] = useState('');
 
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [formData, setFormData] = useState(buildEmptyForm);
+    const [formError, setFormError] = useState('');
     const [photoPreview, setPhotoPreview] = useState(null);
     const [editingId, setEditingId] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,6 +93,30 @@ export default function ProductManager({ business, mode = 'self' }) {
         },
         [photoPreview],
     );
+
+    // Popup terbuka: halaman di belakangnya tidak ikut ter-scroll, dan
+    // tombol Escape menutup popup.
+    useEffect(() => {
+        if (!isModalOpen) {
+            return undefined;
+        }
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+
+        function handleKeyDown(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        }
+
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isModalOpen, isSubmitting]);
 
     async function loadProducts() {
         setIsLoading(true);
@@ -91,7 +142,15 @@ export default function ProductManager({ business, mode = 'self' }) {
         setPhotoPreview(file ? URL.createObjectURL(file) : null);
     }
 
-    function startEdit(product) {
+    function openCreateModal() {
+        setEditingId(null);
+        setFormData(buildEmptyForm());
+        setPhotoPreview(null);
+        setFormError('');
+        setIsModalOpen(true);
+    }
+
+    function openEditModal(product) {
         const isKnownUnit = UNIT_OPTIONS.slice(0, -1).includes(product.unit);
 
         setEditingId(product.id);
@@ -105,28 +164,32 @@ export default function ProductManager({ business, mode = 'self' }) {
             photoFile: null,
         });
         setPhotoPreview(product.photo_path ? `/storage/${product.photo_path}` : null);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setFormError('');
+        setIsModalOpen(true);
     }
 
-    function cancelEdit() {
+    function closeModal() {
+        if (isSubmitting) {
+            return;
+        }
+
+        setIsModalOpen(false);
         setEditingId(null);
         setFormData(buildEmptyForm());
         setPhotoPreview(null);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
+        setFormError('');
     }
 
     async function handleSubmit(event) {
         event.preventDefault();
 
         if (!formData.name.trim() || !formData.category.trim()) {
-            setErrorMessage('Nama dan kategori produk wajib diisi.');
+            setFormError('Nama dan kategori produk wajib diisi.');
             return;
         }
 
         setIsSubmitting(true);
-        setErrorMessage('');
+        setFormError('');
 
         const finalUnit = formData.unitChoice === 'Lainnya' ? formData.customUnit.trim() : formData.unitChoice;
 
@@ -148,10 +211,13 @@ export default function ProductManager({ business, mode = 'self' }) {
                 setProducts((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
             }
 
-            cancelEdit();
+            setIsSubmitting(false);
+            setIsModalOpen(false);
+            setEditingId(null);
+            setFormData(buildEmptyForm());
+            setPhotoPreview(null);
         } catch (error) {
-            setErrorMessage(error.message);
-        } finally {
+            setFormError(error.message);
             setIsSubmitting(false);
         }
     }
@@ -166,6 +232,11 @@ export default function ProductManager({ business, mode = 'self' }) {
             setErrorMessage(error.message);
         }
     }
+
+    const keyword = query.trim().toLowerCase();
+    const visibleProducts = keyword
+        ? products.filter((product) => `${product.name} ${product.category}`.toLowerCase().includes(keyword))
+        : products;
 
     const content = (
         <div className="mx-auto max-w-3xl">
@@ -189,135 +260,53 @@ export default function ProductManager({ business, mode = 'self' }) {
                 </div>
             )}
 
-            <Card className="mb-6">
-                <CardHeader>
-                    <CardTitle className="text-base">{editingId ? 'Edit Produk' : 'Tambah Produk'}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
-                        <div className="flex flex-col">
-                            <Label className="mb-1.5">Nama Produk</Label>
-                            <Input
-                                value={formData.name}
-                                onChange={(event) => updateField('name', event.target.value)}
-                                placeholder="Contoh: Keripik Singkong Original"
-                            />
-                        </div>
-
-                        <div className="flex flex-col">
-                            <Label className="mb-1.5">Kategori</Label>
-                            <Input
-                                value={formData.category}
-                                onChange={(event) => updateField('category', event.target.value)}
-                                placeholder="Contoh: Makanan Ringan"
-                            />
-                        </div>
-
-                        <div className="flex flex-col">
-                            <Label className="mb-1.5">Harga (opsional)</Label>
-                            <div className="relative">
-                                <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-sm text-muted-foreground">
-                                    Rp
-                                </span>
-                                <Input
-                                    type="text"
-                                    inputMode="numeric"
-                                    value={formData.price}
-                                    onChange={(event) => updateField('price', event.target.value.replace(/\D/g, ''))}
-                                    placeholder="15000"
-                                    className="pl-10"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex flex-col">
-                            <Label className="mb-1.5">Satuan (opsional)</Label>
-                            <Select value={formData.unitChoice} onChange={(event) => updateField('unitChoice', event.target.value)}>
-                                <option value="">Pilih satuan</option>
-                                {UNIT_OPTIONS.map((unit) => (
-                                    <option key={unit} value={unit}>
-                                        {unit}
-                                    </option>
-                                ))}
-                            </Select>
-                            {formData.unitChoice === 'Lainnya' && (
-                                <Input
-                                    value={formData.customUnit}
-                                    onChange={(event) => updateField('customUnit', event.target.value)}
-                                    placeholder="Tulis satuan sendiri"
-                                    className="mt-2"
-                                />
-                            )}
-                        </div>
-
-                        <div className="flex flex-col sm:col-span-2">
-                            <Label className="mb-1.5">Deskripsi (opsional)</Label>
-                            <Textarea
-                                rows={2}
-                                value={formData.description}
-                                onChange={(event) => updateField('description', event.target.value)}
-                                placeholder="Ceritakan sedikit tentang produk ini"
-                            />
-                        </div>
-
-                        <div className="flex flex-col sm:col-span-2">
-                            <Label className="mb-1.5">Foto (opsional)</Label>
-                            <button
-                                type="button"
-                                onClick={() => fileInputRef.current?.click()}
-                                className="flex items-center gap-4 rounded-xl border border-dashed border-border bg-white p-4 text-left transition-colors hover:border-primary/50"
-                            >
-                                {photoPreview ? (
-                                    <img src={photoPreview} alt="Pratinjau produk" className="size-16 shrink-0 rounded-lg object-cover" />
-                                ) : (
-                                    <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-muted text-[10px] text-muted-foreground">
-                                        Belum ada
-                                    </div>
-                                )}
-                                <span className="text-sm font-medium text-primary">
-                                    {photoPreview ? 'Ganti foto' : 'Klik untuk pilih foto'}
-                                </span>
-                            </button>
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/*"
-                                onChange={handlePhotoChange}
-                                className="hidden"
-                            />
-                        </div>
-
-                        <div className="flex gap-2 sm:col-span-2">
-                            <Button type="submit" disabled={isSubmitting}>
-                                {isSubmitting ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Tambah Produk'}
-                            </Button>
-                            {editingId && (
-                                <Button type="button" variant="outline" onClick={cancelEdit}>
-                                    Batal
-                                </Button>
-                            )}
-                        </div>
-                    </form>
-                </CardContent>
-            </Card>
-
             <Card>
-                <CardHeader>
-                    <CardTitle className="text-base">Daftar Produk</CardTitle>
+                <CardHeader className="gap-3">
+                    <div className="flex items-center justify-between gap-3">
+                        <CardTitle className="text-base">Daftar Produk</CardTitle>
+                        <Button type="button" size="sm" onClick={openCreateModal}>
+                            <HugeiconsIcon icon={PlusSignIcon} size={16} aria-hidden="true" />
+                            Tambah Produk
+                        </Button>
+                    </div>
+
+                    <div className="relative">
+                        <HugeiconsIcon
+                            icon={Search01Icon}
+                            size={16}
+                            className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-muted-foreground"
+                            aria-hidden="true"
+                        />
+                        <Input
+                            type="search"
+                            value={query}
+                            onChange={(event) => setQuery(event.target.value)}
+                            placeholder="Cari nama atau kategori produk"
+                            className="pl-10"
+                            aria-label="Cari produk"
+                        />
+                    </div>
                 </CardHeader>
+
                 <CardContent className="flex flex-col gap-3">
                     {isLoading && <p className="text-sm text-muted-foreground">Memuat data...</p>}
 
                     {!isLoading && products.length === 0 && (
-                        <p className="text-sm text-muted-foreground">Belum ada produk, tambahkan lewat form di atas.</p>
+                        <p className="text-sm text-muted-foreground">
+                            Belum ada produk. Klik tombol Tambah Produk untuk mulai.
+                        </p>
                     )}
 
-                    {products.map((product) => (
+                    {!isLoading && products.length > 0 && visibleProducts.length === 0 && (
+                        <p className="text-sm text-muted-foreground">Tidak ada produk yang cocok dengan pencarianmu.</p>
+                    )}
+
+                    {visibleProducts.map((product) => (
                         <div
                             key={product.id}
                             className="flex items-center justify-between gap-3 rounded-xl border border-border bg-white px-4 py-3"
                         >
-                            <div className="flex items-center gap-3">
+                            <div className="flex min-w-0 items-center gap-3">
                                 {product.photo_path ? (
                                     <img
                                         src={`/storage/${product.photo_path}`}
@@ -329,9 +318,9 @@ export default function ProductManager({ business, mode = 'self' }) {
                                         Tanpa foto
                                     </div>
                                 )}
-                                <div>
-                                    <p className="text-sm font-semibold text-ink">{product.name}</p>
-                                    <p className="text-xs text-muted-foreground">
+                                <div className="min-w-0">
+                                    <p className="truncate text-sm font-semibold text-ink">{product.name}</p>
+                                    <p className="truncate text-xs text-muted-foreground">
                                         {product.category} &middot; {formatRupiah(product.price)}
                                         {product.unit ? ` / ${product.unit}` : ''}
                                     </p>
@@ -342,9 +331,15 @@ export default function ProductManager({ business, mode = 'self' }) {
                                 <Badge variant={product.is_active ? 'success' : 'outline'}>
                                     {product.is_active ? 'Aktif' : 'Nonaktif'}
                                 </Badge>
-                                <Button type="button" size="sm" variant="outline" onClick={() => startEdit(product)}>
-                                    Edit
-                                </Button>
+                                <button
+                                    type="button"
+                                    onClick={() => openEditModal(product)}
+                                    title="Edit produk"
+                                    aria-label={`Edit produk ${product.name}`}
+                                    className="grid size-8 place-items-center rounded-lg border border-slate-200 text-slate-600 transition-colors hover:border-primary hover:bg-brand-50 hover:text-primary"
+                                >
+                                    <PencilIcon />
+                                </button>
                                 <Button type="button" size="sm" variant="outline" onClick={() => handleToggle(product)}>
                                     {product.is_active ? 'Nonaktifkan' : 'Aktifkan'}
                                 </Button>
@@ -353,6 +348,154 @@ export default function ProductManager({ business, mode = 'self' }) {
                     ))}
                 </CardContent>
             </Card>
+
+            {isModalOpen && (
+                <div
+                    className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm sm:p-6"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="product-modal-title"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget) {
+                            closeModal();
+                        }
+                    }}
+                >
+                    <div className="flex min-h-full items-center justify-center">
+                        <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+                            <div className="mb-5 flex items-center justify-between gap-3">
+                                <h2 id="product-modal-title" className="text-lg font-bold text-ink">
+                                    {editingId ? 'Edit Produk' : 'Tambah Produk'}
+                                </h2>
+                                <button
+                                    type="button"
+                                    onClick={closeModal}
+                                    aria-label="Tutup"
+                                    className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                                >
+                                    <HugeiconsIcon icon={Cancel01Icon} size={18} aria-hidden="true" />
+                                </button>
+                            </div>
+
+                            {formError && (
+                                <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
+                                    {formError}
+                                </div>
+                            )}
+
+                            <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
+                                <div className="flex flex-col">
+                                    <Label className="mb-1.5">Nama Produk</Label>
+                                    <Input
+                                        value={formData.name}
+                                        onChange={(event) => updateField('name', event.target.value)}
+                                        placeholder="Contoh: Keripik Singkong Original"
+                                    />
+                                </div>
+
+                                <div className="flex flex-col">
+                                    <Label className="mb-1.5">Kategori</Label>
+                                    <Input
+                                        value={formData.category}
+                                        onChange={(event) => updateField('category', event.target.value)}
+                                        placeholder="Contoh: Makanan Ringan"
+                                    />
+                                </div>
+
+                                <div className="flex flex-col">
+                                    <Label className="mb-1.5">Harga (opsional)</Label>
+                                    <div className="relative">
+                                        <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-sm text-muted-foreground">
+                                            Rp
+                                        </span>
+                                        <Input
+                                            type="text"
+                                            inputMode="numeric"
+                                            value={formData.price}
+                                            onChange={(event) => updateField('price', event.target.value.replace(/\D/g, ''))}
+                                            placeholder="15000"
+                                            className="pl-10"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col">
+                                    <Label className="mb-1.5">Satuan (opsional)</Label>
+                                    <Select
+                                        value={formData.unitChoice}
+                                        onChange={(event) => updateField('unitChoice', event.target.value)}
+                                    >
+                                        <option value="">Pilih satuan</option>
+                                        {UNIT_OPTIONS.map((unit) => (
+                                            <option key={unit} value={unit}>
+                                                {unit}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                    {formData.unitChoice === 'Lainnya' && (
+                                        <Input
+                                            value={formData.customUnit}
+                                            onChange={(event) => updateField('customUnit', event.target.value)}
+                                            placeholder="Tulis satuan sendiri"
+                                            className="mt-2"
+                                        />
+                                    )}
+                                </div>
+
+                                <div className="flex flex-col sm:col-span-2">
+                                    <Label className="mb-1.5">Deskripsi (opsional)</Label>
+                                    <Textarea
+                                        rows={2}
+                                        value={formData.description}
+                                        onChange={(event) => updateField('description', event.target.value)}
+                                        placeholder="Ceritakan sedikit tentang produk ini"
+                                    />
+                                </div>
+
+                                <div className="flex flex-col sm:col-span-2">
+                                    <Label className="mb-1.5">Foto (opsional)</Label>
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="flex items-center gap-4 rounded-xl border border-dashed border-border bg-white p-4 text-left transition-colors hover:border-primary/50"
+                                    >
+                                        {photoPreview ? (
+                                            <img
+                                                src={photoPreview}
+                                                alt="Pratinjau produk"
+                                                className="size-16 shrink-0 rounded-lg object-cover"
+                                            />
+                                        ) : (
+                                            <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-muted text-[10px] text-muted-foreground">
+                                                Belum ada
+                                            </div>
+                                        )}
+                                        <span className="text-sm font-medium text-primary">
+                                            {photoPreview ? 'Ganti foto' : 'Klik untuk pilih foto'}
+                                        </span>
+                                    </button>
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handlePhotoChange}
+                                        className="hidden"
+                                    />
+                                </div>
+
+                                <div className="flex justify-end gap-2 pt-1 sm:col-span-2">
+                                    <Button type="button" variant="outline" onClick={closeModal} disabled={isSubmitting}>
+                                        Batal
+                                    </Button>
+                                    <Button type="submit" disabled={isSubmitting}>
+                                        {isSubmitting ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Tambah Produk'}
+                                    </Button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 
