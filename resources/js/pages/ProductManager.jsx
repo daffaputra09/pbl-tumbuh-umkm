@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Cancel01Icon, PlusSignIcon, Search01Icon } from '@hugeicons/core-free-icons';
+import { PlusSignIcon, Search01Icon } from '@hugeicons/core-free-icons';
 import PageBackground from '@/components/umkm/PageBackground';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { EditIconButton } from '@/components/ui/edit-icon-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Modal } from '@/components/ui/modal';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api';
@@ -31,26 +33,6 @@ function formatRupiah(value) {
     }
 
     return `Rp${Number(value).toLocaleString('id-ID')}`;
-}
-
-// Ikon pensil yang sama dengan tombol edit di halaman Kategori Kendala.
-function PencilIcon() {
-    return (
-        <svg
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-        >
-            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-            <path d="m15 5 4 4" />
-        </svg>
-    );
 }
 
 /**
@@ -93,30 +75,6 @@ export default function ProductManager({ business, mode = 'self' }) {
         },
         [photoPreview],
     );
-
-    // Popup terbuka: halaman di belakangnya tidak ikut ter-scroll, dan
-    // tombol Escape menutup popup.
-    useEffect(() => {
-        if (!isModalOpen) {
-            return undefined;
-        }
-
-        const previousOverflow = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
-
-        function handleKeyDown(event) {
-            if (event.key === 'Escape') {
-                closeModal();
-            }
-        }
-
-        window.addEventListener('keydown', handleKeyDown);
-
-        return () => {
-            document.body.style.overflow = previousOverflow;
-            window.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [isModalOpen, isSubmitting]);
 
     async function loadProducts() {
         setIsLoading(true);
@@ -331,15 +289,10 @@ export default function ProductManager({ business, mode = 'self' }) {
                                 <Badge variant={product.is_active ? 'success' : 'outline'}>
                                     {product.is_active ? 'Aktif' : 'Nonaktif'}
                                 </Badge>
-                                <button
-                                    type="button"
+                                <EditIconButton
+                                    label={`Edit produk ${product.name}`}
                                     onClick={() => openEditModal(product)}
-                                    title="Edit produk"
-                                    aria-label={`Edit produk ${product.name}`}
-                                    className="grid size-8 place-items-center rounded-lg border border-slate-200 text-slate-600 transition-colors hover:border-primary hover:bg-brand-50 hover:text-primary"
-                                >
-                                    <PencilIcon />
-                                </button>
+                                />
                                 <Button type="button" size="sm" variant="outline" onClick={() => handleToggle(product)}>
                                     {product.is_active ? 'Nonaktifkan' : 'Aktifkan'}
                                 </Button>
@@ -349,153 +302,123 @@ export default function ProductManager({ business, mode = 'self' }) {
                 </CardContent>
             </Card>
 
-            {isModalOpen && (
-                <div
-                    className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm sm:p-6"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="product-modal-title"
-                    onMouseDown={(event) => {
-                        if (event.target === event.currentTarget) {
-                            closeModal();
-                        }
-                    }}
-                >
-                    <div className="flex min-h-full items-center justify-center">
-                        <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-                            <div className="mb-5 flex items-center justify-between gap-3">
-                                <h2 id="product-modal-title" className="text-lg font-bold text-ink">
-                                    {editingId ? 'Edit Produk' : 'Tambah Produk'}
-                                </h2>
-                                <button
-                                    type="button"
-                                    onClick={closeModal}
-                                    aria-label="Tutup"
-                                    className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                                >
-                                    <HugeiconsIcon icon={Cancel01Icon} size={18} aria-hidden="true" />
-                                </button>
-                            </div>
+            <Modal open={isModalOpen} title={editingId ? 'Edit Produk' : 'Tambah Produk'} onClose={closeModal}>
+                {formError && (
+                    <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
+                        {formError}
+                    </div>
+                )}
 
-                            {formError && (
-                                <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
-                                    {formError}
-                                </div>
-                            )}
+                <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
+                    <div className="flex flex-col">
+                        <Label className="mb-1.5">Nama Produk</Label>
+                        <Input
+                            value={formData.name}
+                            onChange={(event) => updateField('name', event.target.value)}
+                            placeholder="Contoh: Keripik Singkong Original"
+                        />
+                    </div>
 
-                            <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
-                                <div className="flex flex-col">
-                                    <Label className="mb-1.5">Nama Produk</Label>
-                                    <Input
-                                        value={formData.name}
-                                        onChange={(event) => updateField('name', event.target.value)}
-                                        placeholder="Contoh: Keripik Singkong Original"
-                                    />
-                                </div>
+                    <div className="flex flex-col">
+                        <Label className="mb-1.5">Kategori</Label>
+                        <Input
+                            value={formData.category}
+                            onChange={(event) => updateField('category', event.target.value)}
+                            placeholder="Contoh: Makanan Ringan"
+                        />
+                    </div>
 
-                                <div className="flex flex-col">
-                                    <Label className="mb-1.5">Kategori</Label>
-                                    <Input
-                                        value={formData.category}
-                                        onChange={(event) => updateField('category', event.target.value)}
-                                        placeholder="Contoh: Makanan Ringan"
-                                    />
-                                </div>
-
-                                <div className="flex flex-col">
-                                    <Label className="mb-1.5">Harga (opsional)</Label>
-                                    <div className="relative">
-                                        <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-sm text-muted-foreground">
-                                            Rp
-                                        </span>
-                                        <Input
-                                            type="text"
-                                            inputMode="numeric"
-                                            value={formData.price}
-                                            onChange={(event) => updateField('price', event.target.value.replace(/\D/g, ''))}
-                                            placeholder="15000"
-                                            className="pl-10"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col">
-                                    <Label className="mb-1.5">Satuan (opsional)</Label>
-                                    <Select
-                                        value={formData.unitChoice}
-                                        onChange={(event) => updateField('unitChoice', event.target.value)}
-                                    >
-                                        <option value="">Pilih satuan</option>
-                                        {UNIT_OPTIONS.map((unit) => (
-                                            <option key={unit} value={unit}>
-                                                {unit}
-                                            </option>
-                                        ))}
-                                    </Select>
-                                    {formData.unitChoice === 'Lainnya' && (
-                                        <Input
-                                            value={formData.customUnit}
-                                            onChange={(event) => updateField('customUnit', event.target.value)}
-                                            placeholder="Tulis satuan sendiri"
-                                            className="mt-2"
-                                        />
-                                    )}
-                                </div>
-
-                                <div className="flex flex-col sm:col-span-2">
-                                    <Label className="mb-1.5">Deskripsi (opsional)</Label>
-                                    <Textarea
-                                        rows={2}
-                                        value={formData.description}
-                                        onChange={(event) => updateField('description', event.target.value)}
-                                        placeholder="Ceritakan sedikit tentang produk ini"
-                                    />
-                                </div>
-
-                                <div className="flex flex-col sm:col-span-2">
-                                    <Label className="mb-1.5">Foto (opsional)</Label>
-                                    <button
-                                        type="button"
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="flex items-center gap-4 rounded-xl border border-dashed border-border bg-white p-4 text-left transition-colors hover:border-primary/50"
-                                    >
-                                        {photoPreview ? (
-                                            <img
-                                                src={photoPreview}
-                                                alt="Pratinjau produk"
-                                                className="size-16 shrink-0 rounded-lg object-cover"
-                                            />
-                                        ) : (
-                                            <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-muted text-[10px] text-muted-foreground">
-                                                Belum ada
-                                            </div>
-                                        )}
-                                        <span className="text-sm font-medium text-primary">
-                                            {photoPreview ? 'Ganti foto' : 'Klik untuk pilih foto'}
-                                        </span>
-                                    </button>
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handlePhotoChange}
-                                        className="hidden"
-                                    />
-                                </div>
-
-                                <div className="flex justify-end gap-2 pt-1 sm:col-span-2">
-                                    <Button type="button" variant="outline" onClick={closeModal} disabled={isSubmitting}>
-                                        Batal
-                                    </Button>
-                                    <Button type="submit" disabled={isSubmitting}>
-                                        {isSubmitting ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Tambah Produk'}
-                                    </Button>
-                                </div>
-                            </form>
+                    <div className="flex flex-col">
+                        <Label className="mb-1.5">Harga (opsional)</Label>
+                        <div className="relative">
+                            <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-sm text-muted-foreground">
+                                Rp
+                            </span>
+                            <Input
+                                type="text"
+                                inputMode="numeric"
+                                value={formData.price}
+                                onChange={(event) => updateField('price', event.target.value.replace(/\D/g, ''))}
+                                placeholder="15000"
+                                className="pl-10"
+                            />
                         </div>
                     </div>
-                </div>
-            )}
+
+                    <div className="flex flex-col">
+                        <Label className="mb-1.5">Satuan (opsional)</Label>
+                        <Select
+                            value={formData.unitChoice}
+                            onChange={(event) => updateField('unitChoice', event.target.value)}
+                        >
+                            <option value="">Pilih satuan</option>
+                            {UNIT_OPTIONS.map((unit) => (
+                                <option key={unit} value={unit}>
+                                    {unit}
+                                </option>
+                            ))}
+                        </Select>
+                        {formData.unitChoice === 'Lainnya' && (
+                            <Input
+                                value={formData.customUnit}
+                                onChange={(event) => updateField('customUnit', event.target.value)}
+                                placeholder="Tulis satuan sendiri"
+                                className="mt-2"
+                            />
+                        )}
+                    </div>
+
+                    <div className="flex flex-col sm:col-span-2">
+                        <Label className="mb-1.5">Deskripsi (opsional)</Label>
+                        <Textarea
+                            rows={2}
+                            value={formData.description}
+                            onChange={(event) => updateField('description', event.target.value)}
+                            placeholder="Ceritakan sedikit tentang produk ini"
+                        />
+                    </div>
+
+                    <div className="flex flex-col sm:col-span-2">
+                        <Label className="mb-1.5">Foto (opsional)</Label>
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="flex items-center gap-4 rounded-xl border border-dashed border-border bg-white p-4 text-left transition-colors hover:border-primary/50"
+                        >
+                            {photoPreview ? (
+                                <img
+                                    src={photoPreview}
+                                    alt="Pratinjau produk"
+                                    className="size-16 shrink-0 rounded-lg object-cover"
+                                />
+                            ) : (
+                                <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-muted text-[10px] text-muted-foreground">
+                                    Belum ada
+                                </div>
+                            )}
+                            <span className="text-sm font-medium text-primary">
+                                {photoPreview ? 'Ganti foto' : 'Klik untuk pilih foto'}
+                            </span>
+                        </button>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePhotoChange}
+                            className="hidden"
+                        />
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-1 sm:col-span-2">
+                        <Button type="button" variant="outline" onClick={closeModal} disabled={isSubmitting}>
+                            Batal
+                        </Button>
+                        <Button type="submit" disabled={isSubmitting}>
+                            {isSubmitting ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Tambah Produk'}
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 

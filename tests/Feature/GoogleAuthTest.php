@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Models\Business;
 use App\Models\SocialAccount;
-use App\Models\Umkm;
 use App\Models\User;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Request as PsrRequest;
@@ -106,7 +105,7 @@ class GoogleAuthTest extends TestCase
             ->assertRedirect(route('umkm.profil'));
 
         $this->assertSame(0, Business::query()->count());
-        $this->assertSame(0, Umkm::query()->count());
+        $this->assertSame(0, Business::query()->count());
     }
 
     public function test_google_callback_opens_the_dashboard_when_the_business_profile_exists(): void

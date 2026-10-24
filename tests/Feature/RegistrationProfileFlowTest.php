@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Business;
 use App\Models\BusinessType;
-use App\Models\Umkm;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -29,7 +28,7 @@ class RegistrationProfileFlowTest extends TestCase
         $this->assertNotNull($user);
         $this->assertAuthenticatedAs($user);
         $this->assertSame(User::ROLE_BUSINESS_OWNER, $user->role);
-        $this->assertSame(0, Umkm::query()->count());
+        $this->assertSame(0, Business::query()->count());
         $this->assertDatabaseHas('businesses', [
             'user_id' => $user->id,
             'created_by' => $user->id,
