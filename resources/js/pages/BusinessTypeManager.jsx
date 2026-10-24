@@ -1,22 +1,26 @@
 import { useEffect, useState } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Store04Icon } from '@hugeicons/core-free-icons';
+import { PlusSignIcon, Search01Icon } from '@hugeicons/core-free-icons';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { EditIconButton } from '@/components/ui/edit-icon-button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Modal } from '@/components/ui/modal';
 import { apiFetch } from '@/lib/api';
-import { cn } from '@/lib/utils';
 
 export default function BusinessTypeManager() {
     const [types, setTypes] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
+    const [query, setQuery] = useState('');
 
-    const [newName, setNewName] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingId, setEditingId] = useState(null);
-    const [editingName, setEditingName] = useState('');
+    const [name, setName] = useState('');
+    const [formError, setFormError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         loadTypes();
@@ -36,56 +40,64 @@ export default function BusinessTypeManager() {
         }
     }
 
-    async function handleAdd(event) {
+    function openCreateModal() {
+        setEditingId(null);
+        setName('');
+        setFormError('');
+        setIsModalOpen(true);
+    }
+
+    function openEditModal(type) {
+        setEditingId(type.id);
+        setName(type.name);
+        setFormError('');
+        setIsModalOpen(true);
+    }
+
+    function closeModal() {
+        if (isSubmitting) {
+            return;
+        }
+
+        setIsModalOpen(false);
+        setEditingId(null);
+        setName('');
+        setFormError('');
+    }
+
+    async function handleSubmit(event) {
         event.preventDefault();
 
-        if (!newName.trim()) {
+        if (!name.trim()) {
+            setFormError('Nama jenis usaha wajib diisi.');
             return;
         }
 
         setIsSubmitting(true);
-        setErrorMessage('');
+        setFormError('');
 
         try {
-            const created = await apiFetch('/api/business-types', {
-                method: 'POST',
-                body: JSON.stringify({ name: newName.trim() }),
-            });
-            setTypes((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
-            setNewName('');
-        } catch (error) {
-            setErrorMessage(error.message);
-        } finally {
+            if (editingId) {
+                const updated = await apiFetch(`/api/business-types/${editingId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ name: name.trim() }),
+                });
+                setTypes((prev) => prev.map((type) => (type.id === editingId ? updated : type)));
+            } else {
+                const created = await apiFetch('/api/business-types', {
+                    method: 'POST',
+                    body: JSON.stringify({ name: name.trim() }),
+                });
+                setTypes((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
+            }
+
             setIsSubmitting(false);
-        }
-    }
-
-    function startEdit(type) {
-        setEditingId(type.id);
-        setEditingName(type.name);
-    }
-
-    function cancelEdit() {
-        setEditingId(null);
-        setEditingName('');
-    }
-
-    async function handleSaveEdit(id) {
-        if (!editingName.trim()) {
-            return;
-        }
-
-        setErrorMessage('');
-
-        try {
-            const updated = await apiFetch(`/api/business-types/${id}`, {
-                method: 'PUT',
-                body: JSON.stringify({ name: editingName.trim() }),
-            });
-            setTypes((prev) => prev.map((type) => (type.id === id ? updated : type)));
-            cancelEdit();
+            setIsModalOpen(false);
+            setEditingId(null);
+            setName('');
         } catch (error) {
-            setErrorMessage(error.message);
+            setFormError(error.message);
+            setIsSubmitting(false);
         }
     }
 
@@ -100,110 +112,125 @@ export default function BusinessTypeManager() {
         }
     }
 
-    return (
-        <div className="min-h-screen bg-background py-10 sm:py-14">
-            <div className="mx-auto max-w-2xl px-5">
-                <header className="mb-8">
-                    <p className="text-sm font-semibold text-primary">Panel Petugas</p>
-                    <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">Kelola Jenis Usaha</h1>
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                        Daftar jenis usaha yang muncul di dropdown kategori produk pada form Profil UMKM.
-                    </p>
-                </header>
+    const keyword = query.trim().toLowerCase();
+    const visibleTypes = keyword
+        ? types.filter((type) => `${type.name} ${type.slug}`.toLowerCase().includes(keyword))
+        : types;
 
-                {errorMessage && (
-                    <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
-                        {errorMessage}
+    return (
+        <div className="mx-auto max-w-3xl">
+            <header className="mb-8">
+                <p className="text-sm font-semibold text-primary">Panel Petugas</p>
+                <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">Kelola Jenis Usaha</h1>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    Daftar jenis usaha yang muncul di dropdown pada form Profil UMKM.
+                </p>
+            </header>
+
+            {errorMessage && (
+                <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
+                    {errorMessage}
+                </div>
+            )}
+
+            <Card>
+                <CardHeader className="gap-3">
+                    <div className="flex items-center justify-between gap-3">
+                        <CardTitle className="text-base">Daftar Jenis Usaha</CardTitle>
+                        <Button type="button" size="sm" onClick={openCreateModal}>
+                            <HugeiconsIcon icon={PlusSignIcon} size={16} aria-hidden="true" />
+                            Tambah Jenis Usaha
+                        </Button>
+                    </div>
+
+                    <div className="relative">
+                        <HugeiconsIcon
+                            icon={Search01Icon}
+                            size={16}
+                            className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-muted-foreground"
+                            aria-hidden="true"
+                        />
+                        <Input
+                            type="search"
+                            value={query}
+                            onChange={(event) => setQuery(event.target.value)}
+                            placeholder="Cari jenis usaha"
+                            className="pl-10"
+                            aria-label="Cari jenis usaha"
+                        />
+                    </div>
+                </CardHeader>
+
+                <CardContent className="flex flex-col gap-2">
+                    {isLoading && <p className="text-sm text-muted-foreground">Memuat data...</p>}
+
+                    {!isLoading && types.length === 0 && (
+                        <p className="text-sm text-muted-foreground">
+                            Belum ada jenis usaha. Klik tombol Tambah Jenis Usaha untuk mulai.
+                        </p>
+                    )}
+
+                    {!isLoading && types.length > 0 && visibleTypes.length === 0 && (
+                        <p className="text-sm text-muted-foreground">Tidak ada jenis usaha yang cocok dengan pencarianmu.</p>
+                    )}
+
+                    {visibleTypes.map((type) => (
+                        <div
+                            key={type.id}
+                            className="flex items-center justify-between gap-3 rounded-xl border border-border bg-white px-4 py-3"
+                        >
+                            <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold text-ink">{type.name}</p>
+                                <p className="truncate text-xs text-muted-foreground">{type.slug}</p>
+                            </div>
+
+                            <div className="flex shrink-0 items-center gap-2">
+                                <Badge variant={type.is_active ? 'success' : 'outline'}>
+                                    {type.is_active ? 'Aktif' : 'Nonaktif'}
+                                </Badge>
+                                <EditIconButton label={`Edit ${type.name}`} onClick={() => openEditModal(type)} />
+                                <Button type="button" size="sm" variant="outline" onClick={() => handleToggle(type.id)}>
+                                    {type.is_active ? 'Nonaktifkan' : 'Aktifkan'}
+                                </Button>
+                            </div>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+
+            <Modal
+                open={isModalOpen}
+                title={editingId ? 'Edit Jenis Usaha' : 'Tambah Jenis Usaha'}
+                onClose={closeModal}
+            >
+                {formError && (
+                    <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
+                        {formError}
                     </div>
                 )}
 
-                <Card className="mb-6">
-                    <CardHeader className="flex-row items-center gap-3 space-y-0">
-                        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-primary">
-                            <HugeiconsIcon icon={Store04Icon} size={20} strokeWidth={1.8} aria-hidden="true" />
-                        </span>
-                        <CardTitle>Tambah Jenis Usaha</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={handleAdd} className="flex flex-col gap-3 sm:flex-row">
-                            <Input
-                                value={newName}
-                                onChange={(event) => setNewName(event.target.value)}
-                                placeholder="Contoh: Perikanan"
-                                className="flex-1"
-                            />
-                            <Button type="submit" disabled={isSubmitting}>
-                                {isSubmitting ? 'Menyimpan...' : 'Tambah'}
-                            </Button>
-                        </form>
-                    </CardContent>
-                </Card>
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                    <div className="flex flex-col">
+                        <Label className="mb-1.5">Nama Jenis Usaha</Label>
+                        <Input
+                            value={name}
+                            onChange={(event) => setName(event.target.value)}
+                            placeholder="Contoh: Perikanan"
+                            autoFocus
+                        />
+                        <p className="mt-1.5 text-xs text-muted-foreground">Kode (slug) dibuat otomatis dari nama.</p>
+                    </div>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-base">Daftar Jenis Usaha</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex flex-col gap-2">
-                        {isLoading && <p className="text-sm text-muted-foreground">Memuat data...</p>}
-
-                        {!isLoading && types.length === 0 && (
-                            <p className="text-sm text-muted-foreground">Belum ada jenis usaha, tambahkan lewat form di atas.</p>
-                        )}
-
-                        {types.map((type) => (
-                            <div
-                                key={type.id}
-                                className="flex items-center justify-between gap-3 rounded-xl border border-border bg-white px-4 py-3"
-                            >
-                                {editingId === type.id ? (
-                                    <Input
-                                        value={editingName}
-                                        onChange={(event) => setEditingName(event.target.value)}
-                                        className="h-9 flex-1"
-                                        autoFocus
-                                    />
-                                ) : (
-                                    <div>
-                                        <p className="text-sm font-semibold text-ink">{type.name}</p>
-                                        <p className="text-xs text-muted-foreground">{type.slug}</p>
-                                    </div>
-                                )}
-
-                                <div className="flex shrink-0 items-center gap-2">
-                                    <span
-                                        className={cn(
-                                            'rounded-full px-2.5 py-0.5 text-[11px] font-semibold',
-                                            type.is_active ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground',
-                                        )}
-                                    >
-                                        {type.is_active ? 'Aktif' : 'Nonaktif'}
-                                    </span>
-
-                                    {editingId === type.id ? (
-                                        <>
-                                            <Button type="button" size="sm" onClick={() => handleSaveEdit(type.id)}>
-                                                Simpan
-                                            </Button>
-                                            <Button type="button" size="sm" variant="outline" onClick={cancelEdit}>
-                                                Batal
-                                            </Button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Button type="button" size="sm" variant="outline" onClick={() => startEdit(type)}>
-                                                Edit
-                                            </Button>
-                                            <Button type="button" size="sm" variant="outline" onClick={() => handleToggle(type.id)}>
-                                                {type.is_active ? 'Nonaktifkan' : 'Aktifkan'}
-                                            </Button>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
-            </div>
+                    <div className="flex justify-end gap-2 pt-1">
+                        <Button type="button" variant="outline" onClick={closeModal} disabled={isSubmitting}>
+                            Batal
+                        </Button>
+                        <Button type="submit" disabled={isSubmitting}>
+                            {isSubmitting ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Tambah'}
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 }
