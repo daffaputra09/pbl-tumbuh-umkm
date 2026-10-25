@@ -19,7 +19,7 @@ test('TC_DASH_001 dashboard pemilik menampilkan status verifikasi', async ({ pag
     await expect(page.getByText('Keripik Bu Sari')).toBeVisible();
 });
 
-test('TC_PROD_001 pemilik menambah produk lalu menonaktifkannya', async ({ page }) => {
+test('TC_PROD_001 dan TC_PROD_003 pemilik menambah produk lalu menonaktifkannya', async ({ page }) => {
     const name = `Keripik Uji ${Date.now()}`;
 
     await login(page, accounts.owner);
@@ -39,7 +39,7 @@ test('TC_PROD_001 pemilik menambah produk lalu menonaktifkannya', async ({ page 
     await expect(row.getByText('Nonaktif')).toBeVisible();
 });
 
-test('TC_BIZ_003 pemilik menyimpan perubahan profil usaha', async ({ page }) => {
+test('TC_BIZ_004 pemilik menyimpan perubahan profil usaha', async ({ page }) => {
     await login(page, accounts.owner);
     await page.goto('/umkm/profil');
 
@@ -50,7 +50,7 @@ test('TC_BIZ_003 pemilik menyimpan perubahan profil usaha', async ({ page }) => 
     await expect(page.getByText('Keripik Bu Sari')).toBeVisible();
 });
 
-test('TC_PROD_003 pemilik mengubah nama produk', async ({ page }) => {
+test('TC_PROD_002 pemilik mengubah nama produk', async ({ page }) => {
     const name = `Keripik Edit ${Date.now()}`;
     const renamed = `${name} Asin`;
 
@@ -70,7 +70,7 @@ test('TC_PROD_003 pemilik mengubah nama produk', async ({ page }) => {
     await expect(page.getByText(renamed, { exact: true })).toBeVisible();
 });
 
-test('TC_PROD_002 produk tanpa nama tidak tersimpan', async ({ page }) => {
+test('TC_PROD_004 produk tanpa nama tidak tersimpan', async ({ page }) => {
     await login(page, accounts.owner);
     await page.goto('/umkm/produk');
 

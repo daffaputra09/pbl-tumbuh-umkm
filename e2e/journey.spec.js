@@ -52,7 +52,7 @@ test.describe.serial('jalur kuesioner sampai pembinaan', () => {
         await expect(page.getByText('Modal').first()).toBeVisible();
     });
 
-    test('TC_REC_002 pemilik mendaftarkan minat', async ({ page }) => {
+    test('TC_REC_009 pemilik mendaftarkan minat', async ({ page }) => {
         await login(page, accounts.owner);
         await page.goto('/umkm/rekomendasi');
 
