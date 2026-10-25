@@ -28,7 +28,7 @@ class RegistrationProfileFlowTest extends TestCase
         $this->assertNotNull($user);
         $this->assertAuthenticatedAs($user);
         $this->assertSame(User::ROLE_BUSINESS_OWNER, $user->role);
-        $this->assertSame(0, Business::query()->count());
+        $this->assertSame(1, Business::query()->count());
         $this->assertDatabaseHas('businesses', [
             'user_id' => $user->id,
             'created_by' => $user->id,

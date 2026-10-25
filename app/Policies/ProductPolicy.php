@@ -24,17 +24,16 @@ class ProductPolicy
 
     public function update(User $user, Product $product, ?Business $business = null): bool
     {
-        if ($business !== null && ! $this->belongsToBusiness($product, $business)) {
+        // products.business_id menunjuk ke businesses.id (bukan user_id), jadi
+        // usaha pemilik produk dicari lewat relasi itu. UMKM yang didata petugas
+        // tidak punya user_id, tapi tetap punya id, jadi tetap bisa diproses.
+        $business ??= $product->business;
+
+        if ($business === null || (int) $product->business_id !== (int) $business->id) {
             return false;
         }
 
-        if ($user->hasRole(User::ROLE_OFFICER)) {
-            return true;
-        }
-
-        return $user->hasRole(User::ROLE_BUSINESS_OWNER)
-            && $product->business_id !== null
-            && (int) $product->business_id === $user->id;
+        return $this->manages($user, $business);
     }
 
     private function manages(User $user, Business $business): bool
@@ -46,14 +45,5 @@ class ProductPolicy
         return $user->hasRole(User::ROLE_BUSINESS_OWNER)
             && $business->user_id !== null
             && (int) $business->user_id === $user->id;
-    }
-
-    private function belongsToBusiness(Product $product, Business $business): bool
-    {
-        if ($product->business_id === null || $business->user_id === null) {
-            return false;
-        }
-
-        return (int) $product->business_id === (int) $business->user_id;
     }
 }

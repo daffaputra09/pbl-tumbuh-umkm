@@ -47,7 +47,7 @@ class Assessment extends Model
 
     public function business(): BelongsTo
     {
-        return $this->belongsTo(Business::class, 'business_id', 'user_id');
+        return $this->belongsTo(Business::class);
     }
 
     public function filledBy(): BelongsTo
