@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EditIconButton } from '@/components/ui/edit-icon-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Modal } from '@/components/ui/modal';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api';
@@ -302,132 +301,220 @@ export default function ProductManager({ business, mode = 'self' }) {
                 </CardContent>
             </Card>
 
-            <Modal open={isModalOpen} title={editingId ? 'Edit Produk' : 'Tambah Produk'} onClose={closeModal}>
-                {formError && (
-                    <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
-                        {formError}
-                    </div>
-                )}
+            {isModalOpen && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm sm:p-6"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="product-modal-title"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget && !isSubmitting) {
+                            closeModal();
+                        }
+                    }}
+                >
+                    <div className="my-auto flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+                        {/* Header popup */}
+                        <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-5">
+                            <div>
+                                <h2
+                                    id="product-modal-title"
+                                    className="text-lg font-bold text-ink"
+                                >
+                                    {editingId ? 'Edit Produk' : 'Tambah Produk'}
+                                </h2>
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    {editingId
+                                        ? 'Perbarui informasi produk UMKM.'
+                                        : 'Lengkapi informasi produk UMKM yang ingin ditampilkan.'}
+                                </p>
+                            </div>
 
-                <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
-                    <div className="flex flex-col">
-                        <Label className="mb-1.5">Nama Produk</Label>
-                        <Input
-                            value={formData.name}
-                            onChange={(event) => updateField('name', event.target.value)}
-                            placeholder="Contoh: Keripik Singkong Original"
-                        />
-                    </div>
-
-                    <div className="flex flex-col">
-                        <Label className="mb-1.5">Kategori</Label>
-                        <Input
-                            value={formData.category}
-                            onChange={(event) => updateField('category', event.target.value)}
-                            placeholder="Contoh: Makanan Ringan"
-                        />
-                    </div>
-
-                    <div className="flex flex-col">
-                        <Label className="mb-1.5">Harga (opsional)</Label>
-                        <div className="relative">
-                            <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-sm text-muted-foreground">
-                                Rp
-                            </span>
-                            <Input
-                                type="text"
-                                inputMode="numeric"
-                                value={formData.price}
-                                onChange={(event) => updateField('price', event.target.value.replace(/\D/g, ''))}
-                                placeholder="15000"
-                                className="pl-10"
-                            />
+                            <button
+                                type="button"
+                                onClick={closeModal}
+                                disabled={isSubmitting}
+                                aria-label="Tutup popup"
+                                className="grid size-9 shrink-0 place-items-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <span aria-hidden="true" className="text-2xl leading-none">
+                                    &times;
+                                </span>
+                            </button>
                         </div>
-                    </div>
 
-                    <div className="flex flex-col">
-                        <Label className="mb-1.5">Satuan (opsional)</Label>
-                        <Select
-                            value={formData.unitChoice}
-                            onChange={(event) => updateField('unitChoice', event.target.value)}
+                        {/* Isi formulir */}
+                        <form
+                            onSubmit={handleSubmit}
+                            className="flex min-h-0 flex-col overflow-y-auto"
                         >
-                            <option value="">Pilih satuan</option>
-                            {UNIT_OPTIONS.map((unit) => (
-                                <option key={unit} value={unit}>
-                                    {unit}
-                                </option>
-                            ))}
-                        </Select>
-                        {formData.unitChoice === 'Lainnya' && (
-                            <Input
-                                value={formData.customUnit}
-                                onChange={(event) => updateField('customUnit', event.target.value)}
-                                placeholder="Tulis satuan sendiri"
-                                className="mt-2"
-                            />
-                        )}
-                    </div>
+                            <div className="grid gap-x-5 gap-y-5 p-6 sm:grid-cols-2">
+                                {formError && (
+                                    <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive sm:col-span-2">
+                                        {formError}
+                                    </div>
+                                )}
 
-                    <div className="flex flex-col sm:col-span-2">
-                        <Label className="mb-1.5">Deskripsi (opsional)</Label>
-                        <Textarea
-                            rows={2}
-                            value={formData.description}
-                            onChange={(event) => updateField('description', event.target.value)}
-                            placeholder="Ceritakan sedikit tentang produk ini"
-                        />
-                    </div>
-
-                    <div className="flex flex-col sm:col-span-2">
-                        <Label className="mb-1.5">Foto (opsional)</Label>
-                        <button
-                            type="button"
-                            onClick={() => fileInputRef.current?.click()}
-                            className="flex items-center gap-4 rounded-xl border border-dashed border-border bg-white p-4 text-left transition-colors hover:border-primary/50"
-                        >
-                            {photoPreview ? (
-                                <img
-                                    src={photoPreview}
-                                    alt="Pratinjau produk"
-                                    className="size-16 shrink-0 rounded-lg object-cover"
-                                />
-                            ) : (
-                                <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-muted text-[10px] text-muted-foreground">
-                                    Belum ada
+                                <div className="flex flex-col gap-2">
+                                    <Label className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                        Nama Produk
+                                    </Label>
+                                    <Input
+                                        value={formData.name}
+                                        onChange={(event) => updateField('name', event.target.value)}
+                                        placeholder="Contoh: Keripik Singkong Original"
+                                    />
                                 </div>
-                            )}
-                            <span className="text-sm font-medium text-primary">
-                                {photoPreview ? 'Ganti foto' : 'Klik untuk pilih foto'}
-                            </span>
-                        </button>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={handlePhotoChange}
-                            className="hidden"
-                        />
-                    </div>
 
-                    <div className="flex justify-end gap-2 pt-1 sm:col-span-2">
-                        <Button type="button" variant="outline" onClick={closeModal} disabled={isSubmitting}>
-                            Batal
-                        </Button>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Tambah Produk'}
-                        </Button>
+                                <div className="flex flex-col gap-2">
+                                    <Label className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                        Kategori
+                                    </Label>
+                                    <Input
+                                        value={formData.category}
+                                        onChange={(event) => updateField('category', event.target.value)}
+                                        placeholder="Contoh: Makanan Ringan"
+                                    />
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <Label className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                        Harga (Opsional)
+                                    </Label>
+                                    <div className="relative">
+                                        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                                            Rp
+                                        </span>
+                                        <Input
+                                            type="text"
+                                            inputMode="numeric"
+                                            value={formData.price}
+                                            onChange={(event) =>
+                                                updateField('price', event.target.value.replace(/\D/g, ''))
+                                            }
+                                            placeholder="15000"
+                                            className="pl-10"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <Label className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                        Satuan (Opsional)
+                                    </Label>
+                                    <Select
+                                        value={formData.unitChoice}
+                                        onChange={(event) => updateField('unitChoice', event.target.value)}
+                                    >
+                                        <option value="">Pilih satuan</option>
+                                        {UNIT_OPTIONS.map((unit) => (
+                                            <option key={unit} value={unit}>
+                                                {unit}
+                                            </option>
+                                        ))}
+                                    </Select>
+
+                                    {formData.unitChoice === 'Lainnya' && (
+                                        <Input
+                                            value={formData.customUnit}
+                                            onChange={(event) => updateField('customUnit', event.target.value)}
+                                            placeholder="Tulis satuan sendiri"
+                                        />
+                                    )}
+                                </div>
+
+                                <div className="flex flex-col gap-2 sm:col-span-2">
+                                    <Label className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                        Deskripsi (Opsional)
+                                    </Label>
+                                    <Textarea
+                                        rows={3}
+                                        value={formData.description}
+                                        onChange={(event) => updateField('description', event.target.value)}
+                                        placeholder="Ceritakan sedikit tentang produk ini"
+                                    />
+                                </div>
+
+                                <div className="flex flex-col gap-2 sm:col-span-2">
+                                    <Label className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                        Foto Produk (Opsional)
+                                    </Label>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="flex items-center gap-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-left transition-colors hover:border-primary/50 hover:bg-slate-100"
+                                    >
+                                        {photoPreview ? (
+                                            <img
+                                                src={photoPreview}
+                                                alt="Pratinjau produk"
+                                                className="size-16 shrink-0 rounded-lg object-cover"
+                                            />
+                                        ) : (
+                                            <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-white text-xs text-muted-foreground">
+                                                Tanpa foto
+                                            </div>
+                                        )}
+
+                                        <div>
+                                            <p className="text-sm font-semibold text-slate-700">
+                                                {photoPreview ? 'Ganti foto produk' : 'Pilih foto produk'}
+                                            </p>
+                                            <p className="mt-1 text-xs text-muted-foreground">
+                                                Klik di sini untuk memilih gambar.
+                                            </p>
+                                        </div>
+                                    </button>
+
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handlePhotoChange}
+                                        className="hidden"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Footer popup */}
+                            <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50/70 px-6 py-4 sm:flex-row sm:justify-end">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={closeModal}
+                                    disabled={isSubmitting}
+                                    className="sm:min-w-28"
+                                >
+                                    Batal
+                                </Button>
+
+                                <Button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="sm:min-w-36"
+                                >
+                                    {isSubmitting
+                                        ? 'Menyimpan...'
+                                        : editingId
+                                          ? 'Simpan Perubahan'
+                                          : 'Tambah Produk'}
+                                </Button>
+                            </div>
+                        </form>
                     </div>
-                </form>
-            </Modal>
+                </div>
+            )}
+
         </div>
     );
 
     if (isOfficerMode) {
-        return <div className="relative isolate overflow-hidden">{content}</div>;
+    return <div className="relative">{content}</div>;
     }
 
     return (
-        <div className="relative isolate overflow-hidden">
+        <div className="relative">
             <PageBackground />
             {content}
         </div>
