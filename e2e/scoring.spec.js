@@ -138,7 +138,7 @@ test.describe('pencocokan program dengan level kendala', () => {
     }
 
     const recommended = (assessmentId, programId) =>
-        sql(`select id from program_recommendations where assessment_id = ${assessmentId} and assistance_program_id = ${programId} and is_active = 1`).length;
+        sql(`select id from program_recommendations where assessment_id = ${assessmentId} and assistance_program_id = ${programId} and is_active is true`).length;
 
     test('TC_REC_001, TC_REC_002, TC_REC_003 program cocok bila level memenuhi tingkat minimum', async ({ page, browser }) => {
         await login(page, accounts.officer);

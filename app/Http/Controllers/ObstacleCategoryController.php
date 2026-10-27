@@ -31,9 +31,11 @@ class ObstacleCategoryController extends Controller
             'slug' => ['required', 'string', 'max:255', Rule::unique('obstacle_categories', 'slug')],
             'description' => ['nullable', 'string'],
             'moderate_threshold' => ['required', 'numeric', 'min:0', 'max:100'],
-            'high_threshold' => ['required', 'numeric', 'min:0', 'max:100', 'gte:moderate_threshold'],
+            'high_threshold' => ['required', 'numeric', 'min:0', 'max:100', 'gt:moderate_threshold'],
             'sort_order' => ['required', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
+        ], [
+            'high_threshold.gt' => 'Ambang tinggi harus lebih besar daripada ambang sedang.',
         ]);
 
         $validated['slug'] = Str::slug($validated['slug']);
@@ -53,9 +55,11 @@ class ObstacleCategoryController extends Controller
             'slug' => ['required', 'string', 'max:255', Rule::unique('obstacle_categories', 'slug')->ignore($obstacleCategory->id)],
             'description' => ['nullable', 'string'],
             'moderate_threshold' => ['required', 'numeric', 'min:0', 'max:100'],
-            'high_threshold' => ['required', 'numeric', 'min:0', 'max:100', 'gte:moderate_threshold'],
+            'high_threshold' => ['required', 'numeric', 'min:0', 'max:100', 'gt:moderate_threshold'],
             'sort_order' => ['required', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
+        ], [
+            'high_threshold.gt' => 'Ambang tinggi harus lebih besar daripada ambang sedang.',
         ]);
 
         $validated['slug'] = Str::slug($validated['slug']);

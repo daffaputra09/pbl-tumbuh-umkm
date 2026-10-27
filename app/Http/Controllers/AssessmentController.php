@@ -13,6 +13,7 @@ use App\Services\ProgramRecommendationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class AssessmentController extends Controller
@@ -66,6 +67,8 @@ class AssessmentController extends Controller
             'otherObstacle' => ['nullable', 'string'],
         ]);
 
+        $this->ensureAnsweredCategoriesAreComplete($validated['answers']);
+
         $assessment = DB::transaction(function () use ($business, $validated, $request, $scoring, $recommendations) {
             Assessment::where('business_id', $business->id)->update(['is_current' => false]);
 
@@ -98,6 +101,37 @@ class AssessmentController extends Controller
         });
 
         return response()->json($assessment, 201);
+    }
+
+    /**
+     * Bidang yang dijawab harus lengkap. Bidang yang tidak dijawab sama sekali
+     * dianggap tidak ada kendala, jadi hanya bidang yang sebagian terjawab yang ditolak.
+     *
+     * @param  list<array{questionId: int, optionId: int}>  $answers
+     */
+    private function ensureAnsweredCategoriesAreComplete(array $answers): void
+    {
+        $answeredIds = collect($answers)->pluck('questionId')->map(fn ($id) => (int) $id)->unique();
+
+        $categoryIds = AssessmentQuestion::query()
+            ->whereIn('id', $answeredIds)
+            ->pluck('obstacle_category_id')
+            ->unique();
+
+        $missing = AssessmentQuestion::query()
+            ->where('is_active', true)
+            ->whereIn('obstacle_category_id', $categoryIds)
+            ->whereNotIn('id', $answeredIds)
+            ->with('obstacleCategory:id,name')
+            ->get();
+
+        if ($missing->isNotEmpty()) {
+            $areas = $missing->pluck('obstacleCategory.name')->unique()->join(', ');
+
+            throw ValidationException::withMessages([
+                'answers' => "Masih ada soal yang belum dijawab pada bidang: {$areas}.",
+            ]);
+        }
     }
 
     private function ownBusiness(Request $request): Business

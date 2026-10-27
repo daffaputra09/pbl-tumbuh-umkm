@@ -13,7 +13,13 @@ export function fx(command, args = {}) {
         encoding: 'utf8',
     });
 
-    return JSON.parse(output.trim().split('\n').pop());
+    const lastLine = output.trim().split('\n').pop();
+
+    try {
+        return JSON.parse(lastLine);
+    } catch {
+        throw new Error(`Keluaran fixture '${command}' bukan JSON:\n${output.slice(-1500)}`);
+    }
 }
 
 /** Query SELECT langsung ke basis data uji. */

@@ -116,16 +116,16 @@ test.describe('kuesioner dan rekomendasi', () => {
         const first = await api(page, 'POST', '/umkm/kebutuhan', { data: { answers: owner.answersHigh } });
         expect(first.status()).toBe(201);
         const firstId = (await first.json()).id;
-        expect(sql(`select id from program_recommendations where assessment_id = ${firstId} and is_active = 1`).length).toBeGreaterThan(0);
+        expect(sql(`select id from program_recommendations where assessment_id = ${firstId} and is_active is true`).length).toBeGreaterThan(0);
 
         const second = await api(page, 'POST', '/umkm/kebutuhan', { data: { answers: owner.answersLow } });
         expect(second.status()).toBe(201);
         const secondId = (await second.json()).id;
 
-        const current = sql(`select id from assessments where business_id = ${owner.businessId} and is_current = 1`);
+        const current = sql(`select id from assessments where business_id = ${owner.businessId} and is_current is true`);
         expect(current).toHaveLength(1);
         expect(current[0].id).toBe(secondId);
-        expect(sql(`select id from program_recommendations where assessment_id = ${firstId} and is_active = 1`)).toHaveLength(0);
+        expect(sql(`select id from program_recommendations where assessment_id = ${firstId} and is_active is true`)).toHaveLength(0);
     });
 
     test('TC_REC_010 dan TC_REC_011 daftar minat tidak ganda dan tidak bisa pada rekomendasi usaha lain', async ({ page }) => {
@@ -136,7 +136,7 @@ test.describe('kuesioner dan rekomendasi', () => {
         await login(page, first.email);
         const submitted = await api(page, 'POST', '/umkm/kebutuhan', { data: { answers: first.answersHigh } });
         expect(submitted.status()).toBe(201);
-        const [recommendation] = sql(`select id from program_recommendations where business_id = ${first.businessId} and is_active = 1 order by id limit 1`);
+        const [recommendation] = sql(`select id from program_recommendations where business_id = ${first.businessId} and is_active is true order by id limit 1`);
 
         await api(page, 'POST', `/umkm/rekomendasi/${recommendation.id}/daftar`);
         const [once] = sql(`select applied_at from program_recommendations where id = ${recommendation.id}`);

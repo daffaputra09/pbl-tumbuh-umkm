@@ -18,10 +18,13 @@ class Business extends Model
 
     public const STATUS_VERIFIED = 'verified';
 
+    public const STATUS_REJECTED = 'rejected';
+
     public const VERIFICATION_STATUSES = [
         self::STATUS_PENDING,
         self::STATUS_NEEDS_REVISION,
         self::STATUS_VERIFIED,
+        self::STATUS_REJECTED,
     ];
 
     protected $fillable = [

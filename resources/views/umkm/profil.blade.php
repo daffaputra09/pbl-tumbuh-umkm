@@ -39,6 +39,21 @@
         </div>
     @endif
 
+    @if ($mode === 'self' && $business && $business->verification_status === 'rejected')
+        <div class="mb-6 rounded-2xl border border-red-300 bg-red-50 p-4 text-red-900 shadow-sm">
+            <h3 class="text-sm font-bold">Data usaha Anda ditolak petugas desa</h3>
+            <p class="mt-1 text-sm text-red-800">
+                Petugas desa tidak dapat mengonfirmasi data usaha ini. Hubungi petugas desa bila Anda merasa ini keliru.
+            </p>
+            @if(!empty($business->verification_note))
+                <div class="mt-2.5 rounded-xl border border-red-200 bg-white/90 p-3 text-sm text-slate-700">
+                    <span class="font-bold text-red-900">Alasan dari Petugas:</span>
+                    <p class="mt-1 whitespace-pre-line">{{ $business->verification_note }}</p>
+                </div>
+            @endif
+        </div>
+    @endif
+
     <div id="app" data-page="umkmProfile"></div>
     <script type="application/json" id="page-props">@json(['business' => $business, 'businessTypes' => $businessTypes, 'mode' => $mode])</script>
 @endsection
