@@ -29,12 +29,6 @@ const VERIFICATION_META = {
         badgeClass: 'bg-destructive/10 text-destructive',
         icon: Notification01Icon,
     },
-    rejected: {
-        label: 'Ditolak',
-        description: 'Data usaha kamu ditolak petugas desa. Baca catatan petugas, lalu hubungi petugas desa.',
-        badgeClass: 'bg-destructive/10 text-destructive',
-        icon: Notification01Icon,
-    },
 };
 
 const TODAY_LABEL = new Intl.DateTimeFormat('id-ID', {
@@ -46,7 +40,7 @@ const TODAY_LABEL = new Intl.DateTimeFormat('id-ID', {
 
 export default function UmkmDashboard({ business, ownerName, primaryObstacle = null, recommendations = [] }) {
     const verification = VERIFICATION_META[business.verificationStatus] ?? VERIFICATION_META.pending;
-    const needsAttention = ['needs_revision', 'rejected'].includes(business.verificationStatus);
+    const needsAttention = business.verificationStatus === 'needs_revision';
     const programCount = recommendations.length;
 
     return (

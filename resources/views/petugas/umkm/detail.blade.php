@@ -70,7 +70,6 @@
                 $isPending = in_array($vStatus, ['pending', 'menunggu']);
                 $isVerified = in_array($vStatus, ['verified', 'terverifikasi']);
                 $isNeedsRevision = $vStatus === 'needs_revision';
-                $isRejected = $vStatus === 'rejected';
             @endphp
 
             <div class="pumkm-detail-header-card">
@@ -104,11 +103,6 @@
                         <span class="pumkm-badge pumkm-badge--revision" style="font-size: 0.85rem; padding: 0.4rem 1rem;">
                             <span class="pumkm-badge-dot"></span>
                             Perlu Perbaikan
-                        </span>
-                    @elseif($isRejected)
-                        <span class="pumkm-badge pumkm-badge--rejected" style="font-size: 0.85rem; padding: 0.4rem 1rem;">
-                            <span class="pumkm-badge-dot"></span>
-                            Ditolak
                         </span>
                     @else
                         <span class="pumkm-badge pumkm-badge--waiting" style="font-size: 0.85rem; padding: 0.4rem 1rem;">
@@ -402,8 +396,6 @@
                                     <span class="pumkm-badge pumkm-badge--verified"><span class="pumkm-badge-dot"></span> Terverifikasi</span>
                                 @elseif($isNeedsRevision)
                                     <span class="pumkm-badge pumkm-badge--revision"><span class="pumkm-badge-dot"></span> Perlu Perbaikan</span>
-                                @elseif($isRejected)
-                                    <span class="pumkm-badge pumkm-badge--rejected"><span class="pumkm-badge-dot"></span> Ditolak</span>
                                 @else
                                     <span class="pumkm-badge pumkm-badge--waiting"><span class="pumkm-badge-dot"></span> Menunggu Verifikasi</span>
                                 @endif
@@ -417,7 +409,7 @@
                         <form method="POST" action="{{ route('petugas.umkm.proses-verifikasi', $umkm['id']) }}">
                             @csrf
                             @php
-                                $selectedChoice = old('verification_status', $isNeedsRevision ? 'needs_revision' : ($isRejected ? 'rejected' : 'verified'));
+                                $selectedChoice = old('verification_status', $isNeedsRevision ? 'needs_revision' : 'verified');
                             @endphp
                             <div style="margin-bottom: 1.25rem;">
                                 <label class="pumkm-data-label" style="display: block; margin-bottom: 0.5rem;">Pilih Keputusan Verifikasi:</label>
@@ -439,15 +431,6 @@
                                             <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.125rem;">Minta pemilik melengkapi data</div>
                                         </div>
                                     </label>
-
-                                    {{-- Ditolak --}}
-                                    <label class="pumkm-status-radio-label" style="border: 1.5px solid {{ $selectedChoice === 'rejected' ? '#dc2626' : '#cbd5e1' }}; background: {{ $selectedChoice === 'rejected' ? '#fef2f2' : '#ffffff' }}; border-radius: 0.75rem; padding: 0.75rem 1rem; display: flex; align-items: flex-start; gap: 0.625rem; cursor: pointer; transition: all 0.15s ease;">
-                                        <input type="radio" name="verification_status" value="rejected" {{ $selectedChoice === 'rejected' ? 'checked' : '' }} style="margin-top: 0.2rem; accent-color: #dc2626;" onchange="sesuaikanCatatan(this.value)">
-                                        <div>
-                                            <div style="font-weight: 700; font-size: 0.875rem; color: #dc2626;">Ditolak</div>
-                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.125rem;">Data tidak dapat dikonfirmasi</div>
-                                        </div>
-                                    </label>
                                 </div>
                             </div>
 
@@ -463,7 +446,7 @@
                                     placeholder="Tuliskan catatan verifikasi atau rincian instruksi perbaikan..."
                                 >{{ old('verification_note', $umkm['verification_note'] ?? '') }}</textarea>
                                 <div id="note_hint" style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;">
-                                    Catatan wajib diisi saat memilih status <strong>Perlu Perbaikan</strong> atau <strong>Ditolak</strong> (minimal 5 karakter).
+                                    Catatan wajib diisi saat memilih status <strong>Perlu Perbaikan</strong> (minimal 5 karakter).
                                 </div>
                             </div>
 
@@ -488,13 +471,7 @@
             var hint = document.getElementById('note_hint');
             var textarea = document.getElementById('verification_note');
 
-            if (status === 'rejected') {
-                if (label) label.innerHTML = 'Alasan Penolakan <span style="color:#dc2626;">(Wajib diisi)</span>:';
-                if (hint) hint.innerHTML = '<span style="color:#dc2626; font-weight:600;">* Wajib diisi</span> agar pemilik UMKM mengetahui alasan data usahanya ditolak (minimal 5 karakter).';
-                if (textarea && !textarea.value.trim()) {
-                    textarea.placeholder = 'Contoh: Data usaha tidak dapat dikonfirmasi oleh petugas desa.';
-                }
-            } else if (status === 'needs_revision') {
+            if (status === 'needs_revision') {
                 if (label) label.innerHTML = 'Catatan Perbaikan <span style="color:#dc2626;">(Wajib diisi)</span>:';
                 if (hint) hint.innerHTML = '<span style="color:#dc2626; font-weight:600;">* Wajib diisi</span> agar pemilik UMKM mengetahui bagian data usaha yang harus diperbaiki (minimal 5 karakter).';
                 if (textarea && !textarea.value.trim()) {
@@ -518,9 +495,6 @@
                     } else if (val === 'needs_revision') {
                         card.style.borderColor = '#2563eb';
                         card.style.backgroundColor = '#eff6ff';
-                    } else if (val === 'rejected') {
-                        card.style.borderColor = '#dc2626';
-                        card.style.backgroundColor = '#fef2f2';
                     }
                 } else {
                     card.style.borderColor = '#cbd5e1';

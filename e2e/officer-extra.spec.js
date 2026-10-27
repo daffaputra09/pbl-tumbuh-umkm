@@ -220,7 +220,7 @@ test.describe('verifikasi data UMKM', () => {
         expect(row.verified_by).not.toBeNull();
     });
 
-    test('TC_VER_004 petugas menolak data UMKM', async ({ page }) => {
+    test('TC_VER_004 status ditolak tidak tersedia pada verifikasi UMKM', async ({ page }) => {
         const owner = createOwner('verolak');
         await login(page, accounts.officer);
 
@@ -228,9 +228,10 @@ test.describe('verifikasi data UMKM', () => {
             data: { verification_status: 'rejected', verification_note: 'Data usaha tidak dapat dikonfirmasi' },
         });
 
-        expect(response.status()).not.toBe(422);
+        expect(response.status()).toBe(422);
+        expect((await response.json()).errors).toHaveProperty('verification_status');
         const [row] = sql(`select verification_status from businesses where id = ${owner.businessId}`);
-        expect(row.verification_status).toBe('rejected');
+        expect(row.verification_status).toBe('pending');
     });
 
     test('TC_VER_006 kepala desa dan pemilik tidak dapat mengubah status verifikasi', async ({ page }) => {
