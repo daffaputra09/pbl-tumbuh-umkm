@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EditIconButton } from '@/components/ui/edit-icon-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Modal } from '@/components/ui/modal';
 import { apiFetch } from '@/lib/api';
 
 export default function BusinessTypeManager() {
@@ -198,39 +197,95 @@ export default function BusinessTypeManager() {
                 </CardContent>
             </Card>
 
-            <Modal
-                open={isModalOpen}
-                title={editingId ? 'Edit Jenis Usaha' : 'Tambah Jenis Usaha'}
-                onClose={closeModal}
-            >
-                {formError && (
-                    <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
-                        {formError}
-                    </div>
-                )}
+            {isModalOpen && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm sm:p-6"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="business-type-modal-title"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget) {
+                            closeModal();
+                        }
+                    }}
+                >
+                    <div className="my-auto flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+                        {/* Header */}
+                        <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-6 py-5">
+                            <h2
+                                id="business-type-modal-title"
+                                className="text-lg font-bold text-ink"
+                            >
+                                {editingId ? 'Edit Jenis Usaha' : 'Tambah Jenis Usaha'}
+                            </h2>
 
-                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                    <div className="flex flex-col">
-                        <Label className="mb-1.5">Nama Jenis Usaha</Label>
-                        <Input
-                            value={name}
-                            onChange={(event) => setName(event.target.value)}
-                            placeholder="Contoh: Perikanan"
-                            autoFocus
-                        />
-                        <p className="mt-1.5 text-xs text-muted-foreground">Kode (slug) dibuat otomatis dari nama.</p>
-                    </div>
+                            <button
+                                type="button"
+                                onClick={closeModal}
+                                disabled={isSubmitting}
+                                aria-label="Tutup"
+                                className="grid size-8 shrink-0 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <span aria-hidden="true" className="text-2xl leading-none">
+                                    &times;
+                                </span>
+                            </button>
+                        </div>
 
-                    <div className="flex justify-end gap-2 pt-1">
-                        <Button type="button" variant="outline" onClick={closeModal} disabled={isSubmitting}>
-                            Batal
-                        </Button>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Tambah'}
-                        </Button>
+                        {/* Form */}
+                        <form
+                            onSubmit={handleSubmit}
+                            className="flex min-h-0 flex-col overflow-y-auto"
+                        >
+                            <div className="flex flex-col gap-5 p-6">
+                                {formError && (
+                                    <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
+                                        {formError}
+                                    </div>
+                                )}
+
+                                <div className="flex flex-col">
+                                    <Label className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                        Nama Jenis Usaha
+                                    </Label>
+
+                                    <Input
+                                        value={name}
+                                        onChange={(event) => setName(event.target.value)}
+                                        placeholder="Contoh: Perikanan"
+                                        autoFocus
+                                    />
+
+                                    <p className="mt-2 text-xs text-muted-foreground">
+                                        Kode (slug) dibuat otomatis dari nama.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="flex justify-end gap-3 border-t border-slate-200 bg-slate-50/70 px-6 py-4">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={closeModal}
+                                    disabled={isSubmitting}
+                                >
+                                    Batal
+                                </Button>
+
+                                <Button type="submit" disabled={isSubmitting}>
+                                    {isSubmitting
+                                        ? 'Menyimpan...'
+                                        : editingId
+                                            ? 'Simpan Perubahan'
+                                            : 'Tambah'}
+                                </Button>
+                            </div>
+                        </form>
                     </div>
-                </form>
-            </Modal>
+                </div>
+            )}
+
         </div>
     );
 }
