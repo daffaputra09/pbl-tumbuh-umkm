@@ -12,7 +12,7 @@ test('TC_ACC_001 ubah nomor HP akun', async ({ page }) => {
     await expect(page.getByLabel('Nomor HP')).toHaveValue('081200000001');
 });
 
-test('TC_ACC_002 nama akun yang dikosongkan ditolak', async ({ page }) => {
+test('TC_ACC_005 nama akun yang dikosongkan ditolak', async ({ page }) => {
     await login(page, accounts.officer);
     await page.goto('/akun');
 
@@ -23,7 +23,7 @@ test('TC_ACC_002 nama akun yang dikosongkan ditolak', async ({ page }) => {
     await expect(page.getByLabel('Nama')).toHaveJSProperty('validity.valueMissing', true);
 });
 
-test('TC_ACC_004 ganti kata sandi lalu masuk dengan kata sandi baru', async ({ page }) => {
+test('TC_ACC_002 ganti kata sandi lalu masuk dengan kata sandi baru', async ({ page }) => {
     const email = `sandi.${Date.now()}@tumbuh.test`;
     const nextPassword = 'Rahasia456';
 
@@ -48,7 +48,7 @@ test('TC_ACC_004 ganti kata sandi lalu masuk dengan kata sandi baru', async ({ p
     await expect(page).toHaveURL(/\/umkm\/profil$/);
 });
 
-test('TC_ACC_003 lupa kata sandi untuk email yang tidak terdaftar tetap menjawab sama', async ({ page }) => {
+test('TC_PWD_002 lupa kata sandi untuk email yang tidak terdaftar tetap menjawab sama', async ({ page }) => {
     await page.goto('/forgot-password');
     await page.getByLabel('Email').fill(accounts.unknown);
     await page.getByRole('button', { name: 'Kirim tautan' }).click();
@@ -56,7 +56,7 @@ test('TC_ACC_003 lupa kata sandi untuk email yang tidak terdaftar tetap menjawab
     await expect(page.getByRole('status')).toContainText('Jika email itu terdaftar, tautan atur ulang kata sandi sudah dikirim.');
 });
 
-test('TC_SSO_001 tombol Google ada di halaman masuk', async ({ page }) => {
+test('TC_SSO_004 tombol Google ada di halaman masuk', async ({ page }) => {
     await page.goto('/login');
 
     await expect(page.getByRole('link', { name: 'Lanjutkan dengan Google' })).toHaveAttribute('href', /\/auth\/google$/);

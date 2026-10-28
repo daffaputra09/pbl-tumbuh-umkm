@@ -7,6 +7,7 @@ use App\Models\CoachingSession;
 use App\Models\FollowUp;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class CoachingSessionController extends Controller
@@ -107,6 +108,18 @@ class CoachingSessionController extends Controller
         ]);
 
         $followUp = FollowUp::findOrFail($validated['follow_up_id']);
+
+        if ($followUp->status !== 'approved') {
+            throw ValidationException::withMessages([
+                'follow_up_id' => 'Pembinaan hanya dapat dicatat dari tindak lanjut yang sudah disetujui kepala desa.',
+            ]);
+        }
+
+        if (CoachingSession::query()->where('follow_up_id', $followUp->id)->exists()) {
+            throw ValidationException::withMessages([
+                'follow_up_id' => 'Tindak lanjut ini sudah memiliki catatan pembinaan.',
+            ]);
+        }
 
         $session = CoachingSession::create([
             'follow_up_id' => $followUp->id,

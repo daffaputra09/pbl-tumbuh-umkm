@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { accounts, login } from './auth.js';
 
-test('TC_LIST_001 petugas mencari UMKM yang terdaftar', async ({ page }) => {
+test('TC_LIST_002 petugas mencari UMKM yang terdaftar', async ({ page }) => {
     await login(page, accounts.officer);
     await page.goto('/petugas/umkm');
 
@@ -11,7 +11,7 @@ test('TC_LIST_001 petugas mencari UMKM yang terdaftar', async ({ page }) => {
     await expect(page.getByText('Keripik Bu Sari')).toBeVisible();
 });
 
-test('TC_BIZ_002 halaman pendataan petugas terbuka', async ({ page }) => {
+test('TC_BIZ_008 halaman pendataan petugas terbuka', async ({ page }) => {
     await login(page, accounts.officer);
     await page.goto('/petugas/umkm/pendataan-umkm');
 
@@ -19,7 +19,7 @@ test('TC_BIZ_002 halaman pendataan petugas terbuka', async ({ page }) => {
     await expect(page.getByRole('button', { name: 'Simpan Data UMKM' })).toBeVisible();
 });
 
-test('TC_TYPE_001 jenis usaha awal tampil dan jenis baru bisa ditambah', async ({ page }) => {
+test('TC_TYPE_001 dan TC_TYPE_003 jenis usaha awal tampil dan jenis baru bisa ditambah', async ({ page }) => {
     const name = `Perikanan ${Date.now()}`;
 
     await login(page, accounts.officer);
@@ -44,7 +44,7 @@ test('TC_CAT_001 lima kategori kendala awal tampil', async ({ page }) => {
     }
 });
 
-test('TC_Q_001 bank soal menampilkan pertanyaan awal', async ({ page }) => {
+test('TC_Q_010 bank soal menampilkan pertanyaan awal', async ({ page }) => {
     await login(page, accounts.officer);
     await page.goto('/petugas/bank-soal');
 
@@ -52,14 +52,14 @@ test('TC_Q_001 bank soal menampilkan pertanyaan awal', async ({ page }) => {
     await expect(page.getByText('Saya kesulitan menyediakan modal untuk mengembangkan usaha.')).toBeVisible();
 });
 
-test('TC_DASH_002 dashboard petugas menampilkan ringkasan', async ({ page }) => {
+test('TC_DASH_003 dashboard petugas menampilkan ringkasan', async ({ page }) => {
     await login(page, accounts.officer);
     await page.goto('/dashboard');
 
     await expect(page.getByText('Ringkasan UMKM')).toBeVisible();
 });
 
-test('TC_DASH_003 pengelompokan terbuka untuk petugas', async ({ page }) => {
+test('TC_GRP_001 pengelompokan terbuka untuk petugas', async ({ page }) => {
     await login(page, accounts.officer);
     await page.goto('/petugas/pengelompokan');
 
@@ -67,7 +67,7 @@ test('TC_DASH_003 pengelompokan terbuka untuk petugas', async ({ page }) => {
     await expect(page.getByRole('columnheader', { name: 'Kendala utama' })).toBeVisible();
 });
 
-test('TC_REC_007 petugas membuka daftar rekomendasi', async ({ page }) => {
+test('TC_REC_006 petugas membuka daftar rekomendasi', async ({ page }) => {
     await login(page, accounts.officer);
     await page.goto('/petugas/rekomendasi');
 
@@ -102,7 +102,7 @@ test('TC_CAT_002 petugas menambah kategori kendala', async ({ page }) => {
     await expect(page.getByText(name)).toBeVisible();
 });
 
-test('TC_Q_002 petugas menambah pertanyaan likert', async ({ page }) => {
+test('TC_Q_001 petugas menambah pertanyaan likert', async ({ page }) => {
     const prompt = `Pertanyaan uji ${Date.now()}`;
 
     await login(page, accounts.officer);
@@ -116,7 +116,7 @@ test('TC_Q_002 petugas menambah pertanyaan likert', async ({ page }) => {
     await expect(page.getByText(prompt)).toBeVisible();
 });
 
-test('TC_PROG_003 petugas membuka detail program yang baru dibuat', async ({ page }) => {
+test('TC_PROG_001 petugas membuat program draf lalu membuka detail', async ({ page }) => {
     const programName = `Program Detail ${Date.now()}`;
 
     await login(page, accounts.officer);
@@ -134,7 +134,7 @@ test('TC_PROG_003 petugas membuka detail program yang baru dibuat', async ({ pag
     await expect(page.getByRole('heading', { name: programName })).toBeVisible();
 });
 
-test('TC_BIZ_004 petugas mendata usaha lalu memverifikasi', async ({ page }) => {
+test('TC_BIZ_005 dan TC_VER_002 petugas mendata usaha lalu memverifikasi', async ({ page }) => {
     const businessName = `Warung Uji ${Date.now()}`;
 
     await login(page, accounts.officer);

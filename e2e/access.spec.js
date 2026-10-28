@@ -9,7 +9,7 @@ test('TC_AUTHZ_001 pemilik ditolak dari halaman petugas', async ({ page }) => {
     expect(response.status()).toBe(403);
 });
 
-test('TC_AUTHZ_002 petugas ditolak dari persetujuan kepala desa', async ({ page }) => {
+test('TC_AUTHZ_003 petugas ditolak dari persetujuan kepala desa', async ({ page }) => {
     await login(page, accounts.officer);
 
     const response = await page.goto('/pimpinan/persetujuan-tindak-lanjut');
@@ -17,7 +17,7 @@ test('TC_AUTHZ_002 petugas ditolak dari persetujuan kepala desa', async ({ page 
     expect(response.status()).toBe(403);
 });
 
-test('TC_AUTHZ_003 kepala desa ditolak dari pendataan petugas', async ({ page }) => {
+test('TC_AUTHZ_007 kepala desa ditolak dari pendataan petugas', async ({ page }) => {
     await login(page, accounts.villageHead);
 
     const response = await page.goto('/petugas/umkm/pendataan-umkm');
@@ -25,7 +25,7 @@ test('TC_AUTHZ_003 kepala desa ditolak dari pendataan petugas', async ({ page })
     expect(response.status()).toBe(403);
 });
 
-test('TC_NAV_001 menu petugas memuat pengelolaan yang sudah ada', async ({ page }) => {
+test('TC_NAV_002 menu petugas memuat pengelolaan yang sudah ada', async ({ page }) => {
     await login(page, accounts.officer);
 
     const menu = desktopMenu(page);
@@ -36,7 +36,7 @@ test('TC_NAV_001 menu petugas memuat pengelolaan yang sudah ada', async ({ page 
     await expect(menu.getByRole('link', { name: 'Laporan' })).toHaveCount(0);
 });
 
-test('TC_NAV_002 menu kepala desa memuat pemantauan yang sudah ada', async ({ page }) => {
+test('TC_NAV_003 menu kepala desa memuat pemantauan yang sudah ada', async ({ page }) => {
     await login(page, accounts.villageHead);
 
     const menu = desktopMenu(page);
@@ -49,7 +49,7 @@ test('TC_NAV_002 menu kepala desa memuat pemantauan yang sudah ada', async ({ pa
     await expect(menu.getByRole('link', { name: 'Laporan' })).toHaveCount(0);
 });
 
-test('TC_NAV_003 menu pemilik memuat riwayat pembinaan', async ({ page }) => {
+test('TC_NAV_001 menu pemilik memuat riwayat pembinaan', async ({ page }) => {
     await login(page, accounts.owner);
 
     const menu = desktopMenu(page);

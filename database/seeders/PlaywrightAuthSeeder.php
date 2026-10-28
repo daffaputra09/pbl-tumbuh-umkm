@@ -30,6 +30,10 @@ class PlaywrightAuthSeeder extends Seeder
         $this->account('petugas@tumbuh.test', 'Petugas Desa', User::ROLE_OFFICER, true);
         $this->account('kepala.desa@tumbuh.test', 'Kepala Desa', User::ROLE_VILLAGE_HEAD, true);
         $this->account('nonaktif@tumbuh.test', 'Akun Nonaktif', User::ROLE_BUSINESS_OWNER, false);
+        $this->account('pemilik@desa.test', 'Pemilik UMKM Desa', User::ROLE_BUSINESS_OWNER, true);
+        $this->account('petugas@desa.test', 'Petugas Desa', User::ROLE_OFFICER, true);
+        $this->account('kades@desa.test', 'Kades Desa', User::ROLE_VILLAGE_HEAD, true);
+        $this->account('nonaktif@desa.test', 'Akun Nonaktif Desa', User::ROLE_BUSINESS_OWNER, false);
 
         Business::query()->updateOrCreate(
             ['user_id' => $owner->id],

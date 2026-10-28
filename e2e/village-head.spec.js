@@ -9,14 +9,14 @@ test('TC_DASH_004 dashboard kepala desa menampilkan ringkasan', async ({ page })
     await expect(page.getByText('Ringkasan UMKM')).toBeVisible();
 });
 
-test('TC_FU_006 halaman persetujuan terbuka', async ({ page }) => {
+test('TC_FU_009 halaman persetujuan terbuka', async ({ page }) => {
     await login(page, accounts.villageHead);
     await page.goto('/pimpinan/persetujuan-tindak-lanjut');
 
     await expect(page.getByRole('heading', { name: 'Persetujuan Tindak Lanjut' })).toBeVisible();
 });
 
-test('TC_DASH_005 kepala desa membuka pengelompokan', async ({ page }) => {
+test('TC_GRP_002 kepala desa membuka pengelompokan', async ({ page }) => {
     await login(page, accounts.villageHead);
     await page.goto('/pimpinan/pengelompokan');
 
