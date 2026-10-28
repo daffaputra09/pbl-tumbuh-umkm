@@ -162,21 +162,14 @@ test('TC_BIZ_004 petugas mendata usaha lalu memverifikasi', async ({ page }) => 
     await expect(page.getByText(`Status verifikasi UMKM "${businessName}" berhasil diubah menjadi diverifikasi.`)).toBeVisible();
 });
 
-test('TC_PROD_004 petugas menambah produk untuk UMKM', async ({ page }) => {
-    const productName = `Produk Petugas ${Date.now()}`;
-
+test('TC_PROD_004 petugas tidak dapat mengakses endpoint pengelolaan produk', async ({ page }) => {
     await login(page, accounts.officer);
-    await page.goto('/petugas/umkm');
-    await page.getByPlaceholder('Cari nama usaha, nama pemilik, atau kontak…').fill('Keripik Bu Sari');
-    await page.getByPlaceholder('Cari nama usaha, nama pemilik, atau kontak…').press('Tab');
-    await page.getByRole('link', { name: 'Detail' }).first().click();
 
-    const detailUrl = page.url();
-    const businessId = detailUrl.match(/\/petugas\/umkm\/(\d+)/)?.[1];
-    await page.goto(`/petugas/umkm/${businessId}/produk`);
-    await page.getByPlaceholder('Contoh: Keripik Singkong Original').fill(productName);
-    await page.getByPlaceholder('Contoh: Makanan Ringan').fill('Makanan Ringan');
-    await page.getByRole('button', { name: 'Tambah Produk' }).click();
+    // Petugas ditolak dari halaman pengelolaan produk UMKM (403 Forbidden)
+    const ownerProductResponse = await page.goto('/umkm/produk');
+    expect(ownerProductResponse.status()).toBe(403);
 
-    await expect(page.getByText(productName, { exact: true })).toBeVisible();
+    // Endpoint produk khusus petugas tidak tersedia (404 Not Found)
+    const officerProductResponse = await page.goto('/petugas/umkm/1/produk');
+    expect(officerProductResponse.status()).toBe(404);
 });

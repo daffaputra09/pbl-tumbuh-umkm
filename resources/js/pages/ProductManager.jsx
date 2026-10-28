@@ -35,19 +35,14 @@ function formatRupiah(value) {
 }
 
 /**
- * Dipakai untuk dua hal, dibedakan lewat page-props `mode`:
- * - mode="self"    -> UC-05a, pelaku UMKM kelola produk usahanya sendiri.
- * - mode="officer" -> UC-05a, petugas mendampingi kelola produk UMKM tertentu.
+ * UC-05a, pelaku UMKM kelola produk usahanya sendiri.
  *
- * Form tambah/ubah produk tampil sebagai popup, sama seperti halaman
- * Kategori Kendala di sisi petugas.
+ * Form tambah/ubah produk tampil sebagai popup.
  */
-export default function ProductManager({ business, mode = 'self' }) {
-    const isOfficerMode = mode === 'officer';
-
-    const listUrl = isOfficerMode ? `/petugas/umkm/${business.id}/produk/data` : '/umkm/produk/data';
-    const createUrl = isOfficerMode ? `/petugas/umkm/${business.id}/produk` : '/umkm/produk';
-    const itemUrl = (id) => (isOfficerMode ? `/petugas/umkm/${business.id}/produk/${id}` : `/umkm/produk/${id}`);
+export default function ProductManager() {
+    const listUrl = '/umkm/produk/data';
+    const createUrl = '/umkm/produk';
+    const itemUrl = (id) => `/umkm/produk/${id}`;
 
     const [products, setProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -198,16 +193,12 @@ export default function ProductManager({ business, mode = 'self' }) {
     const content = (
         <div className="mx-auto max-w-3xl">
             <header className="mb-8">
-                <p className="text-sm font-semibold text-primary">
-                    {isOfficerMode ? 'Pendampingan Produk' : 'Kelola Produk'}
-                </p>
+                <p className="text-sm font-semibold text-primary">Kelola Produk</p>
                 <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
-                    {isOfficerMode ? `Produk ${business.name}` : 'Produk Usahamu'}
+                    Produk Usahamu
                 </h1>
                 <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
-                    {isOfficerMode
-                        ? `Tambah atau ubah produk milik ${business.name} atas nama petugas.`
-                        : 'Tambahkan produk yang kamu jual supaya pembeli dan petugas bisa lihat usahamu lebih lengkap.'}
+                    Tambahkan produk yang kamu jual supaya pembeli dan petugas bisa lihat usahamu lebih lengkap.
                 </p>
             </header>
 
@@ -508,10 +499,6 @@ export default function ProductManager({ business, mode = 'self' }) {
 
         </div>
     );
-
-    if (isOfficerMode) {
-    return <div className="relative">{content}</div>;
-    }
 
     return (
         <div className="relative">

@@ -46,55 +46,46 @@ class ProductPolicyTest extends TestCase
         ]);
     }
 
-    public function test_officer_updates_a_product_belonging_to_the_business_in_the_url(): void
+    public function test_officer_cannot_manage_products(): void
     {
         $officer = User::factory()->create(['role' => User::ROLE_OFFICER]);
         [$owner, $business, $product] = $this->ownedProduct();
 
-        $this->assertTrue($officer->can('update', [$product, $business]));
+        $this->assertFalse($officer->can('viewAny', [Product::class, $business]));
+        $this->assertFalse($officer->can('create', [Product::class, $business]));
+        $this->assertFalse($officer->can('update', [$product, $business]));
 
         $this->actingAs($officer)
-            ->putJson(route('petugas.umkm.produk.update', [$business, $product]), $this->payload('Keripik Desa'))
-            ->assertOk()
-            ->assertJsonPath('name', 'Keripik Desa');
-
-        $this->assertSame($business->id, $product->refresh()->business_id);
-    }
-
-    public function test_officer_update_of_a_product_from_another_business_is_forbidden(): void
-    {
-        $officer = User::factory()->create(['role' => User::ROLE_OFFICER]);
-        [, $business] = $this->ownedProduct();
-        [, , $otherProduct] = $this->ownedProduct('Kopi');
-
-        $this->assertFalse($officer->can('update', [$otherProduct, $business]));
-
-        $this->actingAs($officer)
-            ->putJson(route('petugas.umkm.produk.update', [$business, $otherProduct]), $this->payload('Kopi Baru'))
+            ->putJson(route('umkm.produk.update', $product), $this->payload('Keripik Desa'))
             ->assertForbidden();
+
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'name' => 'Keripik',
+        ]);
     }
 
-        public function test_officer_manages_products_of_a_business_without_an_account(): void
+    public function test_officer_cannot_manage_products_of_a_business_without_an_account(): void
     {
         $officer = User::factory()->create(['role' => User::ROLE_OFFICER]);
         $business = Business::factory()->create([
             'user_id' => null,
             'created_by' => $officer->id,
         ]);
+        $product = Product::query()->create([
+            'business_id' => $business->id,
+            'name' => 'Dodol',
+            'category' => 'Makanan',
+            'is_active' => true,
+        ]);
+
+        $this->assertFalse($officer->can('viewAny', [Product::class, $business]));
+        $this->assertFalse($officer->can('create', [Product::class, $business]));
+        $this->assertFalse($officer->can('update', [$product, $business]));
 
         $this->actingAs($officer)
-            ->postJson(route('petugas.umkm.produk.store', $business), $this->payload('Dodol'))
-            ->assertCreated()
-            ->assertJsonPath('business_id', $business->id);
-
-        $product = Product::query()->where('name', 'Dodol')->firstOrFail();
-
-        $this->assertTrue($officer->can('update', [$product, $business]));
-
-        $this->actingAs($officer)
-            ->putJson(route('petugas.umkm.produk.update', [$business, $product]), $this->payload('Dodol Manis'))
-            ->assertOk()
-            ->assertJsonPath('name', 'Dodol Manis');
+            ->putJson(route('umkm.produk.update', $product), $this->payload('Dodol Manis'))
+            ->assertForbidden();
     }
 
     public function test_ownership_follows_business_id_not_user_id(): void
@@ -116,7 +107,7 @@ class ProductPolicyTest extends TestCase
             ->putJson(route('umkm.produk.update', $product), $this->payload('Keripik Pedas'))
             ->assertOk()
             ->assertJsonPath('name', 'Keripik Pedas');
-    }    
+    }
 
     public function test_village_head_cannot_manage_products(): void
     {
@@ -127,7 +118,6 @@ class ProductPolicyTest extends TestCase
         $this->assertFalse($head->can('create', [Product::class, $business]));
         $this->assertFalse($head->can('update', [$product, $business]));
     }
-
 
     /**
      * @return array{User, Business, Product}
