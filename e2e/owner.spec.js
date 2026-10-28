@@ -25,9 +25,14 @@ test('TC_PROD_001 dan TC_PROD_003 pemilik menambah produk lalu menonaktifkannya'
     await login(page, accounts.owner);
     await page.goto('/umkm/produk');
 
-    await page.getByPlaceholder('Contoh: Keripik Singkong Original').fill(name);
-    await page.getByPlaceholder('Contoh: Makanan Ringan').fill('Makanan Ringan');
     await page.getByRole('button', { name: 'Tambah Produk' }).click();
+
+    const modal = page.getByRole('dialog');
+    await expect(modal).toBeVisible();
+    await modal.getByPlaceholder('Contoh: Keripik Singkong Original').fill(name);
+    await modal.getByPlaceholder('Contoh: Makanan Ringan').fill('Makanan Ringan');
+    await modal.getByRole('button', { name: 'Tambah Produk' }).click();
+    await expect(modal).toBeHidden();
 
     const nameText = page.getByText(name, { exact: true });
     await expect(nameText).toBeVisible();
@@ -56,16 +61,26 @@ test('TC_PROD_002 pemilik mengubah nama produk', async ({ page }) => {
 
     await login(page, accounts.owner);
     await page.goto('/umkm/produk');
-    await page.getByPlaceholder('Contoh: Keripik Singkong Original').fill(name);
-    await page.getByPlaceholder('Contoh: Makanan Ringan').fill('Makanan Ringan');
+
     await page.getByRole('button', { name: 'Tambah Produk' }).click();
+
+    const createModal = page.getByRole('dialog');
+    await expect(createModal).toBeVisible();
+    await createModal.getByPlaceholder('Contoh: Keripik Singkong Original').fill(name);
+    await createModal.getByPlaceholder('Contoh: Makanan Ringan').fill('Makanan Ringan');
+    await createModal.getByRole('button', { name: 'Tambah Produk' }).click();
+    await expect(createModal).toBeHidden();
 
     const nameText = page.getByText(name, { exact: true });
     await expect(nameText).toBeVisible();
-    await nameText.locator('xpath=ancestor::div[contains(@class,"justify-between")][1]').getByRole('button', { name: 'Edit' }).click();
+    const row = nameText.locator('xpath=ancestor::div[contains(@class,"justify-between")][1]');
+    await row.getByRole('button', { name: `Edit produk ${name}` }).click();
 
-    await page.getByPlaceholder('Contoh: Keripik Singkong Original').fill(renamed);
-    await page.getByRole('button', { name: 'Simpan Perubahan' }).click();
+    const editModal = page.getByRole('dialog');
+    await expect(editModal).toBeVisible();
+    await editModal.getByPlaceholder('Contoh: Keripik Singkong Original').fill(renamed);
+    await editModal.getByRole('button', { name: 'Simpan Perubahan' }).click();
+    await expect(editModal).toBeHidden();
 
     await expect(page.getByText(renamed, { exact: true })).toBeVisible();
 });
@@ -76,5 +91,10 @@ test('TC_PROD_004 produk tanpa nama tidak tersimpan', async ({ page }) => {
 
     await page.getByRole('button', { name: 'Tambah Produk' }).click();
 
-    await expect(page.getByText('Nama dan kategori produk wajib diisi.')).toBeVisible();
+    const modal = page.getByRole('dialog');
+    await expect(modal).toBeVisible();
+
+    await modal.getByRole('button', { name: 'Tambah Produk' }).click();
+
+    await expect(modal.getByText('Nama dan kategori produk wajib diisi.')).toBeVisible();
 });

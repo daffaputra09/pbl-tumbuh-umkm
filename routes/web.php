@@ -114,12 +114,6 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(functio
     Route::get('/petugas/catat-pembinaan', [CoachingSessionController::class, 'index'])->name('petugas.catat-pembinaan');
     Route::post('/petugas/catat-pembinaan', [CoachingSessionController::class, 'store'])->name('petugas.catat-pembinaan.store');
 
-    Route::get('/petugas/umkm/{business}/produk', [ProductController::class, 'officerPage'])->name('petugas.umkm.produk');
-    Route::get('/petugas/umkm/{business}/produk/data', [ProductController::class, 'officerIndex'])->name('petugas.umkm.produk.index');
-    Route::post('/petugas/umkm/{business}/produk', [ProductController::class, 'officerStore'])->name('petugas.umkm.produk.store');
-    Route::put('/petugas/umkm/{business}/produk/{product}', [ProductController::class, 'officerUpdate'])->name('petugas.umkm.produk.update');
-    Route::patch('/petugas/umkm/{business}/produk/{product}/toggle', [ProductController::class, 'officerToggle'])->name('petugas.umkm.produk.toggle');
-
     Route::prefix('api/business-types')->name('api.business-types.')->group(function () {
         Route::get('/', [BusinessTypeController::class, 'index'])->name('index');
         Route::post('/', [BusinessTypeController::class, 'store'])->name('store');

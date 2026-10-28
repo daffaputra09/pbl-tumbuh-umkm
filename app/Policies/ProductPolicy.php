@@ -7,8 +7,8 @@ use App\Models\Product;
 use App\Models\User;
 
 /**
- * Petugas mendampingi produk usaha mana pun. Pemilik hanya produk usahanya.
- * Kepala desa tidak mengubah produk.
+ * Pengelolaan produk hanya boleh dilakukan oleh pelaku UMKM pemilik usaha terkait.
+ * Petugas dan Kepala Desa tidak memiliki akses untuk mengelola produk.
  */
 class ProductPolicy
 {
@@ -24,36 +24,24 @@ class ProductPolicy
 
     public function update(User $user, Product $product, ?Business $business = null): bool
     {
-        if ($business !== null && ! $this->belongsToBusiness($product, $business)) {
+        $business ??= $product->business;
+
+        if ($business === null || (int) $product->business_id !== (int) $business->id) {
             return false;
         }
 
-        if ($user->hasRole(User::ROLE_OFFICER)) {
-            return true;
-        }
+        return $this->manages($user, $business);
+    }
 
-        return $user->hasRole(User::ROLE_BUSINESS_OWNER)
-            && $product->business_id !== null
-            && (int) $product->business_id === $user->id;
+    public function delete(User $user, Product $product, ?Business $business = null): bool
+    {
+        return $this->update($user, $product, $business);
     }
 
     private function manages(User $user, Business $business): bool
     {
-        if ($user->hasRole(User::ROLE_OFFICER)) {
-            return true;
-        }
-
         return $user->hasRole(User::ROLE_BUSINESS_OWNER)
             && $business->user_id !== null
-            && (int) $business->user_id === $user->id;
-    }
-
-    private function belongsToBusiness(Product $product, Business $business): bool
-    {
-        if ($product->business_id === null || $business->user_id === null) {
-            return false;
-        }
-
-        return (int) $product->business_id === (int) $business->user_id;
+            && (int) $business->user_id === (int) $user->id;
     }
 }

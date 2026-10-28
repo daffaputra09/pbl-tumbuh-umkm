@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { PlusSignIcon, Search01Icon } from '@hugeicons/core-free-icons';
 import PageBackground from '@/components/umkm/PageBackground';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { EditIconButton } from '@/components/ui/edit-icon-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api';
-import { cn } from '@/lib/utils';
 
 const UNIT_OPTIONS = ['Pcs', 'Kg', 'Gram', 'Liter', 'Porsi', 'Lusin', 'Lainnya'];
 
@@ -33,22 +35,23 @@ function formatRupiah(value) {
 }
 
 /**
- * Dipakai untuk dua hal, dibedakan lewat page-props `mode`:
- * - mode="self"    -> UC-05a, pelaku UMKM kelola produk usahanya sendiri.
- * - mode="officer" -> UC-05a, petugas mendampingi kelola produk UMKM tertentu.
+ * UC-05a, pelaku UMKM kelola produk usahanya sendiri.
+ *
+ * Form tambah/ubah produk tampil sebagai popup.
  */
-export default function ProductManager({ business, mode = 'self' }) {
-    const isOfficerMode = mode === 'officer';
-
-    const listUrl = isOfficerMode ? `/petugas/umkm/${business.id}/produk/data` : '/umkm/produk/data';
-    const createUrl = isOfficerMode ? `/petugas/umkm/${business.id}/produk` : '/umkm/produk';
-    const itemUrl = (id) => (isOfficerMode ? `/petugas/umkm/${business.id}/produk/${id}` : `/umkm/produk/${id}`);
+export default function ProductManager() {
+    const listUrl = '/umkm/produk/data';
+    const createUrl = '/umkm/produk';
+    const itemUrl = (id) => `/umkm/produk/${id}`;
 
     const [products, setProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
+    const [query, setQuery] = useState('');
 
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [formData, setFormData] = useState(buildEmptyForm);
+    const [formError, setFormError] = useState('');
     const [photoPreview, setPhotoPreview] = useState(null);
     const [editingId, setEditingId] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -91,7 +94,15 @@ export default function ProductManager({ business, mode = 'self' }) {
         setPhotoPreview(file ? URL.createObjectURL(file) : null);
     }
 
-    function startEdit(product) {
+    function openCreateModal() {
+        setEditingId(null);
+        setFormData(buildEmptyForm());
+        setPhotoPreview(null);
+        setFormError('');
+        setIsModalOpen(true);
+    }
+
+    function openEditModal(product) {
         const isKnownUnit = UNIT_OPTIONS.slice(0, -1).includes(product.unit);
 
         setEditingId(product.id);
@@ -105,28 +116,32 @@ export default function ProductManager({ business, mode = 'self' }) {
             photoFile: null,
         });
         setPhotoPreview(product.photo_path ? `/storage/${product.photo_path}` : null);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setFormError('');
+        setIsModalOpen(true);
     }
 
-    function cancelEdit() {
+    function closeModal() {
+        if (isSubmitting) {
+            return;
+        }
+
+        setIsModalOpen(false);
         setEditingId(null);
         setFormData(buildEmptyForm());
         setPhotoPreview(null);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
+        setFormError('');
     }
 
     async function handleSubmit(event) {
         event.preventDefault();
 
         if (!formData.name.trim() || !formData.category.trim()) {
-            setErrorMessage('Nama dan kategori produk wajib diisi.');
+            setFormError('Nama dan kategori produk wajib diisi.');
             return;
         }
 
         setIsSubmitting(true);
-        setErrorMessage('');
+        setFormError('');
 
         const finalUnit = formData.unitChoice === 'Lainnya' ? formData.customUnit.trim() : formData.unitChoice;
 
@@ -148,10 +163,13 @@ export default function ProductManager({ business, mode = 'self' }) {
                 setProducts((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
             }
 
-            cancelEdit();
+            setIsSubmitting(false);
+            setIsModalOpen(false);
+            setEditingId(null);
+            setFormData(buildEmptyForm());
+            setPhotoPreview(null);
         } catch (error) {
-            setErrorMessage(error.message);
-        } finally {
+            setFormError(error.message);
             setIsSubmitting(false);
         }
     }
@@ -167,19 +185,20 @@ export default function ProductManager({ business, mode = 'self' }) {
         }
     }
 
+    const keyword = query.trim().toLowerCase();
+    const visibleProducts = keyword
+        ? products.filter((product) => `${product.name} ${product.category}`.toLowerCase().includes(keyword))
+        : products;
+
     const content = (
         <div className="mx-auto max-w-3xl">
             <header className="mb-8">
-                <p className="text-sm font-semibold text-primary">
-                    {isOfficerMode ? 'Pendampingan Produk' : 'Kelola Produk'}
-                </p>
+                <p className="text-sm font-semibold text-primary">Kelola Produk</p>
                 <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
-                    {isOfficerMode ? `Produk ${business.name}` : 'Produk Usahamu'}
+                    Produk Usahamu
                 </h1>
                 <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
-                    {isOfficerMode
-                        ? `Tambah atau ubah produk milik ${business.name} atas nama petugas.`
-                        : 'Tambahkan produk yang kamu jual supaya pembeli dan petugas bisa lihat usahamu lebih lengkap.'}
+                    Tambahkan produk yang kamu jual supaya pembeli dan petugas bisa lihat usahamu lebih lengkap.
                 </p>
             </header>
 
@@ -189,135 +208,53 @@ export default function ProductManager({ business, mode = 'self' }) {
                 </div>
             )}
 
-            <Card className="mb-6">
-                <CardHeader>
-                    <CardTitle className="text-base">{editingId ? 'Edit Produk' : 'Tambah Produk'}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
-                        <div className="flex flex-col">
-                            <Label className="mb-1.5">Nama Produk</Label>
-                            <Input
-                                value={formData.name}
-                                onChange={(event) => updateField('name', event.target.value)}
-                                placeholder="Contoh: Keripik Singkong Original"
-                            />
-                        </div>
-
-                        <div className="flex flex-col">
-                            <Label className="mb-1.5">Kategori</Label>
-                            <Input
-                                value={formData.category}
-                                onChange={(event) => updateField('category', event.target.value)}
-                                placeholder="Contoh: Makanan Ringan"
-                            />
-                        </div>
-
-                        <div className="flex flex-col">
-                            <Label className="mb-1.5">Harga (opsional)</Label>
-                            <div className="relative">
-                                <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-sm text-muted-foreground">
-                                    Rp
-                                </span>
-                                <Input
-                                    type="text"
-                                    inputMode="numeric"
-                                    value={formData.price}
-                                    onChange={(event) => updateField('price', event.target.value.replace(/\D/g, ''))}
-                                    placeholder="15000"
-                                    className="pl-10"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex flex-col">
-                            <Label className="mb-1.5">Satuan (opsional)</Label>
-                            <Select value={formData.unitChoice} onChange={(event) => updateField('unitChoice', event.target.value)}>
-                                <option value="">Pilih satuan</option>
-                                {UNIT_OPTIONS.map((unit) => (
-                                    <option key={unit} value={unit}>
-                                        {unit}
-                                    </option>
-                                ))}
-                            </Select>
-                            {formData.unitChoice === 'Lainnya' && (
-                                <Input
-                                    value={formData.customUnit}
-                                    onChange={(event) => updateField('customUnit', event.target.value)}
-                                    placeholder="Tulis satuan sendiri"
-                                    className="mt-2"
-                                />
-                            )}
-                        </div>
-
-                        <div className="flex flex-col sm:col-span-2">
-                            <Label className="mb-1.5">Deskripsi (opsional)</Label>
-                            <Textarea
-                                rows={2}
-                                value={formData.description}
-                                onChange={(event) => updateField('description', event.target.value)}
-                                placeholder="Ceritakan sedikit tentang produk ini"
-                            />
-                        </div>
-
-                        <div className="flex flex-col sm:col-span-2">
-                            <Label className="mb-1.5">Foto (opsional)</Label>
-                            <button
-                                type="button"
-                                onClick={() => fileInputRef.current?.click()}
-                                className="flex items-center gap-4 rounded-xl border border-dashed border-border bg-white p-4 text-left transition-colors hover:border-primary/50"
-                            >
-                                {photoPreview ? (
-                                    <img src={photoPreview} alt="Pratinjau produk" className="size-16 shrink-0 rounded-lg object-cover" />
-                                ) : (
-                                    <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-muted text-[10px] text-muted-foreground">
-                                        Belum ada
-                                    </div>
-                                )}
-                                <span className="text-sm font-medium text-primary">
-                                    {photoPreview ? 'Ganti foto' : 'Klik untuk pilih foto'}
-                                </span>
-                            </button>
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/*"
-                                onChange={handlePhotoChange}
-                                className="hidden"
-                            />
-                        </div>
-
-                        <div className="flex gap-2 sm:col-span-2">
-                            <Button type="submit" disabled={isSubmitting}>
-                                {isSubmitting ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Tambah Produk'}
-                            </Button>
-                            {editingId && (
-                                <Button type="button" variant="outline" onClick={cancelEdit}>
-                                    Batal
-                                </Button>
-                            )}
-                        </div>
-                    </form>
-                </CardContent>
-            </Card>
-
             <Card>
-                <CardHeader>
-                    <CardTitle className="text-base">Daftar Produk</CardTitle>
+                <CardHeader className="gap-3">
+                    <div className="flex items-center justify-between gap-3">
+                        <CardTitle className="text-base">Daftar Produk</CardTitle>
+                        <Button type="button" size="sm" onClick={openCreateModal}>
+                            <HugeiconsIcon icon={PlusSignIcon} size={16} aria-hidden="true" />
+                            Tambah Produk
+                        </Button>
+                    </div>
+
+                    <div className="relative">
+                        <HugeiconsIcon
+                            icon={Search01Icon}
+                            size={16}
+                            className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-muted-foreground"
+                            aria-hidden="true"
+                        />
+                        <Input
+                            type="search"
+                            value={query}
+                            onChange={(event) => setQuery(event.target.value)}
+                            placeholder="Cari nama atau kategori produk"
+                            className="pl-10"
+                            aria-label="Cari produk"
+                        />
+                    </div>
                 </CardHeader>
+
                 <CardContent className="flex flex-col gap-3">
                     {isLoading && <p className="text-sm text-muted-foreground">Memuat data...</p>}
 
                     {!isLoading && products.length === 0 && (
-                        <p className="text-sm text-muted-foreground">Belum ada produk, tambahkan lewat form di atas.</p>
+                        <p className="text-sm text-muted-foreground">
+                            Belum ada produk. Klik tombol Tambah Produk untuk mulai.
+                        </p>
                     )}
 
-                    {products.map((product) => (
+                    {!isLoading && products.length > 0 && visibleProducts.length === 0 && (
+                        <p className="text-sm text-muted-foreground">Tidak ada produk yang cocok dengan pencarianmu.</p>
+                    )}
+
+                    {visibleProducts.map((product) => (
                         <div
                             key={product.id}
                             className="flex items-center justify-between gap-3 rounded-xl border border-border bg-white px-4 py-3"
                         >
-                            <div className="flex items-center gap-3">
+                            <div className="flex min-w-0 items-center gap-3">
                                 {product.photo_path ? (
                                     <img
                                         src={`/storage/${product.photo_path}`}
@@ -329,9 +266,9 @@ export default function ProductManager({ business, mode = 'self' }) {
                                         Tanpa foto
                                     </div>
                                 )}
-                                <div>
-                                    <p className="text-sm font-semibold text-ink">{product.name}</p>
-                                    <p className="text-xs text-muted-foreground">
+                                <div className="min-w-0">
+                                    <p className="truncate text-sm font-semibold text-ink">{product.name}</p>
+                                    <p className="truncate text-xs text-muted-foreground">
                                         {product.category} &middot; {formatRupiah(product.price)}
                                         {product.unit ? ` / ${product.unit}` : ''}
                                     </p>
@@ -342,9 +279,10 @@ export default function ProductManager({ business, mode = 'self' }) {
                                 <Badge variant={product.is_active ? 'success' : 'outline'}>
                                     {product.is_active ? 'Aktif' : 'Nonaktif'}
                                 </Badge>
-                                <Button type="button" size="sm" variant="outline" onClick={() => startEdit(product)}>
-                                    Edit
-                                </Button>
+                                <EditIconButton
+                                    label={`Edit produk ${product.name}`}
+                                    onClick={() => openEditModal(product)}
+                                />
                                 <Button type="button" size="sm" variant="outline" onClick={() => handleToggle(product)}>
                                     {product.is_active ? 'Nonaktifkan' : 'Aktifkan'}
                                 </Button>
@@ -353,15 +291,217 @@ export default function ProductManager({ business, mode = 'self' }) {
                     ))}
                 </CardContent>
             </Card>
+
+            {isModalOpen && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm sm:p-6"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="product-modal-title"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget && !isSubmitting) {
+                            closeModal();
+                        }
+                    }}
+                >
+                    <div className="my-auto flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+                        {/* Header popup */}
+                        <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-5">
+                            <div>
+                                <h2
+                                    id="product-modal-title"
+                                    className="text-lg font-bold text-ink"
+                                >
+                                    {editingId ? 'Edit Produk' : 'Tambah Produk'}
+                                </h2>
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    {editingId
+                                        ? 'Perbarui informasi produk UMKM.'
+                                        : 'Lengkapi informasi produk UMKM yang ingin ditampilkan.'}
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={closeModal}
+                                disabled={isSubmitting}
+                                aria-label="Tutup popup"
+                                className="grid size-9 shrink-0 place-items-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <span aria-hidden="true" className="text-2xl leading-none">
+                                    &times;
+                                </span>
+                            </button>
+                        </div>
+
+                        {/* Isi formulir */}
+                        <form
+                            onSubmit={handleSubmit}
+                            className="flex min-h-0 flex-col overflow-y-auto"
+                        >
+                            <div className="grid gap-x-5 gap-y-5 p-6 sm:grid-cols-2">
+                                {formError && (
+                                    <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive sm:col-span-2">
+                                        {formError}
+                                    </div>
+                                )}
+
+                                <div className="flex flex-col gap-2">
+                                    <Label className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                        Nama Produk
+                                    </Label>
+                                    <Input
+                                        value={formData.name}
+                                        onChange={(event) => updateField('name', event.target.value)}
+                                        placeholder="Contoh: Keripik Singkong Original"
+                                    />
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <Label className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                        Kategori
+                                    </Label>
+                                    <Input
+                                        value={formData.category}
+                                        onChange={(event) => updateField('category', event.target.value)}
+                                        placeholder="Contoh: Makanan Ringan"
+                                    />
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <Label className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                        Harga (Opsional)
+                                    </Label>
+                                    <div className="relative">
+                                        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                                            Rp
+                                        </span>
+                                        <Input
+                                            type="text"
+                                            inputMode="numeric"
+                                            value={formData.price}
+                                            onChange={(event) =>
+                                                updateField('price', event.target.value.replace(/\D/g, ''))
+                                            }
+                                            placeholder="15000"
+                                            className="pl-10"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <Label className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                        Satuan (Opsional)
+                                    </Label>
+                                    <Select
+                                        value={formData.unitChoice}
+                                        onChange={(event) => updateField('unitChoice', event.target.value)}
+                                    >
+                                        <option value="">Pilih satuan</option>
+                                        {UNIT_OPTIONS.map((unit) => (
+                                            <option key={unit} value={unit}>
+                                                {unit}
+                                            </option>
+                                        ))}
+                                    </Select>
+
+                                    {formData.unitChoice === 'Lainnya' && (
+                                        <Input
+                                            value={formData.customUnit}
+                                            onChange={(event) => updateField('customUnit', event.target.value)}
+                                            placeholder="Tulis satuan sendiri"
+                                        />
+                                    )}
+                                </div>
+
+                                <div className="flex flex-col gap-2 sm:col-span-2">
+                                    <Label className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                        Deskripsi (Opsional)
+                                    </Label>
+                                    <Textarea
+                                        rows={3}
+                                        value={formData.description}
+                                        onChange={(event) => updateField('description', event.target.value)}
+                                        placeholder="Ceritakan sedikit tentang produk ini"
+                                    />
+                                </div>
+
+                                <div className="flex flex-col gap-2 sm:col-span-2">
+                                    <Label className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                        Foto Produk (Opsional)
+                                    </Label>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="flex items-center gap-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-left transition-colors hover:border-primary/50 hover:bg-slate-100"
+                                    >
+                                        {photoPreview ? (
+                                            <img
+                                                src={photoPreview}
+                                                alt="Pratinjau produk"
+                                                className="size-16 shrink-0 rounded-lg object-cover"
+                                            />
+                                        ) : (
+                                            <div className="flex size-16 shrink-0 items-center justify-center rounded-lg bg-white text-xs text-muted-foreground">
+                                                Tanpa foto
+                                            </div>
+                                        )}
+
+                                        <div>
+                                            <p className="text-sm font-semibold text-slate-700">
+                                                {photoPreview ? 'Ganti foto produk' : 'Pilih foto produk'}
+                                            </p>
+                                            <p className="mt-1 text-xs text-muted-foreground">
+                                                Klik di sini untuk memilih gambar.
+                                            </p>
+                                        </div>
+                                    </button>
+
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handlePhotoChange}
+                                        className="hidden"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Footer popup */}
+                            <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50/70 px-6 py-4 sm:flex-row sm:justify-end">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={closeModal}
+                                    disabled={isSubmitting}
+                                    className="sm:min-w-28"
+                                >
+                                    Batal
+                                </Button>
+
+                                <Button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="sm:min-w-36"
+                                >
+                                    {isSubmitting
+                                        ? 'Menyimpan...'
+                                        : editingId
+                                          ? 'Simpan Perubahan'
+                                          : 'Tambah Produk'}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 
-    if (isOfficerMode) {
-        return <div className="relative isolate overflow-hidden">{content}</div>;
-    }
-
     return (
-        <div className="relative isolate overflow-hidden">
+        <div className="relative">
             <PageBackground />
             {content}
         </div>

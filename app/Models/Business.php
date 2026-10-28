@@ -85,7 +85,7 @@ class Business extends Model
 
     public function products()
     {
-        return $this->hasMany(Product::class, 'business_id', 'user_id');
+        return $this->hasMany(Product::class);
     }
 
     public function assessments()
