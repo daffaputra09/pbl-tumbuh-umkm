@@ -125,6 +125,7 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(functio
         Route::post('/', [BusinessTypeController::class, 'store'])->name('store');
         Route::put('/{businessType}', [BusinessTypeController::class, 'update'])->name('update');
         Route::patch('/{businessType}/toggle', [BusinessTypeController::class, 'toggle'])->name('toggle');
+        Route::delete('/{businessType}', [BusinessTypeController::class, 'destroy'])->name('destroy');
         Route::get('/petugas/jenis-usaha', [BusinessTypeController::class, 'index']);
     });
 
