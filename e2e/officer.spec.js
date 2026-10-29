@@ -28,8 +28,9 @@ test('TC_TYPE_001 dan TC_TYPE_003 jenis usaha awal tampil dan jenis baru bisa di
     await expect(page.getByRole('heading', { name: 'Kelola Jenis Usaha' })).toBeVisible();
     await expect(page.getByText('Makanan & Minuman')).toBeVisible();
 
+    await page.getByRole('button', { name: 'Tambah Jenis Usaha' }).click();
     await page.getByPlaceholder('Contoh: Perikanan').fill(name);
-    await page.getByRole('button', { name: 'Tambah' }).click();
+    await page.getByRole('button', { name: 'Tambah', exact: true }).click();
 
     await expect(page.getByText(name)).toBeVisible();
 });
@@ -79,13 +80,234 @@ test('TC_TYPE_002 jenis usaha baru bisa dinonaktifkan', async ({ page }) => {
 
     await login(page, accounts.officer);
     await page.goto('/petugas/jenis-usaha');
+    await page.getByRole('button', { name: 'Tambah Jenis Usaha' }).click();
     await page.getByPlaceholder('Contoh: Perikanan').fill(name);
-    await page.getByRole('button', { name: 'Tambah' }).click();
+    await page.getByRole('button', { name: 'Tambah', exact: true }).click();
 
     const row = page.locator('div.rounded-xl.border').filter({ hasText: name });
     await row.getByRole('button', { name: 'Nonaktifkan' }).click();
 
     await expect(row.getByText('Nonaktif', { exact: true })).toBeVisible();
+});
+
+test('TC_TYPE_003 pencarian jenis usaha menyaring data berdasarkan nama secara case-insensitive', async ({ page }) => {
+    await login(page, accounts.officer);
+    await page.goto('/petugas/jenis-usaha');
+
+    const searchInput = page.getByPlaceholder('Cari jenis usaha...');
+    await searchInput.fill('makanan');
+
+    await expect(page.getByText('Makanan & Minuman')).toBeVisible();
+    await expect(page.getByText('Kerajinan Tangan')).toHaveCount(0);
+
+    // Case-insensitive test
+    await searchInput.fill('MAKANAN');
+    await expect(page.getByText('Makanan & Minuman')).toBeVisible();
+});
+
+test('TC_TYPE_004 pencarian tanpa hasil menampilkan pesan informatif', async ({ page }) => {
+    await login(page, accounts.officer);
+    await page.goto('/petugas/jenis-usaha');
+
+    const searchInput = page.getByPlaceholder('Cari jenis usaha...');
+    await searchInput.fill('jenisusahaxxx999');
+
+    await expect(page.getByText('Tidak ada jenis usaha yang cocok dengan pencarianmu.')).toBeVisible();
+    await expect(page.getByText('Makanan & Minuman')).toHaveCount(0);
+});
+
+test('TC_TYPE_005 mengosongkan kolom pencarian menampilkan seluruh data kembali', async ({ page }) => {
+    await login(page, accounts.officer);
+    await page.goto('/petugas/jenis-usaha');
+
+    const searchInput = page.getByPlaceholder('Cari jenis usaha...');
+    await searchInput.fill('makanan');
+    await expect(page.getByText('Makanan & Minuman')).toBeVisible();
+    await expect(page.getByText('Kerajinan Tangan')).toHaveCount(0);
+
+    await searchInput.fill('');
+    await expect(page.getByText('Makanan & Minuman')).toBeVisible();
+    await expect(page.getByText('Kerajinan Tangan')).toBeVisible();
+});
+
+test('TC_TYPE_006 validasi form tambah berjalan dan popup tetap terbuka jika input tidak valid', async ({ page }) => {
+    await login(page, accounts.officer);
+    await page.goto('/petugas/jenis-usaha');
+
+    await page.getByRole('button', { name: 'Tambah Jenis Usaha' }).click();
+
+    const modal = page.getByRole('dialog');
+    await expect(modal).toBeVisible();
+
+    // 1. Submit kosong
+    await modal.getByRole('button', { name: 'Tambah', exact: true }).click();
+    await expect(modal.getByRole('alert')).toContainText('Nama jenis usaha wajib diisi.');
+    await expect(modal).toBeVisible();
+
+    // 2. Submit nama duplikat yang sudah ada
+    await modal.getByPlaceholder('Contoh: Perikanan').fill('Makanan & Minuman');
+    await modal.getByRole('button', { name: 'Tambah', exact: true }).click();
+    await expect(modal.getByRole('alert')).toBeVisible();
+    await expect(modal).toBeVisible();
+
+    // 3. Tombol Batal menutup popup
+    await modal.getByRole('button', { name: 'Batal' }).click();
+    await expect(modal).toHaveCount(0);
+});
+
+test('TC_TYPE_007 petugas berhasil mengedit jenis usaha dan data berubah', async ({ page }) => {
+    const originalName = `Usaha Baru ${Date.now()}`;
+    const updatedName = `Usaha Diedit ${Date.now()}`;
+
+    await login(page, accounts.officer);
+    await page.goto('/petugas/jenis-usaha');
+
+    // Buat data baru
+    await page.getByRole('button', { name: 'Tambah Jenis Usaha' }).click();
+    await page.getByPlaceholder('Contoh: Perikanan').fill(originalName);
+    await page.getByRole('button', { name: 'Tambah', exact: true }).click();
+    await expect(page.getByText(originalName)).toBeVisible();
+
+    // Klik Edit pada data yang dipilih
+    const row = page.locator('div.rounded-xl.border').filter({ hasText: originalName });
+    await row.getByRole('button', { name: 'Edit' }).click();
+
+    const modal = page.getByRole('dialog');
+    await expect(modal).toBeVisible();
+    await expect(modal.getByRole('heading', { name: 'Edit Jenis Usaha' })).toBeVisible();
+    await expect(modal.getByPlaceholder('Contoh: Perikanan')).toHaveValue(originalName);
+
+    // Edit nama dan simpan
+    await modal.getByPlaceholder('Contoh: Perikanan').fill(updatedName);
+    await modal.getByRole('button', { name: 'Simpan Perubahan' }).click();
+
+    // Popup tertutup dan data berubah
+    await expect(modal).toHaveCount(0);
+    await expect(page.getByText('Jenis usaha berhasil diperbarui.')).toBeVisible();
+    await expect(page.getByText(updatedName)).toBeVisible();
+    await expect(page.getByText(originalName)).toHaveCount(0);
+});
+
+test('TC_TYPE_008 pembatalan popup edit tidak menyimpan perubahan data', async ({ page }) => {
+    const name = `Usaha Tetap ${Date.now()}`;
+
+    await login(page, accounts.officer);
+    await page.goto('/petugas/jenis-usaha');
+
+    // Buat data baru
+    await page.getByRole('button', { name: 'Tambah Jenis Usaha' }).click();
+    await page.getByPlaceholder('Contoh: Perikanan').fill(name);
+    await page.getByRole('button', { name: 'Tambah', exact: true }).click();
+    await expect(page.getByText(name)).toBeVisible();
+
+    // Buka Edit lalu batalkan
+    const row = page.locator('div.rounded-xl.border').filter({ hasText: name });
+    await row.getByRole('button', { name: 'Edit' }).click();
+
+    const modal = page.getByRole('dialog');
+    await expect(modal).toBeVisible();
+    await modal.getByPlaceholder('Contoh: Perikanan').fill('Tidak Boleh Tersimpan');
+    await modal.getByRole('button', { name: 'Batal' }).click();
+
+    await expect(modal).toHaveCount(0);
+    await expect(page.getByText(name)).toBeVisible();
+    await expect(page.getByText('Tidak Boleh Tersimpan')).toHaveCount(0);
+});
+
+test('TC_TYPE_009 dialog konfirmasi hapus berfungsi dan jenis usaha dapat dihapus', async ({ page }) => {
+    const name = `Usaha Hapus ${Date.now()}`;
+
+    await login(page, accounts.officer);
+    await page.goto('/petugas/jenis-usaha');
+
+    // Buat data baru yang belum terhubung dengan UMKM
+    await page.getByRole('button', { name: 'Tambah Jenis Usaha' }).click();
+    await page.getByPlaceholder('Contoh: Perikanan').fill(name);
+    await page.getByRole('button', { name: 'Tambah', exact: true }).click();
+    await expect(page.getByText(name)).toBeVisible();
+
+    // Klik tombol hapus
+    const row = page.locator('div.rounded-xl.border').filter({ hasText: name });
+    await row.getByRole('button', { name: `Hapus ${name}` }).click();
+
+    // Dialog konfirmasi muncul
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole('heading', { name: 'Hapus Jenis Usaha' })).toBeVisible();
+
+    // Uji tombol batal tidak menghapus data
+    await dialog.getByRole('button', { name: 'Batal' }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(page.getByText(name)).toBeVisible();
+
+    // Buka kembali dialog hapus lalu konfirmasi hapus
+    await row.getByRole('button', { name: `Hapus ${name}` }).click();
+    const confirmDialog = page.getByRole('dialog');
+    await expect(confirmDialog).toBeVisible();
+    await confirmDialog.getByRole('button', { name: 'Hapus', exact: true }).click();
+
+    await expect(confirmDialog).toHaveCount(0);
+    await expect(page.getByText('Jenis usaha berhasil dihapus.')).toBeVisible();
+    await expect(page.getByText(name)).toHaveCount(0);
+});
+
+test('TC_TYPE_010 jenis usaha yang berelasi dengan UMKM tidak dapat dihapus dan ditangani dengan benar', async ({ page }) => {
+    await login(page, accounts.officer);
+    await page.goto('/petugas/jenis-usaha');
+
+    // "Makanan & Minuman" terhubung dengan data UMKM "Keripik Bu Sari"
+    const row = page.locator('div.rounded-xl.border').filter({ hasText: 'Makanan & Minuman' });
+    await expect(row).toBeVisible();
+
+    // Buka dialog konfirmasi hapus
+    await row.getByRole('button', { name: 'Hapus' }).click();
+
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText('Perhatian')).toBeVisible();
+
+    // Klik tombol Hapus dalam dialog konfirmasi
+    await dialog.getByRole('button', { name: 'Hapus', exact: true }).click();
+
+    // Menampilkan pesan error penolakan dan data tidak terhapus
+    await expect(dialog.getByRole('alert')).toContainText('masih digunakan oleh data UMKM');
+
+    // Tutup dialog
+    await dialog.getByRole('button', { name: 'Batal' }).click();
+    await expect(dialog).toHaveCount(0);
+
+    // Data Makanan & Minuman tetap ada
+    await expect(page.getByText('Makanan & Minuman')).toBeVisible();
+});
+
+test('TC_TYPE_011 status jenis usaha dapat diaktifkan kembali setelah dinonaktifkan', async ({ page }) => {
+    const name = `Usaha Reaktif ${Date.now()}`;
+
+    await login(page, accounts.officer);
+    await page.goto('/petugas/jenis-usaha');
+
+    await page.getByRole('button', { name: 'Tambah Jenis Usaha' }).click();
+    await page.getByPlaceholder('Contoh: Perikanan').fill(name);
+    await page.getByRole('button', { name: 'Tambah', exact: true }).click();
+
+    const row = page.locator('div.rounded-xl.border').filter({ hasText: name });
+    await row.getByRole('button', { name: 'Nonaktifkan' }).click();
+    await expect(row.getByText('Nonaktif', { exact: true })).toBeVisible();
+
+    await row.getByRole('button', { name: 'Aktifkan' }).click();
+    await expect(row.getByText('Aktif', { exact: true })).toBeVisible();
+});
+
+test('TC_TYPE_012 pemilik UMKM ditolak dari halaman kelola jenis usaha', async ({ page }) => {
+    await login(page, accounts.owner);
+    const ownerRes = await page.goto('/petugas/jenis-usaha');
+    expect(ownerRes.status()).toBe(403);
+});
+
+test('TC_TYPE_013 kepala desa ditolak dari halaman kelola jenis usaha', async ({ page }) => {
+    await login(page, accounts.villageHead);
+    const headRes = await page.goto('/petugas/jenis-usaha');
+    expect(headRes.status()).toBe(403);
 });
 
 test('TC_CAT_002 petugas menambah kategori kendala', async ({ page }) => {
