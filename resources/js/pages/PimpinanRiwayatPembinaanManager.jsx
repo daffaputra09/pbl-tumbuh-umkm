@@ -37,12 +37,10 @@ function formatDate(dateStr) {
 
 export default function PimpinanRiwayatPembinaanManager({
     history: initialHistory = [],
-    businesses = [],
 }) {
     const [history] = useState(initialHistory || []);
 
     // Filters
-    const [umkmFilter, setUmkmFilter] = useState('all');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
@@ -50,28 +48,9 @@ export default function PimpinanRiwayatPembinaanManager({
     // Detail Modal
     const [detailItem, setDetailItem] = useState(null);
 
-    // Combine distinct businesses for the dropdown filter
-    const umkmOptions = useMemo(() => {
-        const map = new Map();
-        businesses.forEach((b) => {
-            if (b.name) map.set(String(b.id || b.name), { id: b.id, name: b.name });
-        });
-        history.forEach((h) => {
-            if (h.umkm_name && !map.has(String(h.business_id || h.umkm_name))) {
-                map.set(String(h.business_id || h.umkm_name), {
-                    id: h.business_id,
-                    name: h.umkm_name,
-                });
-            }
-        });
-        return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
-    }, [businesses, history]);
-
-    const hasActiveFilter =
-        umkmFilter !== 'all' || startDate !== '' || endDate !== '' || searchQuery.trim() !== '';
+    const hasActiveFilter = startDate !== '' || endDate !== '' || searchQuery.trim() !== '';
 
     function resetFilters() {
-        setUmkmFilter('all');
         setStartDate('');
         setEndDate('');
         setSearchQuery('');
@@ -79,13 +58,7 @@ export default function PimpinanRiwayatPembinaanManager({
 
     // Filtered history items
     const filteredHistory = useMemo(() => {
-        return history.filter((item) => {
-            if (umkmFilter !== 'all') {
-                const matchId = String(item.business_id) === String(umkmFilter);
-                const matchName = item.umkm_name === umkmFilter;
-                if (!matchId && !matchName) return false;
-            }
-
+        const list = history.filter((item) => {
             if (startDate && item.held_on && item.held_on < startDate) {
                 return false;
             }
@@ -117,26 +90,33 @@ export default function PimpinanRiwayatPembinaanManager({
             }
             return (b.id || 0) - (a.id || 0);
         });
-    }, [history, umkmFilter, startDate, endDate, searchQuery]);
+    }, [history, startDate, endDate, searchQuery]);
 
-    // Unique count of businesses assisted
+    const completedCount = useMemo(
+        () => history.filter((h) => h.status === 'completed').length,
+        [history]
+    );
+
+    // Unique count of businesses assisted (completed only)
     const uniqueAssistedCount = useMemo(() => {
         const set = new Set();
-        history.forEach((h) => {
-            if (h.business_id) set.add(h.business_id);
-            else if (h.umkm_name) set.add(h.umkm_name);
-        });
+        history
+            .filter((h) => h.status === 'completed')
+            .forEach((h) => {
+                if (h.business_id) set.add(h.business_id);
+                else if (h.umkm_name) set.add(h.umkm_name);
+            });
         return set.size;
     }, [history]);
 
-    // Sessions held this month
+    // Sessions held this month (completed only)
     const thisMonthCount = useMemo(() => {
         const now = new Date();
         const currentYear = now.getFullYear();
         const currentMonth = now.getMonth();
 
         return history.filter((h) => {
-            if (!h.held_on) return false;
+            if (h.status !== 'completed' || !h.held_on) return false;
             const d = new Date(h.held_on);
             return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
         }).length;
@@ -165,7 +145,7 @@ export default function PimpinanRiwayatPembinaanManager({
                         </span>
                         <div>
                             <p className="text-xs font-medium text-slate-500">Total Pembinaan Selesai</p>
-                            <p className="text-2xl font-bold text-ink">{history.length}</p>
+                            <p className="text-2xl font-bold text-ink">{completedCount}</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -196,28 +176,9 @@ export default function PimpinanRiwayatPembinaanManager({
             </div>
 
             {/* Filter Toolbar */}
-            <div className="rounded-xl border border-border bg-white p-4 shadow-xs space-y-3">
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3 sm:gap-3 flex-1 max-w-3xl">
-                        {/* Filter UMKM */}
-                        <div>
-                            <label className="mb-1 block text-xs font-medium text-slate-600">
-                                Filter per UMKM
-                            </label>
-                            <select
-                                value={umkmFilter}
-                                onChange={(e) => setUmkmFilter(e.target.value)}
-                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-ink shadow-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                            >
-                                <option value="all">Semua UMKM</option>
-                                {umkmOptions.map((opt) => (
-                                    <option key={opt.id || opt.name} value={opt.id || opt.name}>
-                                        {opt.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
+            <div className="rounded-xl border border-border bg-white p-4 shadow-xs">
+                <div className="flex flex-col gap-3 md:flex-row md:items-end">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:w-[28rem] md:shrink-0">
                         {/* Filter Tanggal Mulai */}
                         <div>
                             <label className="mb-1 block text-xs font-medium text-slate-600">
@@ -246,8 +207,8 @@ export default function PimpinanRiwayatPembinaanManager({
                     </div>
 
                     {/* Search & Reset */}
-                    <div className="flex items-end gap-2">
-                        <div className="relative flex-1 sm:w-64">
+                    <div className="flex min-w-0 flex-1 items-end gap-2">
+                        <div className="relative min-w-0 flex-1">
                             <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                                 <HugeiconsIcon icon={Search01Icon} size={16} />
                             </span>
@@ -336,10 +297,22 @@ export default function PimpinanRiwayatPembinaanManager({
                                             )}
                                         </td>
                                         <td className="px-4 py-3">
-                                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-800">
-                                                <HugeiconsIcon icon={Tick01Icon} size={12} strokeWidth={2.5} />
-                                                Selesai
-                                            </span>
+                                            {item.status === 'completed' ? (
+                                                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-800">
+                                                    <HugeiconsIcon icon={Tick01Icon} size={12} strokeWidth={2.5} />
+                                                    Selesai
+                                                </span>
+                                            ) : item.status === 'cancelled' ? (
+                                                <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-1 text-[11px] font-semibold text-red-700">
+                                                    <HugeiconsIcon icon={Cancel01Icon} size={12} strokeWidth={2.5} />
+                                                    Dibatalkan
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2.5 py-1 text-[11px] font-semibold text-sky-800">
+                                                    <HugeiconsIcon icon={Calendar01Icon} size={12} strokeWidth={2.5} />
+                                                    Dijadwalkan
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-4 py-3">
                                             <Button
@@ -367,7 +340,7 @@ export default function PimpinanRiwayatPembinaanManager({
                                             </p>
                                             <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
                                                 {hasActiveFilter
-                                                    ? 'Coba atur ulang pilihan filter UMKM atau tanggal pencarian.'
+                                                    ? 'Coba atur ulang rentang tanggal atau kata kunci pencarian.'
                                                     : 'Daftar riwayat pembinaan akan terisi setelah petugas desa mencatat hasil pembinaan.'}
                                             </p>
                                         </td>
@@ -487,10 +460,22 @@ export default function PimpinanRiwayatPembinaanManager({
                                         <span className="text-xs text-slate-500">
                                             Status Pelaksanaan:
                                         </span>
-                                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
-                                            <HugeiconsIcon icon={Tick01Icon} size={14} strokeWidth={2.5} />
-                                            Selesai Dilaksanakan
-                                        </span>
+                                        {detailItem.status === 'completed' ? (
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+                                                <HugeiconsIcon icon={Tick01Icon} size={14} strokeWidth={2.5} />
+                                                Selesai Dilaksanakan
+                                            </span>
+                                        ) : detailItem.status === 'cancelled' ? (
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+                                                <HugeiconsIcon icon={Cancel01Icon} size={14} strokeWidth={2.5} />
+                                                Dibatalkan
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
+                                                <HugeiconsIcon icon={Calendar01Icon} size={14} strokeWidth={2.5} />
+                                                Dijadwalkan
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
 

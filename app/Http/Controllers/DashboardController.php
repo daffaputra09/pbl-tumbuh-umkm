@@ -33,7 +33,10 @@ class DashboardController extends Controller
         $totalUmkm = Business::count();
         $umkmAktif = Business::whereIn('operational_status', ['active', 'aktif'])->count();
         $dataTerverifikasi = Business::whereIn('verification_status', ['verified', 'terverifikasi'])->count();
-        $sudahDibina = CoachingSession::whereNotNull('business_id')->distinct('business_id')->count('business_id');
+        $sudahDibina = CoachingSession::where('status', 'completed')
+            ->whereNotNull('business_id')
+            ->distinct('business_id')
+            ->count('business_id');
 
         // 2. Grafik Tren Pendaftaran UMKM (12 Bulan Terakhir)
         $twelveMonthsAgo = CarbonImmutable::now()->subMonths(11)->startOfMonth();
@@ -132,7 +135,11 @@ class DashboardController extends Controller
             });
 
         // 6. Tabel Tindak Lanjut (UMKM yang perlu segera dibina)
-        $coachedBusinessIds = CoachingSession::pluck('business_id')->filter()->unique()->toArray();
+        $coachedBusinessIds = CoachingSession::where('status', 'completed')
+            ->pluck('business_id')
+            ->filter()
+            ->unique()
+            ->toArray();
 
         $tabelTindakLanjut = Business::query()
             ->whereNotIn('user_id', $coachedBusinessIds)
@@ -264,10 +271,10 @@ class DashboardController extends Controller
                             'level' => $cs->level,
                         ])->values()->all(),
                     ] : null,
-                    'coachingSession' => $b->coachingSessions->first() ? [
-                        'id' => $b->coachingSessions->first()->id,
-                        'status' => $b->coachingSessions->first()->status,
-                        'heldOn' => $b->coachingSessions->first()->held_on?->toDateString() ?: CarbonImmutable::now()->toDateString(),
+                    'coachingSession' => ($preferredSession = $b->coachingSessions->firstWhere('status', 'completed') ?? $b->coachingSessions->first()) ? [
+                        'id' => $preferredSession->id,
+                        'status' => $preferredSession->status,
+                        'heldOn' => $preferredSession->held_on?->toDateString() ?: CarbonImmutable::now()->toDateString(),
                     ] : null,
                 ];
             })->values()->all(),

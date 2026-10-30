@@ -62,7 +62,7 @@ export default function UmkmRiwayatPembinaanManager({
         [sessions]
     );
     const approvedCount = useMemo(
-        () => sessions.filter((s) => s.status === 'approved').length,
+        () => sessions.filter((s) => s.status === 'approved' || s.status === 'scheduled').length,
         [sessions]
     );
 
@@ -80,7 +80,11 @@ export default function UmkmRiwayatPembinaanManager({
     const filteredSessions = useMemo(() => {
         return sessions.filter((item) => {
             if (statusFilter !== 'all') {
-                if (item.status !== statusFilter) return false;
+                if (statusFilter === 'approved') {
+                    if (item.status !== 'approved' && item.status !== 'scheduled') return false;
+                } else if (item.status !== statusFilter) {
+                    return false;
+                }
             }
 
             const itemDate = item.held_on || item.planned_on;
@@ -359,9 +363,9 @@ export default function UmkmRiwayatPembinaanManager({
                         <div className="grid grid-cols-1 gap-4">
                             {filteredSessions.map((session) => {
                                 const isCompleted = session.status === 'completed';
-                                const displayDate = isCompleted
-                                    ? formatDate(session.held_on)
-                                    : formatDate(session.planned_on);
+                                const isScheduled = session.status === 'scheduled';
+                                const isCancelled = session.status === 'cancelled';
+                                const displayDate = formatDate(session.held_on || session.planned_on);
 
                                 return (
                                     <motion.div
@@ -381,6 +385,16 @@ export default function UmkmRiwayatPembinaanManager({
                                                                 <HugeiconsIcon icon={CheckmarkCircle02Icon} size={14} />
                                                                 Terlaksana
                                                             </span>
+                                                        ) : isCancelled ? (
+                                                            <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
+                                                                <HugeiconsIcon icon={Cancel01Icon} size={14} />
+                                                                Dibatalkan
+                                                            </span>
+                                                        ) : isScheduled ? (
+                                                            <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
+                                                                <HugeiconsIcon icon={Clock01Icon} size={14} />
+                                                                Dijadwalkan
+                                                            </span>
                                                         ) : (
                                                             <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
                                                                 <HugeiconsIcon icon={Clock01Icon} size={14} />
@@ -390,7 +404,7 @@ export default function UmkmRiwayatPembinaanManager({
 
                                                         <span className="inline-flex items-center gap-1.5 text-xs text-slate-500">
                                                             <HugeiconsIcon icon={Calendar01Icon} size={14} className="text-slate-400" />
-                                                            {isCompleted ? 'Pelaksanaan:' : 'Rencana:'} <strong className="font-semibold text-ink">{displayDate}</strong>
+                                                            {isCompleted ? 'Pelaksanaan:' : 'Jadwal:'} <strong className="font-semibold text-ink">{displayDate}</strong>
                                                         </span>
 
                                                         <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
@@ -407,7 +421,7 @@ export default function UmkmRiwayatPembinaanManager({
                                                         <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-600 sm:text-sm">
                                                             {isCompleted
                                                                 ? session.outcome || session.description || 'Pembinaan telah selesai dilaksanakan oleh petugas desa.'
-                                                                : session.planned_activity || 'Pembinaan telah disetujui oleh Kepala Desa dan siap dilaksanakan.'}
+                                                                : session.description || session.planned_activity || 'Pembinaan telah disetujui oleh Kepala Desa dan siap dilaksanakan.'}
                                                         </p>
                                                     </div>
 
@@ -480,6 +494,16 @@ export default function UmkmRiwayatPembinaanManager({
                                                 <HugeiconsIcon icon={CheckmarkCircle02Icon} size={13} />
                                                 Terlaksana
                                             </span>
+                                        ) : selectedSession.status === 'cancelled' ? (
+                                            <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-700">
+                                                <HugeiconsIcon icon={Cancel01Icon} size={13} />
+                                                Dibatalkan
+                                            </span>
+                                        ) : selectedSession.status === 'scheduled' ? (
+                                            <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-2.5 py-0.5 text-xs font-semibold text-sky-700">
+                                                <HugeiconsIcon icon={Clock01Icon} size={13} />
+                                                Dijadwalkan
+                                            </span>
                                         ) : (
                                             <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-2.5 py-0.5 text-xs font-semibold text-sky-700">
                                                 <HugeiconsIcon icon={Clock01Icon} size={13} />
@@ -537,9 +561,7 @@ export default function UmkmRiwayatPembinaanManager({
                                             <HugeiconsIcon icon={Calendar01Icon} size={16} className="text-brand" />
                                             <span>
                                                 {formatDate(
-                                                    selectedSession.status === 'completed'
-                                                        ? selectedSession.held_on
-                                                        : selectedSession.planned_on
+                                                    selectedSession.held_on || selectedSession.planned_on
                                                 )}
                                             </span>
                                         </div>

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Business;
 use App\Models\CoachingSession;
 use App\Models\FollowUp;
 use Illuminate\Http\JsonResponse;
@@ -56,12 +55,7 @@ class CoachingSessionController extends Controller
             ];
         });
 
-        $businesses = Business::query()
-            ->select('user_id as id', 'business_name as name')
-            ->orderBy('business_name')
-            ->get();
-
-        return view('petugas.catat-pembinaan', compact('queue', 'history', 'businesses'));
+        return view('petugas.catat-pembinaan', compact('queue', 'history'));
     }
 
     public function pimpinanIndex(): View
@@ -89,12 +83,7 @@ class CoachingSessionController extends Controller
             ];
         });
 
-        $businesses = Business::query()
-            ->select('user_id as id', 'business_name as name')
-            ->orderBy('business_name')
-            ->get();
-
-        return view('pimpinan.riwayat-pembinaan', compact('history', 'businesses'));
+        return view('pimpinan.riwayat-pembinaan', compact('history'));
     }
 
     public function store(Request $request): JsonResponse
