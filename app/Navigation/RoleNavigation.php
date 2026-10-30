@@ -101,7 +101,7 @@ class RoleNavigation
             ['title' => 'Analisis', 'items' => [
                 ['label' => 'Pengelompokan', 'href' => '/petugas/pengelompokan', 'icon' => 'Analytics01Icon'],
                 ['label' => 'Rekomendasi', 'href' => '/petugas/rekomendasi', 'icon' => 'GiftIcon'],
-                ['label' => 'Laporan', 'href' => null, 'icon' => 'FileExportIcon'],
+                ['label' => 'Laporan', 'href' => '/petugas/laporan', 'icon' => 'FileExportIcon'],
             ]],
             ['title' => 'Akun', 'items' => [
                 ['label' => 'Profil akun', 'href' => '/akun', 'icon' => 'User02Icon'],
@@ -122,7 +122,7 @@ class RoleNavigation
                 ['label' => 'Data UMKM', 'href' => null, 'icon' => 'Store01Icon'],
                 ['label' => 'Pengelompokan', 'href' => '/pimpinan/pengelompokan', 'icon' => 'Analytics01Icon'],
                 ['label' => 'Rekomendasi', 'href' => '/pimpinan/rekomendasi', 'icon' => 'GiftIcon'],
-                ['label' => 'Laporan', 'href' => null, 'icon' => 'FileExportIcon'],
+                ['label' => 'Laporan', 'href' => '/pimpinan/laporan', 'icon' => 'FileExportIcon'],
             ]],
             ['title' => 'Keputusan', 'items' => [
                 ['label' => 'Persetujuan tindak lanjut', 'href' => '/pimpinan/persetujuan-tindak-lanjut', 'icon' => 'CheckListIcon'],
