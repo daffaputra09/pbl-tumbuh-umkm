@@ -192,6 +192,7 @@ export default function CatatPembinaanManager({
         e.preventDefault();
         setIsSubmitting(true);
         try {
+            const sessionStatus = formData.outcome?.trim() ? 'completed' : 'scheduled';
             const res = await apiFetch('/petugas/catat-pembinaan', {
                 method: 'POST',
                 body: JSON.stringify({
@@ -200,6 +201,7 @@ export default function CatatPembinaanManager({
                     held_on: formData.held_on,
                     description: formData.description,
                     outcome: formData.outcome,
+                    status: sessionStatus,
                 }),
             });
 
@@ -223,7 +225,11 @@ export default function CatatPembinaanManager({
             setHistory((prev) => [newSession, ...prev]);
             closeModal();
 
-            setSuccessMessage(`Pembinaan untuk "${selectedItem.umkm_name}" berhasil dicatat.`);
+            setSuccessMessage(
+                sessionStatus === 'completed'
+                    ? `Pembinaan untuk "${selectedItem.umkm_name}" berhasil dicatat dan diselesaikan.`
+                    : `Jadwal pembinaan untuk "${selectedItem.umkm_name}" berhasil disimpan (terjadwal).`
+            );
             setErrorMessage('');
             setTimeout(() => setSuccessMessage(''), 6000);
         } catch (error) {

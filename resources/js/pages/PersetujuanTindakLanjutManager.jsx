@@ -161,7 +161,7 @@ function DetailModal({ item, onClose, onApprove, onReject }) {
                             <p className="text-sm leading-relaxed text-ink">{item.submission_note}</p>
                         </div>
 
-                        {!isPending && item.decision_note && (
+                        {!isPending && (item.decision_note || item.decided_by_name) && (
                             <div
                                 className={cn(
                                     'rounded-xl p-4 border',
@@ -185,12 +185,19 @@ function DetailModal({ item, onClose, onApprove, onReject }) {
                                         Catatan Keputusan ({isApproved ? 'Disetujui' : 'Ditolak'})
                                     </p>
                                 </div>
-                                <p className="text-sm leading-relaxed text-ink">{item.decision_note}</p>
-                                {item.decided_at && (
-                                    <p className="text-xs text-muted-foreground mt-2">
-                                        Tanggal Keputusan: {item.decided_at}
-                                    </p>
+                                {item.decision_note && (
+                                    <p className="text-sm leading-relaxed text-ink">{item.decision_note}</p>
                                 )}
+                                <div className="mt-2 space-y-0.5 text-xs text-muted-foreground">
+                                    {item.decided_by_name && (
+                                        <p>
+                                            Diputuskan oleh: <strong className="text-slate-700">{item.decided_by_name}</strong>
+                                        </p>
+                                    )}
+                                    {item.decided_at && (
+                                        <p>Tanggal Keputusan: {item.decided_at}</p>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -370,7 +377,8 @@ export default function PersetujuanTindakLanjutManager({ queue: initialQueue = [
                 item.umkm_name?.toLowerCase().includes(q) ||
                 item.owner_name?.toLowerCase().includes(q) ||
                 item.recommended_program?.toLowerCase().includes(q) ||
-                item.submitted_by_name?.toLowerCase().includes(q)
+                item.submitted_by_name?.toLowerCase().includes(q) ||
+                item.decided_by_name?.toLowerCase().includes(q)
             );
         });
     }, [queue, statusFilter, searchQuery]);
@@ -427,6 +435,7 @@ export default function PersetujuanTindakLanjutManager({ queue: initialQueue = [
                                   status: finalStatus,
                                   decision_note: formData.decision_note,
                                   decided_at: new Date().toISOString().split('T')[0],
+                                  decided_by_name: 'Kepala Desa',
                               }
                             : item,
                     ),

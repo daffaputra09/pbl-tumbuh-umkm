@@ -9,6 +9,7 @@ import {
     Tick01Icon,
     Alert02Icon,
     Search01Icon,
+    User02Icon,
 } from '@hugeicons/core-free-icons';
 
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ import { cn } from '@/lib/utils';
 export default function TindakLanjutManager({ queue: initialQueue = [] }) {
     const [queue, setQueue] = useState(initialQueue);
     const [selectedItem, setSelectedItem] = useState(null);
+    const [detailItem, setDetailItem] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [statusFilter, setStatusFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
@@ -56,7 +58,9 @@ export default function TindakLanjutManager({ queue: initialQueue = [] }) {
                 item.umkm_name?.toLowerCase().includes(q) ||
                 item.owner_name?.toLowerCase().includes(q) ||
                 item.recommended_program?.toLowerCase().includes(q) ||
-                item.problem_category?.toLowerCase().includes(q)
+                item.problem_category?.toLowerCase().includes(q) ||
+                item.submitted_by_name?.toLowerCase().includes(q) ||
+                item.decided_by_name?.toLowerCase().includes(q)
             );
         });
     }, [queue, statusFilter, searchQuery]);
@@ -315,6 +319,19 @@ export default function TindakLanjutManager({ queue: initialQueue = [] }) {
                                                     {item.planned_activity}
                                                 </p>
                                             )}
+                                            {item.submitted_by_name && (
+                                                <p className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1">
+                                                    <HugeiconsIcon icon={User02Icon} size={12} />
+                                                    Pengaju: <span className="font-medium text-slate-700">{item.submitted_by_name}</span>
+                                                    {item.planned_on && ` • ${item.planned_on}`}
+                                                </p>
+                                            )}
+                                            {item.decided_by_name && (item.status === 'approved' || item.status === 'rejected') && (
+                                                <p className="text-[11px] text-slate-500 mt-0.5">
+                                                    Pemutus: <span className="font-medium text-slate-700">{item.decided_by_name}</span>
+                                                    {item.decided_at && ` (${item.decided_at})`}
+                                                </p>
+                                            )}
                                             {item.status === 'rejected' && item.decision_note && (
                                                 <p className="text-xs font-medium text-red-600 mt-1 flex items-center gap-1">
                                                     <HugeiconsIcon icon={Alert02Icon} size={12} />
@@ -332,10 +349,20 @@ export default function TindakLanjutManager({ queue: initialQueue = [] }) {
                                                     Usaha ini belum punya akun pelaku.
                                                 </span>
                                             ) : item.status === 'pending' ? (
-                                                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-800">
-                                                    <span className="size-1.5 rounded-full bg-amber-500 animate-pulse" />
-                                                    Menunggu Persetujuan
-                                                </span>
+                                                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-800">
+                                                        <span className="size-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                                        Menunggu Persetujuan
+                                                    </span>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        onClick={() => setDetailItem(item)}
+                                                        className="h-7 px-2 text-xs text-slate-500 hover:text-ink whitespace-nowrap"
+                                                    >
+                                                        Detail
+                                                    </Button>
+                                                </div>
                                             ) : item.status === 'approved' ? (
                                                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                                                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-800">
@@ -348,6 +375,14 @@ export default function TindakLanjutManager({ queue: initialQueue = [] }) {
                                                     >
                                                         Catat Pembinaan &rarr;
                                                     </a>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        onClick={() => setDetailItem(item)}
+                                                        className="h-7 px-2 text-xs text-slate-500 hover:text-ink whitespace-nowrap"
+                                                    >
+                                                        Detail
+                                                    </Button>
                                                 </div>
                                             ) : item.status === 'rejected' ? (
                                                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
@@ -368,6 +403,14 @@ export default function TindakLanjutManager({ queue: initialQueue = [] }) {
                                                             Ajukan Ulang
                                                         </Button>
                                                     )}
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        onClick={() => setDetailItem(item)}
+                                                        className="h-7 px-2 text-xs text-slate-500 hover:text-ink whitespace-nowrap"
+                                                    >
+                                                        Detail
+                                                    </Button>
                                                 </div>
                                             ) : null}
                                         </td>
@@ -478,6 +521,108 @@ export default function TindakLanjutManager({ queue: initialQueue = [] }) {
                                         </Button>
                                     </div>
                                 </form>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal Detail Pengajuan Tindak Lanjut */}
+            <AnimatePresence>
+                {detailItem && (
+                    <div className="fixed inset-0 z-50 flex flex-col justify-end lg:items-center lg:justify-center">
+                        <motion.button
+                            type="button"
+                            aria-label="Tutup modal"
+                            className="fixed inset-0 bg-ink/50 backdrop-blur-sm"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setDetailItem(null)}
+                        />
+                        <motion.div
+                            className="relative z-10 w-full rounded-t-2xl bg-white shadow-2xl lg:max-w-lg lg:rounded-2xl overflow-hidden"
+                            initial={{ y: '100%' }}
+                            animate={{ y: 0 }}
+                            exit={{ y: '100%' }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 40 }}
+                        >
+                            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+                                <div>
+                                    <h3 className="text-base font-bold text-ink">Detail Pengajuan Tindak Lanjut</h3>
+                                    <p className="text-xs text-muted-foreground">UMKM: {detailItem.umkm_name}</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setDetailItem(null)}
+                                    className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                                >
+                                    <HugeiconsIcon icon={Cancel01Icon} size={20} />
+                                </button>
+                            </div>
+                            <div className="px-5 py-5 space-y-3 max-h-[75vh] overflow-y-auto">
+                                <div className="rounded-xl bg-slate-50 p-4 space-y-2.5 text-xs text-ink">
+                                    <div>
+                                        <span className="text-muted-foreground uppercase font-semibold text-[10px]">Nama UMKM / Pemilik</span>
+                                        <p className="text-sm font-bold text-ink">{detailItem.umkm_name} ({detailItem.owner_name})</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-muted-foreground uppercase font-semibold text-[10px]">Rekomendasi Program</span>
+                                        <p className="font-semibold text-slate-700">{detailItem.recommended_program}</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-muted-foreground uppercase font-semibold text-[10px]">Rencana Kegiatan</span>
+                                        <p className="text-slate-700">{detailItem.planned_activity || '-'}</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-muted-foreground uppercase font-semibold text-[10px]">Tanggal Rencana</span>
+                                        <p className="text-slate-700">{detailItem.planned_on || '-'}</p>
+                                    </div>
+                                    {detailItem.submitted_by_name && (
+                                        <div>
+                                            <span className="text-muted-foreground uppercase font-semibold text-[10px]">Diajukan Oleh</span>
+                                            <p className="font-medium text-slate-700">{detailItem.submitted_by_name}</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {detailItem.submission_note && (
+                                    <div className="rounded-xl border border-slate-200 p-3.5 text-xs">
+                                        <span className="text-muted-foreground uppercase font-semibold text-[10px]">Catatan Pengajuan Petugas</span>
+                                        <p className="mt-1 text-slate-700 whitespace-pre-line">{detailItem.submission_note}</p>
+                                    </div>
+                                )}
+
+                                {(detailItem.status === 'approved' || detailItem.status === 'rejected') && (
+                                    <div
+                                        className={cn(
+                                            'rounded-xl border p-3.5 text-xs',
+                                            detailItem.status === 'approved'
+                                                ? 'border-emerald-200 bg-emerald-50/50'
+                                                : 'border-red-200 bg-red-50/50',
+                                        )}
+                                    >
+                                        <span className="uppercase font-semibold text-[10px] text-slate-600">
+                                            Keputusan Kepala Desa ({detailItem.status === 'approved' ? 'Disetujui' : 'Ditolak'})
+                                        </span>
+                                        {detailItem.decision_note && (
+                                            <p className="mt-1 text-slate-800 italic">"{detailItem.decision_note}"</p>
+                                        )}
+                                        <div className="mt-2 space-y-0.5 text-muted-foreground">
+                                            {detailItem.decided_by_name && (
+                                                <p>Diputuskan oleh: <strong>{detailItem.decided_by_name}</strong></p>
+                                            )}
+                                            {detailItem.decided_at && (
+                                                <p>Tanggal Keputusan: {detailItem.decided_at}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex items-center justify-end border-t border-border px-5 py-3 bg-slate-50">
+                                <Button variant="outline" size="sm" onClick={() => setDetailItem(null)}>
+                                    Tutup
+                                </Button>
                             </div>
                         </motion.div>
                     </div>

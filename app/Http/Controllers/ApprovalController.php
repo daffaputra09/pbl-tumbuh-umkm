@@ -9,7 +9,7 @@ class ApprovalController extends Controller
 {
     public function index()
     {
-        $queue = FollowUp::with(['business.owner', 'assistanceProgram', 'programRecommendation.assistanceProgram', 'submitter'])
+        $queue = FollowUp::with(['business.owner', 'assistanceProgram', 'programRecommendation.assistanceProgram', 'submitter', 'decider'])
             ->orderByRaw("CASE WHEN status = 'pending' THEN 0 WHEN status = 'approved' THEN 1 ELSE 2 END")
             ->latest('id')
             ->get()
@@ -30,6 +30,7 @@ class ApprovalController extends Controller
                     'status' => $followUp->status,
                     'submitted_by' => $followUp->submitted_by,
                     'submitted_by_name' => $followUp->submitter?->name ?? 'Petugas Desa',
+                    'decided_by_name' => $followUp->decider?->name ?? ($followUp->decided_at ? 'Kepala Desa' : null),
                     'decision_note' => $followUp->decision_note,
                     'decided_at' => $followUp->decided_at ? $followUp->decided_at->format('Y-m-d') : null,
                     'created_at' => $followUp->created_at ? $followUp->created_at->format('Y-m-d') : null,
