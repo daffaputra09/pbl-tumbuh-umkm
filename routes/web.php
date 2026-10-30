@@ -107,6 +107,7 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(functio
 
     Route::get('/petugas/pengelompokan', [StaffInsightController::class, 'grouping'])->name('petugas.pengelompokan');
     Route::get('/petugas/rekomendasi', [StaffInsightController::class, 'recommendations'])->name('petugas.rekomendasi');
+    Route::get('/petugas/laporan', [StaffInsightController::class, 'summaryReport'])->name('petugas.laporan');
 
     Route::get('/petugas/tindak-lanjut', [FollowUpController::class, 'index'])->name('petugas.tindak-lanjut');
     Route::post('/petugas/tindak-lanjut', [FollowUpController::class, 'store'])->name('petugas.tindak-lanjut.store');
@@ -130,6 +131,7 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_VILLAGE_HEAD])->group(fu
     Route::get('/pimpinan/dashboard', [AuthController::class, 'dashboardPimpinan'])->name('pimpinan.dashboard');
     Route::get('/pimpinan/pengelompokan', [StaffInsightController::class, 'grouping'])->name('pimpinan.pengelompokan');
     Route::get('/pimpinan/rekomendasi', [StaffInsightController::class, 'recommendations'])->name('pimpinan.rekomendasi');
+    Route::get('/pimpinan/laporan', [StaffInsightController::class, 'summaryReport'])->name('pimpinan.laporan');
     Route::get('/pimpinan/persetujuan-tindak-lanjut', [ApprovalController::class, 'index'])->name('pimpinan.persetujuan-tindak-lanjut');
     Route::patch('/pimpinan/persetujuan-tindak-lanjut/{followUp}', [ApprovalController::class, 'update'])->name('pimpinan.persetujuan-tindak-lanjut.update');
     Route::get('/pimpinan/riwayat-pembinaan', [CoachingSessionController::class, 'pimpinanIndex'])->name('pimpinan.riwayat-pembinaan');
