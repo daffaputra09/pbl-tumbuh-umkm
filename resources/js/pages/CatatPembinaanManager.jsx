@@ -41,14 +41,12 @@ function formatDate(dateStr) {
 export default function CatatPembinaanManager({
     queue: initialQueue = [],
     history: initialHistory = [],
-    businesses = [],
 }) {
     const [queue, setQueue] = useState(initialQueue || []);
     const [history, setHistory] = useState(initialHistory || []);
     const [activeTab, setActiveTab] = useState('queue'); // 'queue' | 'history'
 
     // Filters
-    const [umkmFilter, setUmkmFilter] = useState('all');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
@@ -56,11 +54,17 @@ export default function CatatPembinaanManager({
     // Modals
     const [selectedItem, setSelectedItem] = useState(null); // for recording form
     const [detailItem, setDetailItem] = useState(null); // for viewing history detail
-    const [completingItem, setCompletingItem] = useState(null); // for completing a scheduled session
-    const [cancellingItem, setCancellingItem] = useState(null); // for cancelling a scheduled session
-    const [outcomeInput, setOutcomeInput] = useState('');
+    const [updateItem, setUpdateItem] = useState(null); // for updating status/outcome
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
     const [formData, setFormData] = useState({
+        title: '',
+        held_on: '',
+        description: '',
+        outcome: '',
+    });
+    const [updateFormData, setUpdateFormData] = useState({
+        status: 'completed',
         title: '',
         held_on: '',
         description: '',
@@ -69,36 +73,9 @@ export default function CatatPembinaanManager({
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
 
-    // Combine distinct businesses for the dropdown filter
-    const umkmOptions = useMemo(() => {
-        const map = new Map();
-        businesses.forEach((b) => {
-            if (b.name) map.set(String(b.id || b.name), { id: b.id, name: b.name });
-        });
-        queue.forEach((q) => {
-            if (q.umkm_name && !map.has(String(q.business_id || q.umkm_name))) {
-                map.set(String(q.business_id || q.umkm_name), {
-                    id: q.business_id,
-                    name: q.umkm_name,
-                });
-            }
-        });
-        history.forEach((h) => {
-            if (h.umkm_name && !map.has(String(h.business_id || h.umkm_name))) {
-                map.set(String(h.business_id || h.umkm_name), {
-                    id: h.business_id,
-                    name: h.umkm_name,
-                });
-            }
-        });
-        return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
-    }, [businesses, queue, history]);
-
-    const hasActiveFilter =
-        umkmFilter !== 'all' || startDate !== '' || endDate !== '' || searchQuery.trim() !== '';
+    const hasActiveFilter = startDate !== '' || endDate !== '' || searchQuery.trim() !== '';
 
     function resetFilters() {
-        setUmkmFilter('all');
         setStartDate('');
         setEndDate('');
         setSearchQuery('');
@@ -107,12 +84,6 @@ export default function CatatPembinaanManager({
     // Filtered queue items
     const filteredQueue = useMemo(() => {
         return queue.filter((item) => {
-            if (umkmFilter !== 'all') {
-                const matchId = String(item.business_id) === String(umkmFilter);
-                const matchName = item.umkm_name === umkmFilter;
-                if (!matchId && !matchName) return false;
-            }
-
             if (startDate && item.planned_on && item.planned_on < startDate) {
                 return false;
             }
@@ -132,17 +103,11 @@ export default function CatatPembinaanManager({
 
             return true;
         });
-    }, [queue, umkmFilter, startDate, endDate, searchQuery]);
+    }, [queue, startDate, endDate, searchQuery]);
 
     // Filtered history items
     const filteredHistory = useMemo(() => {
         return history.filter((item) => {
-            if (umkmFilter !== 'all') {
-                const matchId = String(item.business_id) === String(umkmFilter);
-                const matchName = item.umkm_name === umkmFilter;
-                if (!matchId && !matchName) return false;
-            }
-
             if (startDate && item.held_on && item.held_on < startDate) {
                 return false;
             }
@@ -164,15 +129,22 @@ export default function CatatPembinaanManager({
 
             return true;
         });
-    }, [history, umkmFilter, startDate, endDate, searchQuery]);
+    }, [history, startDate, endDate, searchQuery]);
 
-    // Unique count of businesses assisted
+    const completedCount = useMemo(
+        () => history.filter((h) => h.status === 'completed').length,
+        [history]
+    );
+
+    // Unique count of businesses assisted (completed only)
     const uniqueAssistedCount = useMemo(() => {
         const set = new Set();
-        history.forEach((h) => {
-            if (h.business_id) set.add(h.business_id);
-            else if (h.umkm_name) set.add(h.umkm_name);
-        });
+        history
+            .filter((h) => h.status === 'completed')
+            .forEach((h) => {
+                if (h.business_id) set.add(h.business_id);
+                else if (h.umkm_name) set.add(h.umkm_name);
+            });
         return set.size;
     }, [history]);
 
@@ -191,8 +163,29 @@ export default function CatatPembinaanManager({
         setSelectedItem(null);
     }
 
+    function openUpdateModal(item, initialStatus = 'completed') {
+        setDetailItem(null);
+        setUpdateItem(item);
+        setUpdateFormData({
+            status: initialStatus,
+            title: item.title || '',
+            held_on: item.held_on || new Date().toISOString().split('T')[0],
+            description: item.description || '',
+            outcome: item.outcome || '',
+        });
+    }
+
+    function closeUpdateModal() {
+        if (isUpdating) return;
+        setUpdateItem(null);
+    }
+
     function handleInputChange(e) {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    }
+
+    function handleUpdateInputChange(e) {
+        setUpdateFormData({ ...updateFormData, [e.target.name]: e.target.value });
     }
 
     async function handleSubmit(e) {
@@ -223,7 +216,7 @@ export default function CatatPembinaanManager({
                 held_on: formData.held_on,
                 description: formData.description,
                 outcome: formData.outcome,
-                status: sessionStatus,
+                status: 'scheduled',
                 recorded_by_name: 'Petugas Desa',
                 created_at: new Date().toISOString(),
             };
@@ -247,75 +240,51 @@ export default function CatatPembinaanManager({
         }
     }
 
-    async function handleCompleteSession(e) {
+    async function handleUpdateSubmit(e) {
         e.preventDefault();
-        if (!outcomeInput.trim()) {
-            setErrorMessage('Hasil (outcome) pembinaan wajib diisi saat menyelesaikan pembinaan.');
-            return;
-        }
-        setIsSubmitting(true);
+        if (!updateItem) return;
+        setIsUpdating(true);
         try {
-            const res = await apiFetch(`/petugas/catat-pembinaan/${completingItem.id}`, {
+            const res = await apiFetch(`/petugas/catat-pembinaan/${updateItem.id}`, {
                 method: 'PATCH',
                 body: JSON.stringify({
-                    status: 'completed',
-                    outcome: outcomeInput,
+                    status: updateFormData.status,
+                    title: updateFormData.title,
+                    held_on: updateFormData.held_on,
+                    description: updateFormData.description,
+                    outcome: updateFormData.outcome,
                 }),
             });
 
             const updatedSession = res?.session || {
-                ...completingItem,
-                status: 'completed',
-                outcome: outcomeInput,
+                ...updateItem,
+                status: updateFormData.status,
+                title: updateFormData.title,
+                held_on: updateFormData.held_on,
+                description: updateFormData.description,
+                outcome: updateFormData.outcome,
             };
 
             setHistory((prev) =>
-                prev.map((item) => (item.id === completingItem.id ? { ...item, ...updatedSession } : item))
+                prev.map((item) => (item.id === updateItem.id ? updatedSession : item))
             );
-            if (detailItem && detailItem.id === completingItem.id) {
-                setDetailItem((prev) => ({ ...prev, ...updatedSession }));
-            }
-            setCompletingItem(null);
-            setOutcomeInput('');
-            setSuccessMessage(`Pembinaan "${completingItem.title}" berhasil ditandai selesai.`);
+            setUpdateItem(null);
+
+            setSuccessMessage(
+                res?.message ||
+                    (updateFormData.status === 'completed'
+                        ? `Pembinaan untuk "${updateItem.umkm_name}" berhasil ditandai selesai beserta hasilnya.`
+                        : updateFormData.status === 'cancelled'
+                          ? `Jadwal pembinaan untuk "${updateItem.umkm_name}" berhasil dibatalkan.`
+                          : `Status pembinaan untuk "${updateItem.umkm_name}" berhasil diperbarui.`)
+            );
             setErrorMessage('');
             setTimeout(() => setSuccessMessage(''), 6000);
         } catch (error) {
             setErrorMessage(error.message || 'Gagal memperbarui status pembinaan.');
+            setSuccessMessage('');
         } finally {
-            setIsSubmitting(false);
-        }
-    }
-
-    async function handleCancelSession() {
-        setIsSubmitting(true);
-        try {
-            const res = await apiFetch(`/petugas/catat-pembinaan/${cancellingItem.id}`, {
-                method: 'PATCH',
-                body: JSON.stringify({
-                    status: 'cancelled',
-                }),
-            });
-
-            const updatedSession = res?.session || {
-                ...cancellingItem,
-                status: 'cancelled',
-            };
-
-            setHistory((prev) =>
-                prev.map((item) => (item.id === cancellingItem.id ? { ...item, ...updatedSession } : item))
-            );
-            if (detailItem && detailItem.id === cancellingItem.id) {
-                setDetailItem((prev) => ({ ...prev, ...updatedSession }));
-            }
-            setCancellingItem(null);
-            setSuccessMessage(`Jadwal pembinaan "${cancellingItem.title}" berhasil dibatalkan.`);
-            setErrorMessage('');
-            setTimeout(() => setSuccessMessage(''), 6000);
-        } catch (error) {
-            setErrorMessage(error.message || 'Gagal membatalkan jadwal pembinaan.');
-        } finally {
-            setIsSubmitting(false);
+            setIsUpdating(false);
         }
     }
 
@@ -407,7 +376,7 @@ export default function CatatPembinaanManager({
                         </span>
                         <div>
                             <p className="text-xs font-medium text-slate-500">Total Pembinaan Selesai</p>
-                            <p className="text-2xl font-bold text-ink">{history.filter((h) => h.status === 'completed').length}</p>
+                            <p className="text-2xl font-bold text-ink">{completedCount}</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -477,28 +446,9 @@ export default function CatatPembinaanManager({
             </div>
 
             {/* Filter Toolbar */}
-            <div className="rounded-xl border border-border bg-white p-4 shadow-xs space-y-3">
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3 sm:gap-3 flex-1 max-w-3xl">
-                        {/* Filter UMKM */}
-                        <div>
-                            <label className="mb-1 block text-xs font-medium text-slate-600">
-                                Filter per UMKM
-                            </label>
-                            <select
-                                value={umkmFilter}
-                                onChange={(e) => setUmkmFilter(e.target.value)}
-                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-ink shadow-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                            >
-                                <option value="all">Semua UMKM</option>
-                                {umkmOptions.map((opt) => (
-                                    <option key={opt.id || opt.name} value={opt.id || opt.name}>
-                                        {opt.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
+            <div className="rounded-xl border border-border bg-white p-4 shadow-xs">
+                <div className="flex flex-col gap-3 md:flex-row md:items-end">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:w-[28rem] md:shrink-0">
                         {/* Filter Tanggal Mulai */}
                         <div>
                             <label className="mb-1 block text-xs font-medium text-slate-600">
@@ -527,8 +477,8 @@ export default function CatatPembinaanManager({
                     </div>
 
                     {/* Search & Reset */}
-                    <div className="flex items-end gap-2">
-                        <div className="relative flex-1 sm:w-64">
+                    <div className="flex min-w-0 flex-1 items-end gap-2">
+                        <div className="relative min-w-0 flex-1">
                             <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                                 <HugeiconsIcon icon={Search01Icon} size={16} />
                             </span>
@@ -630,7 +580,7 @@ export default function CatatPembinaanManager({
                                                 </p>
                                                 <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
                                                     {hasActiveFilter
-                                                        ? 'Coba sesuaikan pilihan filter UMKM atau rentang tanggal.'
+                                                        ? 'Coba sesuaikan rentang tanggal atau kata kunci pencarian.'
                                                         : 'Semua tindak lanjut yang disetujui telah selesai dicatat pembinaannya.'}
                                                 </p>
                                             </td>
@@ -699,20 +649,20 @@ export default function CatatPembinaanManager({
                                                 </p>
                                             </td>
                                             <td className="px-4 py-3">
-                                                {item.status === 'scheduled' ? (
-                                                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-800">
-                                                        <HugeiconsIcon icon={Calendar01Icon} size={12} strokeWidth={2.5} />
-                                                        Terjadwal
+                                                {item.status === 'completed' ? (
+                                                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-800">
+                                                        <HugeiconsIcon icon={Tick01Icon} size={12} strokeWidth={2.5} />
+                                                        Selesai
                                                     </span>
                                                 ) : item.status === 'cancelled' ? (
-                                                    <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+                                                    <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-1 text-[11px] font-semibold text-red-700">
                                                         <HugeiconsIcon icon={Cancel01Icon} size={12} strokeWidth={2.5} />
                                                         Dibatalkan
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-800">
-                                                        <HugeiconsIcon icon={Tick01Icon} size={12} strokeWidth={2.5} />
-                                                        Selesai
+                                                    <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2.5 py-1 text-[11px] font-semibold text-sky-800">
+                                                        <HugeiconsIcon icon={Calendar01Icon} size={12} strokeWidth={2.5} />
+                                                        Dijadwalkan
                                                     </span>
                                                 )}
                                             </td>
@@ -722,22 +672,19 @@ export default function CatatPembinaanManager({
                                                         <>
                                                             <Button
                                                                 size="sm"
-                                                                onClick={() => {
-                                                                    setCompletingItem(item);
-                                                                    setOutcomeInput(item.outcome || '');
-                                                                }}
-                                                                className="h-7 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1 whitespace-nowrap"
+                                                                onClick={() => openUpdateModal(item, 'completed')}
+                                                                className="h-7 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
                                                             >
-                                                                <HugeiconsIcon icon={Tick01Icon} size={12} strokeWidth={2.5} />
-                                                                Selesaikan
+                                                                <HugeiconsIcon icon={Tick01Icon} size={13} strokeWidth={2.5} className="mr-1" />
+                                                                Tandai Selesai
                                                             </Button>
                                                             <Button
                                                                 variant="outline"
                                                                 size="sm"
-                                                                onClick={() => setCancellingItem(item)}
-                                                                className="h-7 px-2 text-xs border-red-200 text-red-600 hover:bg-red-50 gap-1 whitespace-nowrap"
+                                                                onClick={() => openUpdateModal(item, 'cancelled')}
+                                                                className="h-7 px-2.5 text-xs border-red-200 text-red-700 hover:bg-red-50"
                                                             >
-                                                                <HugeiconsIcon icon={Cancel01Icon} size={12} />
+                                                                <HugeiconsIcon icon={Cancel01Icon} size={13} strokeWidth={2.5} className="mr-1" />
                                                                 Batalkan
                                                             </Button>
                                                         </>
@@ -746,10 +693,10 @@ export default function CatatPembinaanManager({
                                                         variant="outline"
                                                         size="sm"
                                                         onClick={() => setDetailItem(item)}
-                                                        className="h-7 px-2.5 gap-1 text-xs whitespace-nowrap"
+                                                        className="h-7 px-2.5 gap-1 text-xs"
                                                     >
-                                                        <HugeiconsIcon icon={ViewIcon} size={13} />
-                                                        Detail
+                                                        <HugeiconsIcon icon={ViewIcon} size={14} />
+                                                        Lihat Detail
                                                     </Button>
                                                 </div>
                                             </td>
@@ -768,7 +715,7 @@ export default function CatatPembinaanManager({
                                                 </p>
                                                 <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
                                                     {hasActiveFilter
-                                                        ? 'Coba atur ulang filter UMKM atau tanggal pencarian.'
+                                                        ? 'Coba atur ulang rentang tanggal atau kata kunci pencarian.'
                                                         : 'Setelah mencatat pembinaan pada tab antrean, rekaman pembinaan akan muncul di sini.'}
                                                 </p>
                                             </td>
@@ -980,52 +927,44 @@ export default function CatatPembinaanManager({
                                         <span className="text-xs text-slate-500">
                                             Status Pelaksanaan:
                                         </span>
-                                        {detailItem.status === 'scheduled' ? (
-                                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
-                                                <HugeiconsIcon icon={Calendar01Icon} size={14} strokeWidth={2.5} />
-                                                Terjadwal (Belum Selesai)
+                                        {detailItem.status === 'completed' ? (
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+                                                <HugeiconsIcon icon={Tick01Icon} size={14} strokeWidth={2.5} />
+                                                Selesai Dilaksanakan
                                             </span>
                                         ) : detailItem.status === 'cancelled' ? (
-                                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
                                                 <HugeiconsIcon icon={Cancel01Icon} size={14} strokeWidth={2.5} />
                                                 Dibatalkan
                                             </span>
                                         ) : (
-                                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
-                                                <HugeiconsIcon icon={Tick01Icon} size={14} strokeWidth={2.5} />
-                                                Selesai Dilaksanakan
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
+                                                <HugeiconsIcon icon={Calendar01Icon} size={14} strokeWidth={2.5} />
+                                                Dijadwalkan
                                             </span>
                                         )}
                                     </div>
                                 </div>
 
-                                <div className="pt-3 border-t border-border flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                                <div className="pt-3 border-t border-border flex flex-col sm:flex-row gap-2">
                                     {detailItem.status === 'scheduled' && (
                                         <>
                                             <Button
                                                 type="button"
-                                                variant="outline"
-                                                onClick={() => {
-                                                    const itemToCancel = detailItem;
-                                                    setDetailItem(null);
-                                                    setCancellingItem(itemToCancel);
-                                                }}
-                                                className="border-red-200 text-red-600 hover:bg-red-50 text-xs"
+                                                onClick={() => openUpdateModal(detailItem, 'completed')}
+                                                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
                                             >
-                                                Batalkan Jadwal
+                                                <HugeiconsIcon icon={Tick01Icon} size={15} strokeWidth={2.5} className="mr-1.5" />
+                                                Tandai Selesai
                                             </Button>
                                             <Button
                                                 type="button"
-                                                onClick={() => {
-                                                    const itemToComplete = detailItem;
-                                                    setDetailItem(null);
-                                                    setCompletingItem(itemToComplete);
-                                                    setOutcomeInput(itemToComplete.outcome || '');
-                                                }}
-                                                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs gap-1"
+                                                variant="outline"
+                                                onClick={() => openUpdateModal(detailItem, 'cancelled')}
+                                                className="flex-1 border-red-200 text-red-700 hover:bg-red-50"
                                             >
-                                                <HugeiconsIcon icon={Tick01Icon} size={14} strokeWidth={2.5} />
-                                                Selesaikan Pembinaan
+                                                <HugeiconsIcon icon={Cancel01Icon} size={15} strokeWidth={2.5} className="mr-1.5" />
+                                                Batalkan Jadwal
                                             </Button>
                                         </>
                                     )}
@@ -1033,7 +972,7 @@ export default function CatatPembinaanManager({
                                         type="button"
                                         variant="outline"
                                         onClick={() => setDetailItem(null)}
-                                        className={detailItem.status === 'scheduled' ? 'text-xs' : 'w-full'}
+                                        className="flex-1"
                                     >
                                         Tutup
                                     </Button>
@@ -1044,147 +983,151 @@ export default function CatatPembinaanManager({
                 )}
             </AnimatePresence>
 
-            {/* Modal: Selesaikan Pembinaan */}
+            {/* Modal Update Status & Hasil Pembinaan */}
             <AnimatePresence>
-                {completingItem && (
+                {updateItem && (
                     <div className="fixed inset-0 z-50 flex flex-col justify-end lg:items-center lg:justify-center">
                         <motion.button
                             type="button"
-                            aria-label="Tutup modal"
+                            aria-label="Tutup modal ubah status"
                             className="fixed inset-0 bg-ink/50 backdrop-blur-sm"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            onClick={() => !isSubmitting && setCompletingItem(null)}
+                            onClick={closeUpdateModal}
                         />
                         <motion.div
-                            className="relative z-10 w-full rounded-t-2xl bg-white shadow-2xl lg:max-w-md lg:rounded-2xl overflow-hidden"
+                            className="relative z-10 w-full rounded-t-2xl bg-white shadow-2xl lg:max-w-xl lg:rounded-2xl max-h-[90vh] overflow-y-auto"
                             initial={{ y: '100%' }}
                             animate={{ y: 0 }}
                             exit={{ y: '100%' }}
                             transition={{ type: 'spring', stiffness: 400, damping: 40 }}
                         >
-                            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+                            <div className="flex items-center justify-between border-b border-border px-5 py-4 sticky top-0 bg-white z-10">
                                 <div>
-                                    <h3 className="text-base font-bold text-ink">Selesaikan Pembinaan</h3>
-                                    <p className="text-xs text-muted-foreground">{completingItem.umkm_name} • {completingItem.title}</p>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => !isSubmitting && setCompletingItem(null)}
-                                    className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                                >
-                                    <HugeiconsIcon icon={Cancel01Icon} size={20} />
-                                </button>
-                            </div>
-                            <form onSubmit={handleCompleteSession} className="px-5 py-4 space-y-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-ink">
-                                        Hasil Kegiatan Pembinaan (Outcome) <span className="text-red-500">*</span>
-                                    </label>
-                                    <Textarea
-                                        value={outcomeInput}
-                                        onChange={(e) => setOutcomeInput(e.target.value)}
-                                        placeholder="Deskripsikan hasil atau dampak yang dicapai dari pembinaan ini..."
-                                        rows={4}
-                                        required
-                                        className="text-xs"
-                                    />
-                                    <p className="text-[11px] text-muted-foreground">
-                                        Hasil ini akan tampil pada riwayat usaha pemilik UMKM dan pembinaan akan berstatus selesai.
+                                    <h3 className="text-lg font-bold text-ink">
+                                        {updateFormData.status === 'cancelled'
+                                            ? 'Batalkan Jadwal Pembinaan'
+                                            : 'Tandai Pembinaan Selesai'}
+                                    </h3>
+                                    <p className="text-xs text-muted-foreground">
+                                        UMKM: {updateItem.umkm_name} &middot; {updateItem.program_name}
                                     </p>
                                 </div>
-                                <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setCompletingItem(null)}
-                                        disabled={isSubmitting}
-                                    >
-                                        Batal
-                                    </Button>
-                                    <Button
-                                        type="submit"
-                                        size="sm"
-                                        disabled={isSubmitting || !outcomeInput.trim()}
-                                        className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
-                                    >
-                                        <HugeiconsIcon icon={Tick01Icon} size={14} strokeWidth={2.5} />
-                                        {isSubmitting ? 'Menyimpan...' : 'Tandai Selesai'}
-                                    </Button>
-                                </div>
-                            </form>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
-
-            {/* Modal: Batalkan Jadwal Pembinaan */}
-            <AnimatePresence>
-                {cancellingItem && (
-                    <div className="fixed inset-0 z-50 flex flex-col justify-end lg:items-center lg:justify-center">
-                        <motion.button
-                            type="button"
-                            aria-label="Tutup modal"
-                            className="fixed inset-0 bg-ink/50 backdrop-blur-sm"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => !isSubmitting && setCancellingItem(null)}
-                        />
-                        <motion.div
-                            className="relative z-10 w-full rounded-t-2xl bg-white shadow-2xl lg:max-w-md lg:rounded-2xl overflow-hidden"
-                            initial={{ y: '100%' }}
-                            animate={{ y: 0 }}
-                            exit={{ y: '100%' }}
-                            transition={{ type: 'spring', stiffness: 400, damping: 40 }}
-                        >
-                            <div className="flex items-center justify-between border-b border-border px-5 py-4 bg-red-50/50">
-                                <div className="flex items-center gap-2">
-                                    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
-                                        <HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={2.5} />
-                                    </span>
-                                    <div>
-                                        <h3 className="text-base font-bold text-red-900">Batalkan Jadwal Pembinaan?</h3>
-                                        <p className="text-xs text-red-700">UMKM: {cancellingItem.umkm_name}</p>
-                                    </div>
-                                </div>
                                 <button
                                     type="button"
-                                    onClick={() => !isSubmitting && setCancellingItem(null)}
-                                    className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                                    onClick={closeUpdateModal}
+                                    className="grid size-8 place-items-center rounded-lg text-slate-500 hover:bg-slate-100"
                                 >
                                     <HugeiconsIcon icon={Cancel01Icon} size={20} />
                                 </button>
                             </div>
-                            <div className="px-5 py-4 space-y-3">
-                                <p className="text-xs text-slate-600 leading-relaxed">
-                                    Apakah Anda yakin ingin membatalkan jadwal pembinaan <strong>"{cancellingItem.title}"</strong>?
-                                </p>
-                                <p className="text-[11px] text-slate-500 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
-                                    Sesi ini akan tetap tersimpan di riwayat dengan penanda <strong>Dibatalkan</strong>, dan tidak akan dihitung sebagai pembinaan selesai.
-                                </p>
-                                <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setCancellingItem(null)}
-                                        disabled={isSubmitting}
-                                    >
-                                        Kembali
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        size="sm"
-                                        onClick={handleCancelSession}
-                                        disabled={isSubmitting}
-                                        className="bg-red-600 hover:bg-red-700 text-white"
-                                    >
-                                        {isSubmitting ? 'Membatalkan...' : 'Ya, Batalkan Jadwal'}
-                                    </Button>
-                                </div>
+                            <div className="px-5 py-5">
+                                <form onSubmit={handleUpdateSubmit} className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-ink block">
+                                            Status Pembinaan
+                                        </label>
+                                        <select
+                                            name="status"
+                                            value={updateFormData.status}
+                                            onChange={handleUpdateInputChange}
+                                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-ink shadow-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                        >
+                                            <option value="completed">Selesai (Completed)</option>
+                                            <option value="cancelled">Dibatalkan (Cancelled)</option>
+                                            <option value="scheduled">Dijadwalkan (Scheduled)</option>
+                                        </select>
+                                    </div>
+
+                                    {updateFormData.status === 'cancelled' ? (
+                                        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-800 space-y-1">
+                                            <p className="font-bold">Konfirmasi Pembatalan Jadwal</p>
+                                            <p>
+                                                Sesi pembinaan ini akan ditandai sebagai <strong>Dibatalkan</strong>. Data sesi tetap tersimpan di riwayat sebagai arsip dan tidak dihitung sebagai pembinaan selesai.
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-semibold text-ink flex items-center gap-1.5">
+                                                    <HugeiconsIcon icon={File02Icon} size={16} /> Nama Kegiatan
+                                                </label>
+                                                <Input
+                                                    name="title"
+                                                    value={updateFormData.title}
+                                                    onChange={handleUpdateInputChange}
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-semibold text-ink flex items-center gap-1.5">
+                                                    <HugeiconsIcon icon={Calendar01Icon} size={16} /> Tanggal Pelaksanaan
+                                                </label>
+                                                <Input
+                                                    type="date"
+                                                    name="held_on"
+                                                    value={updateFormData.held_on}
+                                                    onChange={handleUpdateInputChange}
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-semibold text-ink flex items-center gap-1.5">
+                                                    <HugeiconsIcon icon={File02Icon} size={16} /> Deskripsi Kegiatan
+                                                </label>
+                                                <Textarea
+                                                    name="description"
+                                                    value={updateFormData.description}
+                                                    onChange={handleUpdateInputChange}
+                                                    rows={3}
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-semibold text-ink flex items-center gap-1.5">
+                                                    Hasil Kegiatan (Outcome)
+                                                </label>
+                                                <Textarea
+                                                    name="outcome"
+                                                    value={updateFormData.outcome}
+                                                    onChange={handleUpdateInputChange}
+                                                    placeholder="Contoh: Pemilik sudah membuat 5 foto produk..."
+                                                    rows={3}
+                                                    required={updateFormData.status === 'completed'}
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+
+                                    <div className="pt-4 sticky bottom-0 bg-white pb-2 flex gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={closeUpdateModal}
+                                            className="flex-1"
+                                            disabled={isUpdating}
+                                        >
+                                            Batal
+                                        </Button>
+                                        <Button
+                                            type="submit"
+                                            className={cn(
+                                                'flex-1',
+                                                updateFormData.status === 'cancelled'
+                                                    ? 'bg-red-600 hover:bg-red-700 text-white'
+                                                    : ''
+                                            )}
+                                            disabled={isUpdating}
+                                        >
+                                            {isUpdating
+                                                ? 'Menyimpan...'
+                                                : updateFormData.status === 'cancelled'
+                                                  ? 'Simpan Pembatalan'
+                                                  : 'Simpan'}
+                                        </Button>
+                                    </div>
+                                </form>
                             </div>
                         </motion.div>
                     </div>

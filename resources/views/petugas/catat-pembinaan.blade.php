@@ -10,7 +10,7 @@
 @section('content')
     <div id="app" data-page="petugasCatatPembinaan"></div>
     <script id="page-props" type="application/json">
-        {!! json_encode(compact('queue', 'history', 'businesses')) !!}
+        {!! json_encode(compact('queue', 'history')) !!}
     </script>
 @endsection
 

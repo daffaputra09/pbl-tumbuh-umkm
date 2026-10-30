@@ -10,6 +10,6 @@
 @section('content')
     <div id="app" data-page="pimpinanRiwayatPembinaan"></div>
     <script id="page-props" type="application/json">
-        {!! json_encode(compact('history', 'businesses')) !!}
+        {!! json_encode(compact('history')) !!}
     </script>
 @endsection

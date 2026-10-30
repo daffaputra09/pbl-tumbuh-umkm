@@ -264,10 +264,10 @@ class DashboardController extends Controller
                             'level' => $cs->level,
                         ])->values()->all(),
                     ] : null,
-                    'coachingSession' => $b->coachingSessions->first() ? [
-                        'id' => $b->coachingSessions->first()->id,
-                        'status' => $b->coachingSessions->first()->status,
-                        'heldOn' => $b->coachingSessions->first()->held_on?->toDateString() ?: CarbonImmutable::now()->toDateString(),
+                    'coachingSession' => ($preferredSession = $b->coachingSessions->firstWhere('status', 'completed') ?? $b->coachingSessions->first()) ? [
+                        'id' => $preferredSession->id,
+                        'status' => $preferredSession->status,
+                        'heldOn' => $preferredSession->held_on?->toDateString() ?: CarbonImmutable::now()->toDateString(),
                     ] : null,
                 ];
             })->values()->all(),

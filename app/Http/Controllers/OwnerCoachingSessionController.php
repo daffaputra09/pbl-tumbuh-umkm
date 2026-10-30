@@ -40,6 +40,13 @@ class OwnerCoachingSessionController extends Controller
         $sessions = $approvedFollowUps->map(function (FollowUp $followUp): array {
             $session = $followUp->coachingSession;
             $hasSession = $session !== null;
+            $status = $hasSession ? $session->status : 'approved';
+            $statusLabels = [
+                'scheduled' => 'Dijadwalkan',
+                'completed' => 'Terlaksana',
+                'cancelled' => 'Dibatalkan',
+                'approved' => 'Disetujui',
+            ];
 
             if ($hasSession) {
                 $status = $session->status;
@@ -59,7 +66,7 @@ class OwnerCoachingSessionController extends Controller
                 'follow_up_id' => $followUp->id,
                 'coaching_session_id' => $session?->id,
                 'status' => $status,
-                'status_label' => $statusLabel,
+                'status_label' => $statusLabels[$status] ?? 'Disetujui',
                 'program_name' => $followUp->assistanceProgram?->name ?? 'Program Bantuan',
                 'program_provider' => $followUp->assistanceProgram?->provider ?: 'Pemerintah Desa',
                 'program_description' => $followUp->assistanceProgram?->description ?: null,
