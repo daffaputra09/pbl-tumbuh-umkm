@@ -113,6 +113,7 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(functio
 
     Route::get('/petugas/catat-pembinaan', [CoachingSessionController::class, 'index'])->name('petugas.catat-pembinaan');
     Route::post('/petugas/catat-pembinaan', [CoachingSessionController::class, 'store'])->name('petugas.catat-pembinaan.store');
+    Route::patch('/petugas/catat-pembinaan/{coachingSession}', [CoachingSessionController::class, 'update'])->name('petugas.catat-pembinaan.update');
 
     Route::prefix('api/business-types')->name('api.business-types.')->group(function () {
         Route::get('/', [BusinessTypeController::class, 'index'])->name('index');

@@ -56,6 +56,9 @@ export default function CatatPembinaanManager({
     // Modals
     const [selectedItem, setSelectedItem] = useState(null); // for recording form
     const [detailItem, setDetailItem] = useState(null); // for viewing history detail
+    const [completingItem, setCompletingItem] = useState(null); // for completing a scheduled session
+    const [cancellingItem, setCancellingItem] = useState(null); // for cancelling a scheduled session
+    const [outcomeInput, setOutcomeInput] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({
         title: '',
@@ -196,6 +199,7 @@ export default function CatatPembinaanManager({
         e.preventDefault();
         setIsSubmitting(true);
         try {
+            const sessionStatus = formData.outcome?.trim() ? 'completed' : 'scheduled';
             const res = await apiFetch('/petugas/catat-pembinaan', {
                 method: 'POST',
                 body: JSON.stringify({
@@ -204,6 +208,7 @@ export default function CatatPembinaanManager({
                     held_on: formData.held_on,
                     description: formData.description,
                     outcome: formData.outcome,
+                    status: sessionStatus,
                 }),
             });
 
@@ -218,7 +223,7 @@ export default function CatatPembinaanManager({
                 held_on: formData.held_on,
                 description: formData.description,
                 outcome: formData.outcome,
-                status: 'completed',
+                status: sessionStatus,
                 recorded_by_name: 'Petugas Desa',
                 created_at: new Date().toISOString(),
             };
@@ -227,12 +232,88 @@ export default function CatatPembinaanManager({
             setHistory((prev) => [newSession, ...prev]);
             closeModal();
 
-            setSuccessMessage(`Pembinaan untuk "${selectedItem.umkm_name}" berhasil dicatat.`);
+            setSuccessMessage(
+                sessionStatus === 'completed'
+                    ? `Pembinaan untuk "${selectedItem.umkm_name}" berhasil dicatat dan diselesaikan.`
+                    : `Jadwal pembinaan untuk "${selectedItem.umkm_name}" berhasil disimpan (terjadwal).`
+            );
             setErrorMessage('');
             setTimeout(() => setSuccessMessage(''), 6000);
         } catch (error) {
             setErrorMessage(error.message || 'Gagal mencatat data pembinaan.');
             setSuccessMessage('');
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
+
+    async function handleCompleteSession(e) {
+        e.preventDefault();
+        if (!outcomeInput.trim()) {
+            setErrorMessage('Hasil (outcome) pembinaan wajib diisi saat menyelesaikan pembinaan.');
+            return;
+        }
+        setIsSubmitting(true);
+        try {
+            const res = await apiFetch(`/petugas/catat-pembinaan/${completingItem.id}`, {
+                method: 'PATCH',
+                body: JSON.stringify({
+                    status: 'completed',
+                    outcome: outcomeInput,
+                }),
+            });
+
+            const updatedSession = res?.session || {
+                ...completingItem,
+                status: 'completed',
+                outcome: outcomeInput,
+            };
+
+            setHistory((prev) =>
+                prev.map((item) => (item.id === completingItem.id ? { ...item, ...updatedSession } : item))
+            );
+            if (detailItem && detailItem.id === completingItem.id) {
+                setDetailItem((prev) => ({ ...prev, ...updatedSession }));
+            }
+            setCompletingItem(null);
+            setOutcomeInput('');
+            setSuccessMessage(`Pembinaan "${completingItem.title}" berhasil ditandai selesai.`);
+            setErrorMessage('');
+            setTimeout(() => setSuccessMessage(''), 6000);
+        } catch (error) {
+            setErrorMessage(error.message || 'Gagal memperbarui status pembinaan.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
+
+    async function handleCancelSession() {
+        setIsSubmitting(true);
+        try {
+            const res = await apiFetch(`/petugas/catat-pembinaan/${cancellingItem.id}`, {
+                method: 'PATCH',
+                body: JSON.stringify({
+                    status: 'cancelled',
+                }),
+            });
+
+            const updatedSession = res?.session || {
+                ...cancellingItem,
+                status: 'cancelled',
+            };
+
+            setHistory((prev) =>
+                prev.map((item) => (item.id === cancellingItem.id ? { ...item, ...updatedSession } : item))
+            );
+            if (detailItem && detailItem.id === cancellingItem.id) {
+                setDetailItem((prev) => ({ ...prev, ...updatedSession }));
+            }
+            setCancellingItem(null);
+            setSuccessMessage(`Jadwal pembinaan "${cancellingItem.title}" berhasil dibatalkan.`);
+            setErrorMessage('');
+            setTimeout(() => setSuccessMessage(''), 6000);
+        } catch (error) {
+            setErrorMessage(error.message || 'Gagal membatalkan jadwal pembinaan.');
         } finally {
             setIsSubmitting(false);
         }
@@ -326,7 +407,7 @@ export default function CatatPembinaanManager({
                         </span>
                         <div>
                             <p className="text-xs font-medium text-slate-500">Total Pembinaan Selesai</p>
-                            <p className="text-2xl font-bold text-ink">{history.length}</p>
+                            <p className="text-2xl font-bold text-ink">{history.filter((h) => h.status === 'completed').length}</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -618,21 +699,59 @@ export default function CatatPembinaanManager({
                                                 </p>
                                             </td>
                                             <td className="px-4 py-3">
-                                                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-800">
-                                                    <HugeiconsIcon icon={Tick01Icon} size={12} strokeWidth={2.5} />
-                                                    Selesai
-                                                </span>
+                                                {item.status === 'scheduled' ? (
+                                                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-800">
+                                                        <HugeiconsIcon icon={Calendar01Icon} size={12} strokeWidth={2.5} />
+                                                        Terjadwal
+                                                    </span>
+                                                ) : item.status === 'cancelled' ? (
+                                                    <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700">
+                                                        <HugeiconsIcon icon={Cancel01Icon} size={12} strokeWidth={2.5} />
+                                                        Dibatalkan
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-800">
+                                                        <HugeiconsIcon icon={Tick01Icon} size={12} strokeWidth={2.5} />
+                                                        Selesai
+                                                    </span>
+                                                )}
                                             </td>
                                             <td className="px-4 py-3">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => setDetailItem(item)}
-                                                    className="gap-1 text-xs"
-                                                >
-                                                    <HugeiconsIcon icon={ViewIcon} size={14} />
-                                                    Lihat Detail
-                                                </Button>
+                                                <div className="flex flex-wrap items-center gap-1.5">
+                                                    {item.status === 'scheduled' && (
+                                                        <>
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={() => {
+                                                                    setCompletingItem(item);
+                                                                    setOutcomeInput(item.outcome || '');
+                                                                }}
+                                                                className="h-7 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1 whitespace-nowrap"
+                                                            >
+                                                                <HugeiconsIcon icon={Tick01Icon} size={12} strokeWidth={2.5} />
+                                                                Selesaikan
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => setCancellingItem(item)}
+                                                                className="h-7 px-2 text-xs border-red-200 text-red-600 hover:bg-red-50 gap-1 whitespace-nowrap"
+                                                            >
+                                                                <HugeiconsIcon icon={Cancel01Icon} size={12} />
+                                                                Batalkan
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => setDetailItem(item)}
+                                                        className="h-7 px-2.5 gap-1 text-xs whitespace-nowrap"
+                                                    >
+                                                        <HugeiconsIcon icon={ViewIcon} size={13} />
+                                                        Detail
+                                                    </Button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -861,21 +980,209 @@ export default function CatatPembinaanManager({
                                         <span className="text-xs text-slate-500">
                                             Status Pelaksanaan:
                                         </span>
-                                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
-                                            <HugeiconsIcon icon={Tick01Icon} size={14} strokeWidth={2.5} />
-                                            Selesai Dilaksanakan
-                                        </span>
+                                        {detailItem.status === 'scheduled' ? (
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+                                                <HugeiconsIcon icon={Calendar01Icon} size={14} strokeWidth={2.5} />
+                                                Terjadwal (Belum Selesai)
+                                            </span>
+                                        ) : detailItem.status === 'cancelled' ? (
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                                                <HugeiconsIcon icon={Cancel01Icon} size={14} strokeWidth={2.5} />
+                                                Dibatalkan
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+                                                <HugeiconsIcon icon={Tick01Icon} size={14} strokeWidth={2.5} />
+                                                Selesai Dilaksanakan
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
 
-                                <div className="pt-3 border-t border-border">
+                                <div className="pt-3 border-t border-border flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                                    {detailItem.status === 'scheduled' && (
+                                        <>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                onClick={() => {
+                                                    const itemToCancel = detailItem;
+                                                    setDetailItem(null);
+                                                    setCancellingItem(itemToCancel);
+                                                }}
+                                                className="border-red-200 text-red-600 hover:bg-red-50 text-xs"
+                                            >
+                                                Batalkan Jadwal
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                onClick={() => {
+                                                    const itemToComplete = detailItem;
+                                                    setDetailItem(null);
+                                                    setCompletingItem(itemToComplete);
+                                                    setOutcomeInput(itemToComplete.outcome || '');
+                                                }}
+                                                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs gap-1"
+                                            >
+                                                <HugeiconsIcon icon={Tick01Icon} size={14} strokeWidth={2.5} />
+                                                Selesaikan Pembinaan
+                                            </Button>
+                                        </>
+                                    )}
                                     <Button
                                         type="button"
                                         variant="outline"
                                         onClick={() => setDetailItem(null)}
-                                        className="w-full"
+                                        className={detailItem.status === 'scheduled' ? 'text-xs' : 'w-full'}
                                     >
                                         Tutup
+                                    </Button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal: Selesaikan Pembinaan */}
+            <AnimatePresence>
+                {completingItem && (
+                    <div className="fixed inset-0 z-50 flex flex-col justify-end lg:items-center lg:justify-center">
+                        <motion.button
+                            type="button"
+                            aria-label="Tutup modal"
+                            className="fixed inset-0 bg-ink/50 backdrop-blur-sm"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => !isSubmitting && setCompletingItem(null)}
+                        />
+                        <motion.div
+                            className="relative z-10 w-full rounded-t-2xl bg-white shadow-2xl lg:max-w-md lg:rounded-2xl overflow-hidden"
+                            initial={{ y: '100%' }}
+                            animate={{ y: 0 }}
+                            exit={{ y: '100%' }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 40 }}
+                        >
+                            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+                                <div>
+                                    <h3 className="text-base font-bold text-ink">Selesaikan Pembinaan</h3>
+                                    <p className="text-xs text-muted-foreground">{completingItem.umkm_name} • {completingItem.title}</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => !isSubmitting && setCompletingItem(null)}
+                                    className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                                >
+                                    <HugeiconsIcon icon={Cancel01Icon} size={20} />
+                                </button>
+                            </div>
+                            <form onSubmit={handleCompleteSession} className="px-5 py-4 space-y-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-ink">
+                                        Hasil Kegiatan Pembinaan (Outcome) <span className="text-red-500">*</span>
+                                    </label>
+                                    <Textarea
+                                        value={outcomeInput}
+                                        onChange={(e) => setOutcomeInput(e.target.value)}
+                                        placeholder="Deskripsikan hasil atau dampak yang dicapai dari pembinaan ini..."
+                                        rows={4}
+                                        required
+                                        className="text-xs"
+                                    />
+                                    <p className="text-[11px] text-muted-foreground">
+                                        Hasil ini akan tampil pada riwayat usaha pemilik UMKM dan pembinaan akan berstatus selesai.
+                                    </p>
+                                </div>
+                                <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setCompletingItem(null)}
+                                        disabled={isSubmitting}
+                                    >
+                                        Batal
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        size="sm"
+                                        disabled={isSubmitting || !outcomeInput.trim()}
+                                        className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
+                                    >
+                                        <HugeiconsIcon icon={Tick01Icon} size={14} strokeWidth={2.5} />
+                                        {isSubmitting ? 'Menyimpan...' : 'Tandai Selesai'}
+                                    </Button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal: Batalkan Jadwal Pembinaan */}
+            <AnimatePresence>
+                {cancellingItem && (
+                    <div className="fixed inset-0 z-50 flex flex-col justify-end lg:items-center lg:justify-center">
+                        <motion.button
+                            type="button"
+                            aria-label="Tutup modal"
+                            className="fixed inset-0 bg-ink/50 backdrop-blur-sm"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => !isSubmitting && setCancellingItem(null)}
+                        />
+                        <motion.div
+                            className="relative z-10 w-full rounded-t-2xl bg-white shadow-2xl lg:max-w-md lg:rounded-2xl overflow-hidden"
+                            initial={{ y: '100%' }}
+                            animate={{ y: 0 }}
+                            exit={{ y: '100%' }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 40 }}
+                        >
+                            <div className="flex items-center justify-between border-b border-border px-5 py-4 bg-red-50/50">
+                                <div className="flex items-center gap-2">
+                                    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
+                                        <HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={2.5} />
+                                    </span>
+                                    <div>
+                                        <h3 className="text-base font-bold text-red-900">Batalkan Jadwal Pembinaan?</h3>
+                                        <p className="text-xs text-red-700">UMKM: {cancellingItem.umkm_name}</p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => !isSubmitting && setCancellingItem(null)}
+                                    className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                                >
+                                    <HugeiconsIcon icon={Cancel01Icon} size={20} />
+                                </button>
+                            </div>
+                            <div className="px-5 py-4 space-y-3">
+                                <p className="text-xs text-slate-600 leading-relaxed">
+                                    Apakah Anda yakin ingin membatalkan jadwal pembinaan <strong>"{cancellingItem.title}"</strong>?
+                                </p>
+                                <p className="text-[11px] text-slate-500 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                                    Sesi ini akan tetap tersimpan di riwayat dengan penanda <strong>Dibatalkan</strong>, dan tidak akan dihitung sebagai pembinaan selesai.
+                                </p>
+                                <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setCancellingItem(null)}
+                                        disabled={isSubmitting}
+                                    >
+                                        Kembali
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        onClick={handleCancelSession}
+                                        disabled={isSubmitting}
+                                        className="bg-red-600 hover:bg-red-700 text-white"
+                                    >
+                                        {isSubmitting ? 'Membatalkan...' : 'Ya, Batalkan Jadwal'}
                                     </Button>
                                 </div>
                             </div>

@@ -138,6 +138,101 @@ class FollowUpWorkflowTest extends TestCase
             ->assertSee('Anggaran periode ini sudah habis dialokasikan.');
     }
 
+    public function test_all_follow_up_history_per_umkm_is_tracked_with_submitter_and_decider_names(): void
+    {
+        $officer = User::factory()->create([
+            'name' => 'Budi Petugas',
+            'role' => User::ROLE_OFFICER,
+        ]);
+        $head = User::factory()->create([
+            'name' => 'Pak Kades Santoso',
+            'role' => User::ROLE_VILLAGE_HEAD,
+        ]);
+        $businessData = $this->createAppliedBusiness('Keripik Pisang Juara');
+
+        // 1. First follow-up was rejected
+        $fuRejected = FollowUp::create([
+            'business_id' => $businessData['owner']->id,
+            'program_recommendation_id' => $businessData['recommendation']->id,
+            'assistance_program_id' => $businessData['program']->id,
+            'submitted_by' => $officer->id,
+            'decided_by' => $head->id,
+            'status' => 'rejected',
+            'planned_activity' => 'Pengadaan Mesin Pengering',
+            'planned_on' => '2026-10-15',
+            'submission_note' => 'Permohonan mesin pengering.',
+            'decision_note' => 'Anggaran periode ini belum tersedia.',
+            'decided_at' => now()->subDays(10),
+        ]);
+
+        // 2. Second follow-up was approved
+        $fuApproved = FollowUp::create([
+            'business_id' => $businessData['owner']->id,
+            'program_recommendation_id' => $businessData['recommendation']->id,
+            'assistance_program_id' => $businessData['program']->id,
+            'submitted_by' => $officer->id,
+            'decided_by' => $head->id,
+            'status' => 'approved',
+            'planned_activity' => 'Pelatihan Desain Kemasan',
+            'planned_on' => '2026-11-05',
+            'submission_note' => 'Pelatihan kemasan agar lebih menarik.',
+            'decision_note' => 'Disetujui untuk dilaksanakan segera.',
+            'decided_at' => now()->subDays(5),
+        ]);
+
+        // 3. Third follow-up is pending
+        $fuPending = FollowUp::create([
+            'business_id' => $businessData['owner']->id,
+            'program_recommendation_id' => $businessData['recommendation']->id,
+            'assistance_program_id' => $businessData['program']->id,
+            'submitted_by' => $officer->id,
+            'status' => 'pending',
+            'planned_activity' => 'Pendampingan Izin PIRT',
+            'planned_on' => '2026-12-01',
+            'submission_note' => 'Pendampingan pengurusan izin PIRT.',
+        ]);
+
+        // Officer page MUST show all 3 follow-ups without any being overwritten
+        $officerPage = $this->actingAs($officer)
+            ->get(route('petugas.tindak-lanjut'))
+            ->assertOk();
+
+        $officerQueue = $officerPage->viewData('queue');
+        $this->assertCount(3, $officerQueue);
+
+        $officerPage
+            ->assertSee('Keripik Pisang Juara')
+            ->assertSee('Pengadaan Mesin Pengering')
+            ->assertSee('Pelatihan Desain Kemasan')
+            ->assertSee('Pendampingan Izin PIRT')
+            ->assertSee('rejected')
+            ->assertSee('approved')
+            ->assertSee('pending')
+            ->assertSee('Budi Petugas')
+            ->assertSee('Pak Kades Santoso')
+            ->assertSee('Anggaran periode ini belum tersedia.')
+            ->assertSee('Disetujui untuk dilaksanakan segera.');
+
+        // Village head page MUST also show all 3 follow-ups with submitter and decider
+        $headPage = $this->actingAs($head)
+            ->get(route('pimpinan.persetujuan-tindak-lanjut'))
+            ->assertOk();
+
+        $headQueue = $headPage->viewData('queue');
+        $this->assertCount(3, $headQueue);
+
+        $headPage
+            ->assertSee('Keripik Pisang Juara')
+            ->assertSee('Pengadaan Mesin Pengering')
+            ->assertSee('Pelatihan Desain Kemasan')
+            ->assertSee('Pendampingan Izin PIRT')
+            ->assertSee('rejected')
+            ->assertSee('approved')
+            ->assertSee('pending')
+            ->assertSee('Budi Petugas')
+            ->assertSee('Pak Kades Santoso');
+    }
+
     /**
      * @return array{owner: User, business: Business, category: ObstacleCategory, program: AssistanceProgram, recommendation: ProgramRecommendation}
      */

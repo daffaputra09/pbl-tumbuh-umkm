@@ -261,6 +261,149 @@ class CoachingSessionHistoryTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_coaching_session_is_stored_as_scheduled_when_outcome_is_empty(): void
+    {
+        $officer = User::factory()->create(['role' => User::ROLE_OFFICER]);
+        $head = User::factory()->create(['role' => User::ROLE_VILLAGE_HEAD]);
+        $businessData = $this->createAppliedBusiness('Tahu Tempe Sumber Barokah');
+
+        $followUp = FollowUp::create([
+            'business_id' => $businessData['owner']->id,
+            'program_recommendation_id' => $businessData['recommendation']->id,
+            'assistance_program_id' => $businessData['program']->id,
+            'submitted_by' => $officer->id,
+            'decided_by' => $head->id,
+            'status' => 'approved',
+            'planned_activity' => 'Pelatihan Sanitasi Higienis Kedelai',
+            'planned_on' => '2026-11-28',
+            'submission_note' => 'Pelatihan sanitasi.',
+            'decided_at' => now(),
+        ]);
+
+        $postResponse = $this->actingAs($officer)
+            ->postJson(route('petugas.catat-pembinaan.store'), [
+                'follow_up_id' => $followUp->id,
+                'title' => 'Jadwal Pelatihan Sanitasi Higienis Kedelai',
+                'held_on' => '2026-11-28',
+                'description' => 'Akan dilaksanakan di balai RW bersama pengrajin tahu tempe.',
+                'outcome' => null, // empty outcome -> should be scheduled
+            ]);
+
+        $postResponse->assertOk()
+            ->assertJsonPath('session.status', 'scheduled')
+            ->assertJsonPath('session.follow_up_id', $followUp->id)
+            ->assertJsonPath('session.business_id', $followUp->business_id)
+            ->assertJsonPath('session.assistance_program_id', $followUp->assistance_program_id);
+
+        $session = CoachingSession::where('follow_up_id', $followUp->id)->first();
+        $this->assertNotNull($session);
+        $this->assertSame('scheduled', $session->status);
+        $this->assertSame($officer->id, $session->recorded_by);
+    }
+
+    public function test_officer_can_mark_scheduled_session_as_completed_with_outcome(): void
+    {
+        $officer = User::factory()->create(['role' => User::ROLE_OFFICER]);
+        $head = User::factory()->create(['role' => User::ROLE_VILLAGE_HEAD]);
+        $businessData = $this->createAppliedBusiness('Madu Alami Hutan');
+
+        $followUp = FollowUp::create([
+            'business_id' => $businessData['owner']->id,
+            'program_recommendation_id' => $businessData['recommendation']->id,
+            'assistance_program_id' => $businessData['program']->id,
+            'submitted_by' => $officer->id,
+            'decided_by' => $head->id,
+            'status' => 'approved',
+            'planned_activity' => 'Edukasi Panen Lestari',
+            'planned_on' => '2026-11-10',
+            'submission_note' => 'Panen lestari.',
+            'decided_at' => now(),
+        ]);
+
+        $session = CoachingSession::create([
+            'follow_up_id' => $followUp->id,
+            'business_id' => $followUp->business_id,
+            'assistance_program_id' => $followUp->assistance_program_id,
+            'recorded_by' => $officer->id,
+            'title' => 'Edukasi Panen Lestari',
+            'held_on' => '2026-11-10',
+            'description' => 'Pendampingan teknik panen tanpa membakar sarang.',
+            'status' => 'scheduled',
+            'outcome' => null,
+        ]);
+
+        // Attempting to complete without outcome should fail validation
+        $this->actingAs($officer)
+            ->patchJson(route('petugas.catat-pembinaan.update', $session), [
+                'status' => 'completed',
+                'outcome' => '',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['outcome']);
+
+        // Completing with outcome succeeds
+        $patchResponse = $this->actingAs($officer)
+            ->patchJson(route('petugas.catat-pembinaan.update', $session), [
+                'status' => 'completed',
+                'outcome' => 'Pelaku usaha mempraktikkan pemanenan madu lestari dengan higienis.',
+            ]);
+
+        $patchResponse->assertOk()
+            ->assertJsonPath('session.status', 'completed')
+            ->assertJsonPath('session.outcome', 'Pelaku usaha mempraktikkan pemanenan madu lestari dengan higienis.');
+
+        $session->refresh();
+        $this->assertSame('completed', $session->status);
+        $this->assertSame('Pelaku usaha mempraktikkan pemanenan madu lestari dengan higienis.', $session->outcome);
+    }
+
+    public function test_officer_can_cancel_scheduled_session(): void
+    {
+        $officer = User::factory()->create(['role' => User::ROLE_OFFICER]);
+        $head = User::factory()->create(['role' => User::ROLE_VILLAGE_HEAD]);
+        $businessData = $this->createAppliedBusiness('Kerajinan Kulit Sukamaju');
+
+        $followUp = FollowUp::create([
+            'business_id' => $businessData['owner']->id,
+            'program_recommendation_id' => $businessData['recommendation']->id,
+            'assistance_program_id' => $businessData['program']->id,
+            'submitted_by' => $officer->id,
+            'decided_by' => $head->id,
+            'status' => 'approved',
+            'planned_activity' => 'Workshop Jahit Kulit',
+            'planned_on' => '2026-11-15',
+            'submission_note' => 'Workshop jahit.',
+            'decided_at' => now(),
+        ]);
+
+        $session = CoachingSession::create([
+            'follow_up_id' => $followUp->id,
+            'business_id' => $followUp->business_id,
+            'assistance_program_id' => $followUp->assistance_program_id,
+            'recorded_by' => $officer->id,
+            'title' => 'Workshop Jahit Kulit',
+            'held_on' => '2026-11-15',
+            'description' => 'Workshop bersama instruktur profesional.',
+            'status' => 'scheduled',
+        ]);
+
+        $patchResponse = $this->actingAs($officer)
+            ->patchJson(route('petugas.catat-pembinaan.update', $session), [
+                'status' => 'cancelled',
+            ]);
+
+        $patchResponse->assertOk()
+            ->assertJsonPath('session.status', 'cancelled');
+
+        $session->refresh();
+        $this->assertSame('cancelled', $session->status);
+        // Session remains in the database (not deleted)
+        $this->assertDatabaseHas('coaching_sessions', [
+            'id' => $session->id,
+            'status' => 'cancelled',
+        ]);
+    }
+
     private function createAppliedBusiness(string $businessName): array
     {
         $owner = User::factory()->create(['role' => User::ROLE_BUSINESS_OWNER]);

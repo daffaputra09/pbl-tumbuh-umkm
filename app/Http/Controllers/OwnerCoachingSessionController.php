@@ -41,12 +41,25 @@ class OwnerCoachingSessionController extends Controller
             $session = $followUp->coachingSession;
             $hasSession = $session !== null;
 
+            if ($hasSession) {
+                $status = $session->status;
+                $statusLabel = match ($session->status) {
+                    'completed' => 'Terlaksana',
+                    'scheduled' => 'Terjadwal',
+                    'cancelled' => 'Dibatalkan',
+                    default => 'Terjadwal',
+                };
+            } else {
+                $status = 'approved';
+                $statusLabel = 'Disetujui';
+            }
+
             return [
                 'id' => $hasSession ? $session->id : $followUp->id,
                 'follow_up_id' => $followUp->id,
                 'coaching_session_id' => $session?->id,
-                'status' => $hasSession ? 'completed' : 'approved',
-                'status_label' => $hasSession ? 'Terlaksana' : 'Disetujui',
+                'status' => $status,
+                'status_label' => $statusLabel,
                 'program_name' => $followUp->assistanceProgram?->name ?? 'Program Bantuan',
                 'program_provider' => $followUp->assistanceProgram?->provider ?: 'Pemerintah Desa',
                 'program_description' => $followUp->assistanceProgram?->description ?: null,
