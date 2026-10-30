@@ -40,6 +40,11 @@ class Assessment extends Model
         return $this->hasMany(AssessmentCategoryScore::class);
     }
 
+    public function recommendations(): HasMany
+    {
+        return $this->hasMany(ProgramRecommendation::class);
+    }
+
     public function primaryObstacleCategory(): BelongsTo
     {
         return $this->belongsTo(ObstacleCategory::class, 'primary_obstacle_category_id');

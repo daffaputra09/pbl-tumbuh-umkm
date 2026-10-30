@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Assessment;
 use App\Models\Business;
 use App\Models\ProgramRecommendation;
-use App\Services\ProgramRecommendationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -12,20 +12,29 @@ use Illuminate\View\View;
 
 class OwnerRecommendationController extends Controller
 {
-    public function index(Request $request, ProgramRecommendationService $recommendations): View
+    public function index(Request $request): View
     {
         $business = $this->ownBusiness($request);
-        $recommendations->generateForBusiness($business->id);
+
+        $hasCompletedAssessment = Assessment::query()
+            ->where('business_id', $business->id)
+            ->where('is_current', true)
+            ->where('status', Assessment::STATUS_COMPLETED)
+            ->exists();
 
         $recommendations = ProgramRecommendation::query()
             ->where('business_id', $business->id)
             ->where('is_active', true)
+            ->whereHas('assessment', function ($query) {
+                $query->where('is_current', true);
+            })
             ->with(['assistanceProgram', 'obstacleCategory'])
             ->orderByDesc('score')
             ->get();
 
         return view('umkm.rekomendasi.index', [
             'recommendations' => $recommendations,
+            'hasCompletedAssessment' => $hasCompletedAssessment,
         ]);
     }
 

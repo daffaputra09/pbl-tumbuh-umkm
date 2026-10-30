@@ -98,6 +98,11 @@ class Business extends Model
         return $this->hasOne(Assessment::class, 'business_id', 'id')->where('is_current', true);
     }
 
+    public function recommendations()
+    {
+        return $this->hasMany(ProgramRecommendation::class, 'business_id', 'id');
+    }
+
     public function followUps()
     {
         return $this->hasMany(FollowUp::class, 'business_id', 'user_id');

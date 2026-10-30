@@ -19,7 +19,7 @@
             <p class="mt-1 text-sm text-slate-600">Penyelenggara: <span class="font-semibold text-ink">{{ $recommendation->assistanceProgram?->provider ?: 'Belum diisi' }}</span></p>
         </div>
 
-        <div class="space-y-5 rounded-2xl border border-border bg-white p-5 sm:p-6">
+        <div class="space-y-5 rounded-2xl border border-border bg-white p-5 sm:p-6 shadow-sm">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Kategori kendala</p>
                 <p class="mt-1 text-sm font-semibold text-ink">{{ $recommendation->obstacleCategory?->name ?? 'Belum teridentifikasi' }}</p>
@@ -32,6 +32,28 @@
                 <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Syarat</p>
                 <p class="mt-1 text-sm leading-relaxed text-slate-700">{{ $recommendation->assistanceProgram?->requirements ?: 'Belum ada syarat yang dicantumkan.' }}</p>
             </div>
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Periode program</p>
+                <p class="mt-1 text-sm font-semibold text-ink">
+                    @php
+                        $startsOn = $recommendation->assistanceProgram?->starts_on;
+                        $endsOn = $recommendation->assistanceProgram?->ends_on;
+                    @endphp
+                    @if ($startsOn || $endsOn)
+                        {{ $startsOn ? $startsOn->translatedFormat('d F Y') : '—' }}
+                        s.d.
+                        {{ $endsOn ? $endsOn->translatedFormat('d F Y') : '—' }}
+                    @else
+                        Berkelanjutan / Fleksibel (tanpa batas waktu tertentu)
+                    @endif
+                </p>
+            </div>
+            @if ($recommendation->assistanceProgram?->quota)
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Kuota peserta</p>
+                    <p class="mt-1 text-sm text-slate-700">{{ number_format($recommendation->assistanceProgram->quota) }} penerima</p>
+                </div>
+            @endif
             @if (filled($recommendation->assistanceProgram?->url))
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Tautan program</p>
@@ -47,7 +69,7 @@
         @else
             <form method="post" action="{{ route('umkm.rekomendasi.apply', $recommendation) }}" class="space-y-3">
                 @csrf
-                <button type="submit" class="inline-flex items-center rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover">Daftarkan minat</button>
+                <button type="submit" class="inline-flex items-center rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover transition-colors">Daftarkan minat</button>
                 <p class="text-sm text-slate-600">Tidak perlu mengisi formulir. Proses bantuannya berlangsung di luar aplikasi, dan minat ini muncul di tindak lanjut petugas.</p>
             </form>
         @endif
