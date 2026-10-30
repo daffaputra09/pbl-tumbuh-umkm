@@ -70,15 +70,12 @@ class AssessmentController extends Controller
         $this->ensureAnsweredCategoriesAreComplete($validated['answers']);
 
         $assessment = DB::transaction(function () use ($business, $validated, $request, $scoring, $recommendations) {
-            Assessment::where('business_id', $business->id)->update(['is_current' => false]);
-
             $assessment = Assessment::create([
                 'business_id' => $business->id,
                 'filled_by' => $request->user()->id,
-                'status' => 'completed',
-                'is_current' => true,
+                'status' => 'draft',
+                'is_current' => false,
                 'other_obstacle' => $validated['otherObstacle'] ?? null,
-                'completed_at' => now(),
             ]);
 
             foreach ($validated['answers'] as $answer) {
@@ -94,10 +91,20 @@ class AssessmentController extends Controller
                 ]);
             }
 
+            Assessment::where('business_id', $business->id)
+                ->where('id', '!=', $assessment->id)
+                ->update(['is_current' => false]);
+
+            $assessment->update([
+                'status' => Assessment::STATUS_COMPLETED,
+                'is_current' => true,
+                'completed_at' => now(),
+            ]);
+
             $scoring->score($assessment);
             $recommendations->generate($assessment);
 
-            return $assessment;
+            return $assessment->fresh();
         });
 
         return response()->json($assessment, 201);
