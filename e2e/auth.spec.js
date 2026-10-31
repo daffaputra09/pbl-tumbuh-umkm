@@ -31,6 +31,13 @@ test('TC_AUTH_003 masuk sebagai kepala desa', async ({ page }) => {
     await expect(desktopMenu(page).getByRole('link', { name: 'Pendataan UMKM' })).toHaveCount(0);
 });
 
+test('TC_AUTH_010 masuk dengan nama pengguna', async ({ page }) => {
+    await login(page, 'Petugas Desa');
+
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(page.getByText('Dashboard Petugas').first()).toBeVisible();
+});
+
 test('TC_AUTH_004 email benar dan kata sandi salah', async ({ page }) => {
     await login(page, accounts.owner, 'Salah123');
 

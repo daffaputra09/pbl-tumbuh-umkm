@@ -13,6 +13,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FollowUpController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\ObstacleCategoryController;
+use App\Http\Controllers\OwnerCoachingSessionController;
 use App\Http\Controllers\OwnerRecommendationController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PetugasUmkmController;
@@ -37,6 +38,8 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_BUSINESS_OWNER, 'busines
     Route::get('/umkm/rekomendasi/{programRecommendation}', [OwnerRecommendationController::class, 'show'])->name('umkm.rekomendasi.show');
     Route::post('/umkm/rekomendasi/{programRecommendation}/daftar', [OwnerRecommendationController::class, 'apply'])->name('umkm.rekomendasi.apply');
 
+    Route::get('/umkm/riwayat-pembinaan', [OwnerCoachingSessionController::class, 'index'])->name('umkm.riwayat-pembinaan');
+
     Route::get('/umkm/produk', [ProductController::class, 'page'])->name('umkm.produk');
     Route::get('/umkm/produk/data', [ProductController::class, 'index'])->name('umkm.produk.index');
     Route::post('/umkm/produk', [ProductController::class, 'store'])->name('umkm.produk.store');
@@ -45,7 +48,7 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_BUSINESS_OWNER, 'busines
 });
 
 Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER.','.User::ROLE_VILLAGE_HEAD])->group(function () {
-    Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
 
 Route::middleware('guest')->group(function () {
@@ -111,18 +114,14 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(functio
 
     Route::get('/petugas/catat-pembinaan', [CoachingSessionController::class, 'index'])->name('petugas.catat-pembinaan');
     Route::post('/petugas/catat-pembinaan', [CoachingSessionController::class, 'store'])->name('petugas.catat-pembinaan.store');
-
-    Route::get('/petugas/umkm/{business}/produk', [ProductController::class, 'officerPage'])->name('petugas.umkm.produk');
-    Route::get('/petugas/umkm/{business}/produk/data', [ProductController::class, 'officerIndex'])->name('petugas.umkm.produk.index');
-    Route::post('/petugas/umkm/{business}/produk', [ProductController::class, 'officerStore'])->name('petugas.umkm.produk.store');
-    Route::put('/petugas/umkm/{business}/produk/{product}', [ProductController::class, 'officerUpdate'])->name('petugas.umkm.produk.update');
-    Route::patch('/petugas/umkm/{business}/produk/{product}/toggle', [ProductController::class, 'officerToggle'])->name('petugas.umkm.produk.toggle');
+    Route::patch('/petugas/catat-pembinaan/{coachingSession}', [CoachingSessionController::class, 'update'])->name('petugas.catat-pembinaan.update');
 
     Route::prefix('api/business-types')->name('api.business-types.')->group(function () {
         Route::get('/', [BusinessTypeController::class, 'index'])->name('index');
         Route::post('/', [BusinessTypeController::class, 'store'])->name('store');
         Route::put('/{businessType}', [BusinessTypeController::class, 'update'])->name('update');
         Route::patch('/{businessType}/toggle', [BusinessTypeController::class, 'toggle'])->name('toggle');
+        Route::delete('/{businessType}', [BusinessTypeController::class, 'destroy'])->name('destroy');
         Route::get('/petugas/jenis-usaha', [BusinessTypeController::class, 'index']);
     });
 
@@ -135,4 +134,5 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_VILLAGE_HEAD])->group(fu
     Route::get('/pimpinan/laporan', [StaffInsightController::class, 'summaryReport'])->name('pimpinan.laporan');
     Route::get('/pimpinan/persetujuan-tindak-lanjut', [ApprovalController::class, 'index'])->name('pimpinan.persetujuan-tindak-lanjut');
     Route::patch('/pimpinan/persetujuan-tindak-lanjut/{followUp}', [ApprovalController::class, 'update'])->name('pimpinan.persetujuan-tindak-lanjut.update');
+    Route::get('/pimpinan/riwayat-pembinaan', [CoachingSessionController::class, 'pimpinanIndex'])->name('pimpinan.riwayat-pembinaan');
 });

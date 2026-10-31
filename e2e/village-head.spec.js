@@ -9,11 +9,19 @@ test('TC_DASH_004 dashboard kepala desa menampilkan ringkasan', async ({ page })
     await expect(page.getByText('Ringkasan UMKM')).toBeVisible();
 });
 
-test('TC_FU_006 halaman persetujuan terbuka', async ({ page }) => {
+test('TC_FU_009 halaman persetujuan terbuka', async ({ page }) => {
     await login(page, accounts.villageHead);
     await page.goto('/pimpinan/persetujuan-tindak-lanjut');
 
     await expect(page.getByRole('heading', { name: 'Persetujuan Tindak Lanjut' })).toBeVisible();
+});
+
+test('TC_GRP_002 kepala desa membuka pengelompokan', async ({ page }) => {
+    await login(page, accounts.villageHead);
+    await page.goto('/pimpinan/pengelompokan');
+
+    await expect(page.getByRole('heading', { name: 'Pengelompokan' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'Kendala utama' })).toBeVisible();
 });
 
 test('TC_REC_008 kepala desa dapat membuka daftar rekomendasi', async ({ page }) => {

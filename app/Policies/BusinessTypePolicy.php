@@ -24,4 +24,9 @@ class BusinessTypePolicy
     {
         return $user->hasRole(User::ROLE_OFFICER);
     }
+
+    public function delete(User $user, BusinessType $businessType): bool
+    {
+        return $user->hasRole(User::ROLE_OFFICER);
+    }
 }

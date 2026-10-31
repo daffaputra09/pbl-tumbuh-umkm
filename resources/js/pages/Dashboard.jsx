@@ -112,7 +112,7 @@ export default function Dashboard({ role, generatedAt, isSampleData, references,
                         <div className="min-w-0 lg:col-span-2">
                             <AttentionTable records={metrics.needsAttention} obstacleLabels={obstacleLabels} />
                         </div>
-                        <VerificationQueue records={metrics.verificationQueue} />
+                        <VerificationQueue records={metrics.verificationQueue} role={role} />
                     </div>
             </div>
         </MotionConfig>

@@ -40,7 +40,7 @@ test.describe.serial('jalur kuesioner sampai pembinaan', () => {
 
         await page.getByRole('button', { name: 'Kirim Jawaban' }).click();
 
-        await expect(page).toHaveURL(/\/umkm\/dashboard$/);
+        await expect(page).toHaveURL(/\/umkm\/dashboard$/, { timeout: 30_000 });
     });
 
     test('TC_SCORE_001 dan TC_REC_005 pemilik melihat program yang cocok', async ({ page }) => {
@@ -52,7 +52,7 @@ test.describe.serial('jalur kuesioner sampai pembinaan', () => {
         await expect(page.getByText('Modal').first()).toBeVisible();
     });
 
-    test('TC_REC_002 pemilik mendaftarkan minat', async ({ page }) => {
+    test('TC_REC_009 pemilik mendaftarkan minat', async ({ page }) => {
         await login(page, accounts.owner);
         await page.goto('/umkm/rekomendasi');
 

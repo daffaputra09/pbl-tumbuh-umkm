@@ -13,6 +13,10 @@ export const OBSTACLE_ICONS = {
     digitalisasi: SmartPhone01Icon,
 };
 
+export function getObstacleIcon(slug) {
+    return (slug && OBSTACLE_ICONS[slug]) || Idea01Icon;
+}
+
 const DISPLAY_OPTIONS = [
     { value: 'jumlah', label: 'Jumlah' },
     { value: 'persen', label: 'Persen' },
@@ -42,7 +46,7 @@ export default function ObstaclePanel({ obstacles, assessedCount, className }) {
                         {obstacles.map((obstacle, index) => (
                             <li key={obstacle.key} className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 sm:grid-cols-[auto_9rem_1fr_4.5rem]">
                                 <span className="grid size-9 place-items-center rounded-xl bg-brand-50 text-brand">
-                                    <Icon icon={OBSTACLE_ICONS[obstacle.key]} size={18} />
+                                    <Icon icon={getObstacleIcon(obstacle.key)} size={18} />
                                 </span>
                                 <div className="min-w-0">
                                     <p className="text-sm font-semibold text-ink">{obstacle.label}</p>

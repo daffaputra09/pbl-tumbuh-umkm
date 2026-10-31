@@ -59,49 +59,7 @@ class ProductController extends Controller
         return response()->json($product);
     }
 
-    // ---------- Petugas mendampingi, kelola produk untuk UMKM tertentu ----------
-
-    public function officerPage(Business $business): View
-    {
-        Gate::authorize('viewAny', [Product::class, $business]);
-
-        return view('petugas.umkm.produk', [
-            'business' => ['id' => $business->id, 'name' => $business->business_name],
-            'mode' => 'officer',
-        ]);
-    }
-
-    public function officerIndex(Business $business): JsonResponse
-    {
-        Gate::authorize('viewAny', [Product::class, $business]);
-
-        return response()->json($business->products()->orderBy('name')->get());
-    }
-
-    public function officerStore(Request $request, Business $business): JsonResponse
-    {
-        Gate::authorize('create', [Product::class, $business]);
-
-        return response()->json($this->saveProduct($request, $business), 201);
-    }
-
-    public function officerUpdate(Request $request, Business $business, Product $product): JsonResponse
-    {
-        Gate::authorize('update', [$product, $business]);
-
-        return response()->json($this->saveProduct($request, $business, $product));
-    }
-
-    public function officerToggle(Business $business, Product $product): JsonResponse
-    {
-        Gate::authorize('update', [$product, $business]);
-
-        $product->update(['is_active' => ! $product->is_active]);
-
-        return response()->json($product);
-    }
-
-    // ---------- Helper bersama ----------
+    // ---------- Helper ----------
 
     private function ownBusiness(Request $request): Business
     {

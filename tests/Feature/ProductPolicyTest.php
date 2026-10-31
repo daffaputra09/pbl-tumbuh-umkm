@@ -46,32 +46,67 @@ class ProductPolicyTest extends TestCase
         ]);
     }
 
-    public function test_officer_updates_a_product_belonging_to_the_business_in_the_url(): void
+    public function test_officer_cannot_manage_products(): void
     {
         $officer = User::factory()->create(['role' => User::ROLE_OFFICER]);
         [$owner, $business, $product] = $this->ownedProduct();
 
-        $this->assertTrue($officer->can('update', [$product, $business]));
+        $this->assertFalse($officer->can('viewAny', [Product::class, $business]));
+        $this->assertFalse($officer->can('create', [Product::class, $business]));
+        $this->assertFalse($officer->can('update', [$product, $business]));
 
         $this->actingAs($officer)
-            ->putJson(route('petugas.umkm.produk.update', [$business, $product]), $this->payload('Keripik Desa'))
-            ->assertOk()
-            ->assertJsonPath('name', 'Keripik Desa');
+            ->putJson(route('umkm.produk.update', $product), $this->payload('Keripik Desa'))
+            ->assertForbidden();
 
-        $this->assertSame($owner->id, $product->refresh()->business_id);
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'name' => 'Keripik',
+        ]);
     }
 
-    public function test_officer_update_of_a_product_from_another_business_is_forbidden(): void
+    public function test_officer_cannot_manage_products_of_a_business_without_an_account(): void
     {
         $officer = User::factory()->create(['role' => User::ROLE_OFFICER]);
-        [, $business] = $this->ownedProduct();
-        [, , $otherProduct] = $this->ownedProduct('Kopi');
+        $business = Business::factory()->create([
+            'user_id' => null,
+            'created_by' => $officer->id,
+        ]);
+        $product = Product::query()->create([
+            'business_id' => $business->id,
+            'name' => 'Dodol',
+            'category' => 'Makanan',
+            'is_active' => true,
+        ]);
 
-        $this->assertFalse($officer->can('update', [$otherProduct, $business]));
+        $this->assertFalse($officer->can('viewAny', [Product::class, $business]));
+        $this->assertFalse($officer->can('create', [Product::class, $business]));
+        $this->assertFalse($officer->can('update', [$product, $business]));
 
         $this->actingAs($officer)
-            ->putJson(route('petugas.umkm.produk.update', [$business, $otherProduct]), $this->payload('Kopi Baru'))
+            ->putJson(route('umkm.produk.update', $product), $this->payload('Dodol Manis'))
             ->assertForbidden();
+    }
+
+    public function test_ownership_follows_business_id_not_user_id(): void
+    {
+        // Dua usaha tanpa akun dibuat dulu supaya id usaha pemilik tidak
+        // kebetulan sama dengan id user-nya.
+        $officer = User::factory()->create(['role' => User::ROLE_OFFICER]);
+        Business::factory()->count(2)->create([
+            'user_id' => null,
+            'created_by' => $officer->id,
+        ]);
+
+        [$owner, $business, $product] = $this->ownedProduct();
+
+        $this->assertNotSame($owner->id, $business->id);
+        $this->assertTrue($owner->can('update', $product));
+
+        $this->actingAs($owner)
+            ->putJson(route('umkm.produk.update', $product), $this->payload('Keripik Pedas'))
+            ->assertOk()
+            ->assertJsonPath('name', 'Keripik Pedas');
     }
 
     public function test_village_head_cannot_manage_products(): void
@@ -95,7 +130,7 @@ class ProductPolicyTest extends TestCase
             'created_by' => $owner->id,
         ]);
         $product = Product::query()->create([
-            'business_id' => $owner->id,
+            'business_id' => $business->id,
             'name' => $name,
             'category' => 'Makanan',
             'is_active' => true,

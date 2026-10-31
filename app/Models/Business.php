@@ -85,16 +85,26 @@ class Business extends Model
 
     public function products()
     {
-        return $this->hasMany(Product::class, 'business_id', 'user_id');
+        return $this->hasMany(Product::class);
     }
 
     public function assessments()
     {
-        return $this->hasMany(Assessment::class, 'business_id', 'user_id');
+        return $this->hasMany(Assessment::class, 'business_id', 'id');
     }
 
     public function currentAssessment()
     {
-        return $this->hasOne(Assessment::class, 'business_id', 'user_id')->where('is_current', true);
+        return $this->hasOne(Assessment::class, 'business_id', 'id')->where('is_current', true);
+    }
+
+    public function followUps()
+    {
+        return $this->hasMany(FollowUp::class, 'business_id', 'user_id');
+    }
+
+    public function coachingSessions()
+    {
+        return $this->hasMany(CoachingSession::class, 'business_id', 'user_id');
     }
 }

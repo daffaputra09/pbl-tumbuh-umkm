@@ -4,15 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\CoachingSession;
 use App\Models\FollowUp;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class CoachingSessionController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         $approvedFollowUps = FollowUp::with(['business.owner', 'assistanceProgram'])
             ->where('status', 'approved')
             ->doesntHave('coachingSession')
+            ->latest('updated_at')
             ->get();
 
         $queue = $approvedFollowUps->map(function ($followUp) {
@@ -24,13 +28,65 @@ class CoachingSessionController extends Controller
                 'program_name' => $followUp->assistanceProgram->name ?? 'N/A',
                 'planned_activity' => $followUp->planned_activity,
                 'planned_on' => $followUp->planned_on ? $followUp->planned_on->format('Y-m-d') : null,
+                'decision_note' => $followUp->decision_note,
             ];
         });
 
-        return view('petugas.catat-pembinaan', compact('queue'));
+        $recordedSessions = CoachingSession::with(['business.owner', 'assistanceProgram', 'recordedBy'])
+            ->latest('created_at')
+            ->latest('id')
+            ->get();
+
+        $history = $recordedSessions->map(function ($session) {
+            return [
+                'id' => $session->id,
+                'follow_up_id' => $session->follow_up_id,
+                'business_id' => $session->business_id,
+                'umkm_name' => $session->business->business_name ?? 'N/A',
+                'owner_name' => $session->business->owner->name ?? 'N/A',
+                'program_name' => $session->assistanceProgram->name ?? 'N/A',
+                'title' => $session->title,
+                'held_on' => $session->held_on ? $session->held_on->format('Y-m-d') : null,
+                'description' => $session->description,
+                'outcome' => $session->outcome,
+                'status' => $session->status,
+                'recorded_by_name' => $session->recordedBy->name ?? 'Petugas Desa',
+                'created_at' => $session->created_at ? $session->created_at->format('Y-m-d H:i') : null,
+            ];
+        });
+
+        return view('petugas.catat-pembinaan', compact('queue', 'history'));
     }
 
-    public function store(Request $request)
+    public function pimpinanIndex(): View
+    {
+        $recordedSessions = CoachingSession::with(['business.owner', 'assistanceProgram', 'recordedBy'])
+            ->latest('created_at')
+            ->latest('id')
+            ->get();
+
+        $history = $recordedSessions->map(function ($session) {
+            return [
+                'id' => $session->id,
+                'follow_up_id' => $session->follow_up_id,
+                'business_id' => $session->business_id,
+                'umkm_name' => $session->business->business_name ?? 'N/A',
+                'owner_name' => $session->business->owner->name ?? 'N/A',
+                'program_name' => $session->assistanceProgram->name ?? 'N/A',
+                'title' => $session->title,
+                'held_on' => $session->held_on ? $session->held_on->format('Y-m-d') : null,
+                'description' => $session->description,
+                'outcome' => $session->outcome,
+                'status' => $session->status,
+                'recorded_by_name' => $session->recordedBy->name ?? 'Petugas Desa',
+                'created_at' => $session->created_at ? $session->created_at->format('Y-m-d H:i') : null,
+            ];
+        });
+
+        return view('pimpinan.riwayat-pembinaan', compact('history'));
+    }
+
+    public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'follow_up_id' => 'required|exists:follow_ups,id',
@@ -38,11 +94,26 @@ class CoachingSessionController extends Controller
             'held_on' => 'required|date',
             'description' => 'required|string',
             'outcome' => 'nullable|string',
+            'status' => 'nullable|in:scheduled,completed,cancelled',
         ]);
 
         $followUp = FollowUp::findOrFail($validated['follow_up_id']);
 
-        CoachingSession::create([
+        if ($followUp->status !== 'approved') {
+            throw ValidationException::withMessages([
+                'follow_up_id' => 'Pembinaan hanya dapat dicatat dari tindak lanjut yang sudah disetujui kepala desa.',
+            ]);
+        }
+
+        if (CoachingSession::query()->where('follow_up_id', $followUp->id)->exists()) {
+            throw ValidationException::withMessages([
+                'follow_up_id' => 'Tindak lanjut ini sudah memiliki catatan pembinaan.',
+            ]);
+        }
+
+        $status = $validated['status'] ?? (filled($validated['outcome'] ?? null) ? 'completed' : 'scheduled');
+
+        $session = CoachingSession::create([
             'follow_up_id' => $followUp->id,
             'business_id' => $followUp->business_id,
             'assistance_program_id' => $followUp->assistance_program_id,
@@ -51,9 +122,74 @@ class CoachingSessionController extends Controller
             'held_on' => $validated['held_on'],
             'description' => $validated['description'],
             'outcome' => $validated['outcome'] ?? null,
-            'status' => 'completed',
+            'status' => $status,
         ]);
 
-        return response()->json(['message' => 'Pembinaan berhasil dicatat.']);
+        $session->load(['business.owner', 'assistanceProgram', 'recordedBy']);
+
+        $recordedItem = [
+            'id' => $session->id,
+            'follow_up_id' => $session->follow_up_id,
+            'business_id' => $session->business_id,
+            'assistance_program_id' => $session->assistance_program_id,
+            'umkm_name' => $session->business->business_name ?? 'N/A',
+            'owner_name' => $session->business->owner->name ?? 'N/A',
+            'program_name' => $session->assistanceProgram->name ?? 'N/A',
+            'title' => $session->title,
+            'held_on' => $session->held_on ? $session->held_on->format('Y-m-d') : null,
+            'description' => $session->description,
+            'outcome' => $session->outcome,
+            'status' => $session->status,
+            'recorded_by_name' => $session->recordedBy->name ?? 'Petugas Desa',
+            'created_at' => $session->created_at ? $session->created_at->format('Y-m-d H:i') : null,
+        ];
+
+        return response()->json([
+            'message' => 'Pembinaan berhasil dicatat.',
+            'session' => $recordedItem,
+        ]);
+    }
+
+    public function update(Request $request, CoachingSession $coachingSession): JsonResponse
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:scheduled,completed,cancelled',
+            'outcome' => 'nullable|string',
+        ]);
+
+        if ($validated['status'] === 'completed' && ! filled($validated['outcome'] ?? $coachingSession->outcome)) {
+            throw ValidationException::withMessages([
+                'outcome' => 'Hasil kegiatan pembinaan wajib diisi saat menandai sesi selesai.',
+            ]);
+        }
+
+        $coachingSession->update([
+            'status' => $validated['status'],
+            'outcome' => $validated['outcome'] ?? $coachingSession->outcome,
+        ]);
+
+        $coachingSession->load(['business.owner', 'assistanceProgram', 'recordedBy']);
+
+        $recordedItem = [
+            'id' => $coachingSession->id,
+            'follow_up_id' => $coachingSession->follow_up_id,
+            'business_id' => $coachingSession->business_id,
+            'assistance_program_id' => $coachingSession->assistance_program_id,
+            'umkm_name' => $coachingSession->business->business_name ?? 'N/A',
+            'owner_name' => $coachingSession->business->owner->name ?? 'N/A',
+            'program_name' => $coachingSession->assistanceProgram->name ?? 'N/A',
+            'title' => $coachingSession->title,
+            'held_on' => $coachingSession->held_on ? $coachingSession->held_on->format('Y-m-d') : null,
+            'description' => $coachingSession->description,
+            'outcome' => $coachingSession->outcome,
+            'status' => $coachingSession->status,
+            'recorded_by_name' => $coachingSession->recordedBy->name ?? 'Petugas Desa',
+            'created_at' => $coachingSession->created_at ? $coachingSession->created_at->format('Y-m-d H:i') : null,
+        ];
+
+        return response()->json([
+            'message' => 'Status pembinaan berhasil diperbarui.',
+            'session' => $recordedItem,
+        ]);
     }
 }

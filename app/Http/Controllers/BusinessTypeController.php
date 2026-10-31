@@ -14,7 +14,7 @@ class BusinessTypeController extends Controller
     {
         Gate::authorize('viewAny', BusinessType::class);
 
-        return BusinessType::orderBy('name')->get();
+        return BusinessType::withCount('businesses')->orderBy('name')->get();
     }
 
     public function store(Request $request)
@@ -30,6 +30,8 @@ class BusinessTypeController extends Controller
             'slug' => Str::slug($validated['name']),
             'is_active' => true,
         ]);
+
+        $businessType->loadCount('businesses');
 
         return response()->json($businessType, 201);
     }
@@ -47,6 +49,8 @@ class BusinessTypeController extends Controller
             'slug' => Str::slug($validated['name']),
         ]);
 
+        $businessType->loadCount('businesses');
+
         return response()->json($businessType);
     }
 
@@ -58,6 +62,25 @@ class BusinessTypeController extends Controller
             'is_active' => ! $businessType->is_active,
         ]);
 
+        $businessType->loadCount('businesses');
+
         return response()->json($businessType);
+    }
+
+    public function destroy(BusinessType $businessType)
+    {
+        Gate::authorize('delete', $businessType);
+
+        if ($businessType->businesses()->exists()) {
+            return response()->json([
+                'message' => 'Jenis usaha tidak dapat dihapus karena masih digunakan oleh data UMKM.',
+            ], 422);
+        }
+
+        $businessType->delete();
+
+        return response()->json([
+            'message' => 'Jenis usaha berhasil dihapus.',
+        ]);
     }
 }

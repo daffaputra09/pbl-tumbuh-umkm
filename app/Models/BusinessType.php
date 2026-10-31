@@ -20,4 +20,9 @@ class BusinessType extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    public function businesses()
+    {
+        return $this->hasMany(Business::class);
+    }
 }

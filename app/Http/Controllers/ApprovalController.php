@@ -9,24 +9,31 @@ class ApprovalController extends Controller
 {
     public function index()
     {
-        $queue = FollowUp::with(['business', 'assistanceProgram', 'programRecommendation.assistanceProgram'])
-            ->where('status', 'pending')
+        $queue = FollowUp::with(['business.owner', 'assistanceProgram', 'programRecommendation.assistanceProgram', 'submitter', 'decider'])
+            ->orderByRaw("CASE WHEN status = 'pending' THEN 0 WHEN status = 'approved' THEN 1 ELSE 2 END")
+            ->latest('id')
             ->get()
             ->map(function ($followUp) {
                 // Get recommended program either from direct assistanceProgram or via programRecommendation
-                $programName = $followUp->assistanceProgram->name 
-                               ?? $followUp->programRecommendation->assistanceProgram->name 
+                $programName = $followUp->assistanceProgram->name
+                               ?? $followUp->programRecommendation->assistanceProgram->name
                                ?? 'N/A';
-                
+
                 return [
                     'id' => $followUp->id,
                     'umkm_name' => $followUp->business->business_name ?? 'N/A',
+                    'owner_name' => $followUp->business?->owner_name ?? $followUp->business?->owner?->name ?? 'N/A',
                     'recommended_program' => $programName,
                     'planned_activity' => $followUp->planned_activity,
                     'planned_on' => $followUp->planned_on ? $followUp->planned_on->format('Y-m-d') : null,
                     'submission_note' => $followUp->submission_note,
                     'status' => $followUp->status,
                     'submitted_by' => $followUp->submitted_by,
+                    'submitted_by_name' => $followUp->submitter?->name ?? 'Petugas Desa',
+                    'decided_by_name' => $followUp->decider?->name ?? ($followUp->decided_at ? 'Kepala Desa' : null),
+                    'decision_note' => $followUp->decision_note,
+                    'decided_at' => $followUp->decided_at ? $followUp->decided_at->format('Y-m-d') : null,
+                    'created_at' => $followUp->created_at ? $followUp->created_at->format('Y-m-d') : null,
                 ];
             });
 
@@ -37,7 +44,7 @@ class ApprovalController extends Controller
     {
         if ($followUp->submitted_by === auth()->id()) {
             return response()->json([
-                'message' => 'Anda tidak dapat menyetujui atau menolak pengajuan Anda sendiri.'
+                'message' => 'Anda tidak dapat menyetujui atau menolak pengajuan Anda sendiri.',
             ], 403);
         }
 
@@ -54,7 +61,7 @@ class ApprovalController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Keputusan berhasil disimpan.'
+            'message' => 'Keputusan berhasil disimpan.',
         ]);
     }
 }

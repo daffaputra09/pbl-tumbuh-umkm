@@ -29,7 +29,7 @@ test('TC_REG_002 email yang sudah terdaftar ditolak', async ({ page }) => {
     await expect(page.getByText('Lengkapi data usaha ini dulu')).toHaveCount(0);
 });
 
-test('TC_REG_003 field wajib yang kosong tidak terkirim', async ({ page }) => {
+test('TC_REG_004 field wajib yang kosong tidak terkirim', async ({ page }) => {
     await page.goto('/register');
     await page.getByRole('button', { name: 'Buat akun' }).click();
 
