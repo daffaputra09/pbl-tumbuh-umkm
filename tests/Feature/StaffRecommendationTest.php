@@ -33,14 +33,14 @@ class StaffRecommendationTest extends TestCase
         $this->actingAs($officer)
             ->get(route('petugas.rekomendasi'))
             ->assertOk()
-            ->assertSee('Rekomendasi Program UMKM')
-            ->assertSee('Filter dan Pencarian Rekomendasi');
+            ->assertSee('Rekomendasi')
+            ->assertSee('Filter dan Pencarian Data');
 
         $this->actingAs($villageHead)
             ->get(route('pimpinan.rekomendasi'))
             ->assertOk()
-            ->assertSee('Rekomendasi Program UMKM')
-            ->assertSee('Filter dan Pencarian Rekomendasi');
+            ->assertSee('Rekomendasi')
+            ->assertSee('Filter dan Pencarian Data');
     }
 
     #[TestWith(['petugas.rekomendasi'])]
@@ -132,7 +132,7 @@ class StaffRecommendationTest extends TestCase
             ->assertOk();
 
         // Header and Summary
-        $response->assertSee('Rekomendasi Program UMKM');
+        $response->assertSee('Rekomendasi');
         $response->assertSee('UMKM Memperoleh Rekomendasi');
         $response->assertSee('Total Program Rekomendasi');
 
@@ -147,7 +147,7 @@ class StaffRecommendationTest extends TestCase
         $response->assertSee('Lihat Detail');
 
         // Detail Modal Data
-        $response->assertSee('Detail Rekomendasi Program');
+        $response->assertSee('Detail Program Bantuan');
         $response->assertSee('KUR Mikro Bunga 3%');
         $response->assertSee('Bank Mandiri');
         $response->assertSee('Hibah Modal Alat Usaha');
@@ -210,7 +210,7 @@ class StaffRecommendationTest extends TestCase
 
         // Modal contains the full detail without leaking to main table
         $response->assertSee('modal-detail-'.$business->id);
-        $response->assertSee('Detail Rekomendasi Program');
+        $response->assertSee('Detail Program Bantuan');
         $response->assertSee('Program Bantuan Terpilih');
         $response->assertSee('Program Bantuan Lain');
         $response->assertSee('1 Diminati');

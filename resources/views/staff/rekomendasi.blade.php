@@ -1,11 +1,11 @@
 @extends('layouts.app-shell')
 
-@section('title', 'Rekomendasi Program UMKM — TUMBUH UMKM')
+@section('title', 'Rekomendasi — TUMBUH UMKM')
 
 @section('content')
     <div class="mx-auto max-w-5xl space-y-6">
         <div>
-            <h1 class="text-2xl font-bold tracking-tight text-ink sm:text-3xl">Rekomendasi Program UMKM</h1>
+            <h1 class="text-2xl font-bold tracking-tight text-ink sm:text-3xl">Rekomendasi</h1>
             <p class="mt-1 max-w-2xl text-sm text-slate-600">
                 Daftar program bantuan yang cocok untuk setiap UMKM berdasarkan hasil asesmen kendala, beserta minat yang didaftarkan pelaku usaha.
             </p>
@@ -31,7 +31,7 @@
 
         {{-- Panel Filter & Pencarian --}}
         <section aria-labelledby="filter-rekomendasi-heading" class="rounded-2xl border border-border bg-white p-5 shadow-xs">
-            <h2 id="filter-rekomendasi-heading" class="text-sm font-semibold text-ink">Filter dan Pencarian Rekomendasi</h2>
+            <h2 id="filter-rekomendasi-heading" class="text-sm font-semibold text-ink">Filter dan Pencarian Data</h2>
             <form method="get" action="{{ request()->url() }}" class="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:items-end">
                 <div>
                     <label for="q" class="block text-xs font-semibold uppercase tracking-wide text-slate-600">Cari Nama UMKM</label>
@@ -216,7 +216,7 @@
                         <div class="flex items-start justify-between border-b border-border bg-slate-50/75 px-6 py-4">
                             <div>
                                 <h3 id="modal-title-{{ $group['businessId'] }}" class="text-lg font-bold text-ink">
-                                    Detail Rekomendasi Program
+                                    Detail Program Bantuan
                                 </h3>
                                 <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-600">
                                     <span class="font-semibold text-slate-800">{{ $group['businessName'] }}</span>
@@ -245,7 +245,7 @@
                         <div class="p-6">
                             <div class="mb-3 flex items-center justify-between">
                                 <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                                    Daftar Program Rekomendasi ({{ $group['totalRecommendations'] }})
+                                    Daftar Program Bantuan ({{ $group['totalRecommendations'] }})
                                 </p>
                                 <span class="text-xs text-slate-500">
                                     {{ $group['appliedCount'] }} Diminati
