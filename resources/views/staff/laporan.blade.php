@@ -4,11 +4,29 @@
 
 @section('content')
     <div class="mx-auto max-w-6xl space-y-8">
-        <div class="flex flex-col gap-2">
-            <h1 class="text-2xl font-bold tracking-tight text-ink sm:text-3xl">Laporan Ringkasan UMKM</h1>
-            <p class="max-w-3xl text-sm text-slate-600">
-                Ringkasan kondisi usaha, sebaran kendala per kategori, dan perkembangan pembinaan berdasarkan periode serta kategori kendala.
-            </p>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div class="flex flex-col gap-2">
+                <h1 class="text-2xl font-bold tracking-tight text-ink sm:text-3xl">Laporan Ringkasan UMKM</h1>
+                <p class="max-w-3xl text-sm text-slate-600">
+                    Ringkasan kondisi usaha, sebaran kendala per kategori, dan perkembangan pembinaan berdasarkan periode serta kategori kendala.
+                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                <a
+                    href="{{ route(request()->routeIs('pimpinan.*') ? 'pimpinan.laporan.export.pdf' : 'petugas.laporan.export.pdf', request()->only(['tanggal_mulai', 'tanggal_akhir', 'kategori'])) }}"
+                    class="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-sm font-semibold text-rose-700 shadow-xs hover:bg-rose-100 hover:text-rose-800 transition"
+                >
+                    <x-hugeicon name="FileExportIcon" :size="18" />
+                    <span>Ekspor PDF</span>
+                </a>
+                <a
+                    href="{{ route(request()->routeIs('pimpinan.*') ? 'pimpinan.laporan.export.excel' : 'petugas.laporan.export.excel', request()->only(['tanggal_mulai', 'tanggal_akhir', 'kategori'])) }}"
+                    class="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-sm font-semibold text-emerald-700 shadow-xs hover:bg-emerald-100 hover:text-emerald-800 transition"
+                >
+                    <x-hugeicon name="FileExportIcon" :size="18" />
+                    <span>Ekspor Excel</span>
+                </a>
+            </div>
         </div>
 
         @if ($errors->any())
