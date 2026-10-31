@@ -69,13 +69,62 @@ class StaffInsightController extends Controller
         ]);
     }
 
-    public function recommendations(ProgramRecommendationService $recommendations): View
+    public function recommendations(Request $request, ProgramRecommendationService $recommendations): View
     {
         $recommendations->generateForCurrentAssessments();
 
-        $recommendationRows = ProgramRecommendation::query()
+        $search = trim((string) $request->input('q', ''));
+        $categoryParam = $request->input('kategori');
+        $hasCategoryFilter = filled($categoryParam);
+        $minat = $request->input('minat');
+
+        $categories = ObstacleCategory::query()
             ->where('is_active', true)
-            ->with(['business', 'assistanceProgram', 'obstacleCategory'])
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        $selectedCategory = null;
+        if ($hasCategoryFilter) {
+            $selectedCategory = is_numeric($categoryParam)
+                ? $categories->firstWhere('id', (int) $categoryParam)
+                : $categories->first(function ($cat) use ($categoryParam): bool {
+                    return strcasecmp($cat->slug, (string) $categoryParam) === 0
+                        || strcasecmp($cat->name, (string) $categoryParam) === 0;
+                });
+        }
+        $selectedCategoryId = $selectedCategory?->id;
+
+        $query = ProgramRecommendation::query()
+            ->where('is_active', true)
+            ->with([
+                'business',
+                'assistanceProgram',
+                'obstacleCategory',
+            ]);
+
+        if ($search !== '') {
+            $query->whereHas('business', function ($q) use ($search): void {
+                $q->where('business_name', 'like', "%{$search}%")
+                    ->orWhere('owner_name', 'like', "%{$search}%");
+            });
+        }
+
+        if ($hasCategoryFilter) {
+            if ($selectedCategoryId !== null) {
+                $query->where('obstacle_category_id', $selectedCategoryId);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        }
+
+        if ($minat === 'sudah') {
+            $query->whereNotNull('applied_at');
+        } elseif ($minat === 'belum') {
+            $query->whereNull('applied_at');
+        }
+
+        $recommendationRows = $query
             ->get()
             ->sortBy([
                 ['business.business_name', 'asc'],
@@ -83,7 +132,59 @@ class StaffInsightController extends Controller
             ])
             ->values();
 
+        $groupedBusinesses = $recommendationRows
+            ->groupBy('business_id')
+            ->map(function ($recs, $businessId) use ($selectedCategory): array {
+                $firstRec = $recs->first();
+                $business = $firstRec?->business;
+
+                $recommendationCategories = $recs->map(fn ($r) => $r->obstacleCategory?->name)
+                    ->filter()
+                    ->unique()
+                    ->values();
+
+                $categoryLabel = $selectedCategory?->name
+                    ?: ($recommendationCategories->isNotEmpty() ? $recommendationCategories->implode(', ') : 'Belum teridentifikasi');
+
+                return [
+                    'businessId' => $businessId,
+                    'business' => $business,
+                    'businessName' => $business?->business_name ?: 'Usaha tanpa nama',
+                    'ownerName' => $business?->owner_name ?: 'Belum diisi',
+                    'categoryLabel' => $categoryLabel,
+                    'recommendationCategories' => $recommendationCategories,
+                    'recommendations' => $recs->sortBy('assistanceProgram.name', SORT_NATURAL | SORT_FLAG_CASE)->values(),
+                    'totalRecommendations' => $recs->count(),
+                    'appliedCount' => $recs->whereNotNull('applied_at')->count(),
+                ];
+            })
+            ->sortBy('businessName', SORT_NATURAL | SORT_FLAG_CASE)
+            ->values();
+
+        $perPage = 10;
+        $page = max(1, $request->integer('page', 1));
+        $paginatedBusinesses = new LengthAwarePaginator(
+            $groupedBusinesses->forPage($page, $perPage)->values(),
+            $groupedBusinesses->count(),
+            $perPage,
+            $page,
+            [
+                'path' => $request->url(),
+                'pageName' => 'page',
+            ]
+        );
+        $paginatedBusinesses->withQueryString();
+
         return view('staff.rekomendasi', [
+            'businesses' => $paginatedBusinesses,
+            'categories' => $categories,
+            'selectedCategoryId' => $selectedCategoryId,
+            'selectedCategoryName' => $selectedCategory?->name,
+            'search' => $search,
+            'selectedMinat' => $minat,
+            'totalBusinessesCount' => $groupedBusinesses->count(),
+            'totalRecommendationsCount' => $recommendationRows->count(),
+            'totalAppliedCount' => $recommendationRows->whereNotNull('applied_at')->count(),
             'recommendations' => $recommendationRows,
         ]);
     }
