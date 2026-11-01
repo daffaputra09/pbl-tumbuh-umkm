@@ -143,7 +143,11 @@ export function computeMetrics(records, { references, periodMonths, now }) {
         share: percent(verificationCounts[status.key] ?? 0, records.length),
     }));
 
-    const obstacles = references.obstacleCategories
+    const obstacleCategoriesList = Array.isArray(references?.obstacleCategories) ? references.obstacleCategories : [];
+    const hamletsList = Array.isArray(references?.hamlets) ? references.hamlets : [];
+    const businessTypesList = Array.isArray(references?.businessTypes) ? references.businessTypes : [];
+
+    const obstacles = obstacleCategoriesList
         .map((category) => {
             const levels = countBy(assessed, (record) => scoreFor(record, category.slug)?.level ?? 'low');
             const averageScore =
@@ -168,7 +172,7 @@ export function computeMetrics(records, { references, periodMonths, now }) {
         })
         .sort((first, second) => second.high - first.high);
 
-    const hamletCounts = references.hamlets.map((name) => {
+    const hamletCounts = hamletsList.map((name) => {
         const inHamlet = records.filter((record) => record.hamlet === name);
         const activeInHamlet = inHamlet.filter((record) => record.operationalStatus === 'active').length;
 
@@ -181,7 +185,7 @@ export function computeMetrics(records, { references, periodMonths, now }) {
         };
     });
 
-    const businessTypeCounts = references.businessTypes
+    const businessTypeCounts = businessTypesList
         .map((type) => {
             const count = records.filter((record) => record.businessType?.slug === type.slug).length;
 
@@ -189,7 +193,7 @@ export function computeMetrics(records, { references, periodMonths, now }) {
         })
         .sort((first, second) => second.value - first.value);
 
-    const grouping = references.obstacleCategories
+    const grouping = obstacleCategoriesList
         .map((category) => {
             const value = assessed.filter((record) => record.currentAssessment?.primaryObstacleCategoryId === category.id).length;
 

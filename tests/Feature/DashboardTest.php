@@ -268,4 +268,143 @@ class DashboardTest extends TestCase
         $this->assertCount(12, $trend['terverifikasi']);
         $this->assertCount(12, $trend['menunggu']);
     }
+
+    public function test_village_head_dashboard_loads_only_pending_follow_ups_and_separated_coaching_progress(): void
+    {
+        $this->withoutVite();
+
+        $villageHead = User::factory()->create(['role' => User::ROLE_VILLAGE_HEAD]);
+        $officer = User::factory()->create(['role' => User::ROLE_OFFICER]);
+        $owner = User::factory()->create(['role' => User::ROLE_BUSINESS_OWNER]);
+
+        $business = Business::factory()->create([
+            'user_id' => $owner->id,
+            'operational_status' => 'active',
+            'verification_status' => 'verified',
+            'hamlet' => 'Krajan',
+        ]);
+
+        // 1. FollowUp: Ada pending, approved, dan rejected
+        $followUpPending = FollowUp::create([
+            'business_id' => $owner->id,
+            'submitted_by' => $officer->id,
+            'status' => 'pending',
+            'planned_activity' => 'Pengajuan Pelatihan Keuangan Pending',
+            'planned_on' => now()->addDays(3),
+            'submission_note' => 'Menunggu verifikasi pimpinan',
+        ]);
+
+        $followUpApproved1 = FollowUp::create([
+            'business_id' => $owner->id,
+            'submitted_by' => $officer->id,
+            'decided_by' => $villageHead->id,
+            'status' => 'approved',
+            'planned_activity' => 'Pelatihan Packaging Disetujui 1',
+            'planned_on' => now()->addDays(5),
+            'submission_note' => 'Disetujui',
+            'decided_at' => now(),
+        ]);
+
+        $followUpApproved2 = FollowUp::create([
+            'business_id' => $owner->id,
+            'submitted_by' => $officer->id,
+            'decided_by' => $villageHead->id,
+            'status' => 'approved',
+            'planned_activity' => 'Pelatihan Digital Marketing Disetujui 2',
+            'planned_on' => now()->addDays(2),
+            'submission_note' => 'Disetujui',
+            'decided_at' => now(),
+        ]);
+
+        $followUpApproved3 = FollowUp::create([
+            'business_id' => $owner->id,
+            'submitted_by' => $officer->id,
+            'decided_by' => $villageHead->id,
+            'status' => 'approved',
+            'planned_activity' => 'Pelatihan Ekspor Disetujui 3',
+            'planned_on' => now()->addDays(1),
+            'submission_note' => 'Disetujui',
+            'decided_at' => now(),
+        ]);
+
+        $followUpRejected = FollowUp::create([
+            'business_id' => $owner->id,
+            'submitted_by' => $officer->id,
+            'decided_by' => $villageHead->id,
+            'status' => 'rejected',
+            'planned_activity' => 'Bantuan Modal Ditolak',
+            'planned_on' => now()->addDays(1),
+            'submission_note' => 'Tidak memenuhi syarat',
+            'decided_at' => now(),
+        ]);
+
+        // 2. CoachingSession: Ada scheduled, completed, dan cancelled
+        CoachingSession::create([
+            'follow_up_id' => $followUpApproved1->id,
+            'business_id' => $owner->id,
+            'recorded_by' => $officer->id,
+            'title' => 'Sesi Packaging Terjadwal',
+            'held_on' => now()->addDays(2),
+            'description' => 'Sesi dijadwalkan minggu depan',
+            'status' => 'scheduled',
+        ]);
+
+        CoachingSession::create([
+            'follow_up_id' => $followUpApproved2->id,
+            'business_id' => $owner->id,
+            'recorded_by' => $officer->id,
+            'title' => 'Sesi Digital Marketing Selesai',
+            'held_on' => now()->subDay(),
+            'description' => 'Selesai dilaksanakan',
+            'outcome' => 'Berhasil membuat toko online',
+            'status' => 'completed',
+        ]);
+
+        CoachingSession::create([
+            'follow_up_id' => $followUpApproved3->id,
+            'business_id' => $owner->id,
+            'recorded_by' => $officer->id,
+            'title' => 'Sesi Ekspor Batal',
+            'held_on' => now()->subDays(2),
+            'description' => 'Dibatalkan karena peserta sakit',
+            'status' => 'cancelled',
+        ]);
+
+        $response = $this->actingAs($villageHead)->get(route('dashboard'));
+
+        $response->assertOk();
+        $response->assertViewIs('dashboard.index');
+
+        // Pastikan view has coachingProgress dan antreanPersetujuan
+        $response->assertViewHas('coachingProgress');
+        $coachingProgress = $response->viewData('coachingProgress');
+        $this->assertEquals(1, $coachingProgress['scheduled']);
+        $this->assertEquals(1, $coachingProgress['completed']);
+        $this->assertEquals(1, $coachingProgress['cancelled']);
+        $this->assertEquals(3, $coachingProgress['total']);
+
+        // Pastikan view antreanPersetujuan HANYA memuat pengajuan pending (1 dari 3 pengajuan)
+        $antrean = $response->viewData('antreanPersetujuan');
+        $this->assertCount(1, $antrean);
+        $this->assertEquals('pending', $antrean->first()['status']);
+        $this->assertEquals($followUpPending->id, $antrean->first()['id']);
+
+        // Pastikan dashboardData / dashboard JSON payload yang dikirim ke React lengkap
+        $dashboardData = $response->viewData('dashboardData');
+        $this->assertArrayHasKey('followUpQueue', $dashboardData);
+        $this->assertCount(1, $dashboardData['followUpQueue']);
+        $this->assertEquals('pending', $dashboardData['followUpQueue'][0]['status']);
+        $this->assertEquals('Pengajuan Pelatihan Keuangan Pending', $dashboardData['followUpQueue'][0]['plannedActivity']);
+
+        $this->assertArrayHasKey('coachingProgress', $dashboardData);
+        $this->assertEquals(1, $dashboardData['coachingProgress']['scheduled']);
+        $this->assertEquals(1, $dashboardData['coachingProgress']['completed']);
+        $this->assertEquals(1, $dashboardData['coachingProgress']['cancelled']);
+        $this->assertEquals(3, $dashboardData['coachingProgress']['total']);
+
+        // Pastikan URL navigasi ke halaman pimpinan disediakan
+        $this->assertArrayHasKey('routes', $dashboardData);
+        $this->assertEquals(route('pimpinan.persetujuan-tindak-lanjut'), $dashboardData['routes']['pimpinanFollowUps']);
+        $this->assertEquals(route('pimpinan.riwayat-pembinaan'), $dashboardData['routes']['pimpinanCoachingHistory']);
+    }
 }

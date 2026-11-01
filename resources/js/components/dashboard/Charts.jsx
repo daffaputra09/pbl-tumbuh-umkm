@@ -52,20 +52,20 @@ export function TrendChart({ data }) {
     const total = data.reduce((sum, month) => sum + month.pendaftar, 0);
 
     if (total === 0) {
-        return <EmptyState className="h-64" message="Belum ada pendaftaran UMKM pada periode dan filter ini." />;
+        return <EmptyState className="flex-1 min-h-64" message="Belum ada pendaftaran UMKM pada periode dan filter ini." />;
     }
 
     return (
-        <div className="flex h-full flex-col gap-3">
+        <div className="flex flex-1 min-h-0 flex-col justify-center gap-4 pt-2">
             <Legend
                 items={[
                     { label: 'Pendaftar baru', color: '#0f766e' },
                     { label: 'Sudah terverifikasi', color: '#d97706' },
                 ]}
             />
-            <div className="h-64 sm:h-72">
+            <div className="h-72 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
+                    <AreaChart data={data} margin={{ top: 16, right: 8, bottom: 4, left: -20 }}>
                         <defs>
                             <linearGradient id="trend-registered" x1="0" x2="0" y1="0" y2="1">
                                 <stop offset="0%" stopColor="#0f766e" stopOpacity={0.28} />
@@ -115,11 +115,11 @@ export function VerificationDonut({ data }) {
     const activeItem = data.find((item) => item.key === activeKey);
 
     if (total === 0) {
-        return <EmptyState className="h-64" />;
+        return <EmptyState className="flex-1 min-h-64" />;
     }
 
     return (
-        <div className="flex flex-col items-center gap-5 sm:flex-row lg:flex-col">
+        <div className="flex flex-1 min-h-0 flex-col items-center justify-center gap-5 sm:flex-row lg:flex-col">
             <div className="relative size-48 shrink-0 sm:size-44 lg:size-48">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -182,20 +182,20 @@ export function DusunChart({ data }) {
     const total = data.reduce((sum, item) => sum + item.total, 0);
 
     if (total === 0) {
-        return <EmptyState className="h-64" />;
+        return <EmptyState className="flex-1 min-h-64" />;
     }
 
     return (
-        <div className="flex h-full flex-col gap-3">
+        <div className="flex flex-1 min-h-0 flex-col justify-center gap-4 pt-2">
             <Legend
                 items={[
                     { label: 'Aktif', color: '#0f766e' },
                     { label: 'Tidak aktif', color: '#cbd5e1' },
                 ]}
             />
-            <div className="h-64">
+            <div className="h-72 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={data} margin={{ top: 8, right: 4, bottom: 0, left: -20 }} barCategoryGap="28%">
+                    <BarChart data={data} margin={{ top: 16, right: 4, bottom: 4, left: -20 }} barCategoryGap="28%">
                         <CartesianGrid stroke="#e2e8f0" strokeDasharray="4 4" vertical={false} />
                         <XAxis dataKey="name" tick={AXIS_TICK} tickLine={false} axisLine={false} interval={0} tickFormatter={formatDusunTick} />
                         <YAxis tick={AXIS_TICK} tickLine={false} axisLine={false} allowDecimals={false} width={48} />

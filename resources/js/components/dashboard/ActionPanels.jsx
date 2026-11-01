@@ -41,17 +41,18 @@ function ShowMoreButton({ isExpanded, hiddenCount, onToggle }) {
     );
 }
 
-export function AttentionTable({ records, obstacleLabels }) {
+export function AttentionTable({ records = [], obstacleLabels = {}, className }) {
+    const safeRecords = Array.isArray(records) ? records : [];
+    const safeObstacleLabels = obstacleLabels || {};
     const [query, setQuery] = useState('');
-    const [isExpanded, setIsExpanded] = useState(false);
-    const filtered = useMemo(() => records.filter((record) => matchesSearch(record, query)), [records, query]);
-    const visible = isExpanded ? filtered : filtered.slice(0, INITIAL_VISIBLE_ROWS);
+    const filtered = useMemo(() => safeRecords.filter((record) => matchesSearch(record, query)), [safeRecords, query]);
 
     return (
         <Panel
             id="perlu-perhatian"
+            className={cn('h-[480px]', className)}
             title="UMKM yang perlu segera dibina"
-            description={`${formatNumber(records.length)} UMKM aktif berkebutuhan tinggi dan belum punya sesi pembinaan.`}
+            description={`${formatNumber(safeRecords.length)} UMKM aktif berkebutuhan tinggi dan belum punya sesi pembinaan.`}
             action={
                 <label className="relative w-full sm:w-60">
                     <span className="sr-only">Cari nama usaha atau dusun</span>
@@ -69,20 +70,20 @@ export function AttentionTable({ records, obstacleLabels }) {
             {filtered.length === 0 ? (
                 <EmptyState message={records.length === 0 ? 'Semua UMKM berkebutuhan tinggi sudah dibina.' : 'Tidak ada usaha yang cocok dengan pencarian.'} />
             ) : (
-                <>
-                    <div className="hidden overflow-x-auto md:block">
+                <div className="flex-1 min-h-0 overflow-y-auto pr-1.5 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent]">
+                    <div className="hidden md:block">
                         <table className="w-full text-left text-sm">
-                            <thead>
-                                <tr className="border-b border-border text-xs font-semibold text-muted-foreground">
-                                    <th scope="col" className="pb-3 font-semibold">Usaha</th>
-                                    <th scope="col" className="pb-3 font-semibold">Dusun</th>
-                                    <th scope="col" className="pb-3 font-semibold">Kendala utama</th>
-                                    <th scope="col" className="pb-3 text-right font-semibold">Skor</th>
-                                    <th scope="col" className="pb-3 text-right font-semibold">Terdaftar</th>
+                            <thead className="sticky top-0 z-10 border-b border-border bg-white text-xs font-semibold text-muted-foreground shadow-[0_1px_0_0_#e2e8f0]">
+                                <tr>
+                                    <th scope="col" className="bg-white py-3 pr-4 font-semibold">Usaha</th>
+                                    <th scope="col" className="bg-white py-3 pr-4 font-semibold">Dusun</th>
+                                    <th scope="col" className="bg-white py-3 pr-4 font-semibold">Kendala utama</th>
+                                    <th scope="col" className="bg-white py-3 text-right font-semibold">Skor</th>
+                                    <th scope="col" className="bg-white py-3 pl-4 text-right font-semibold">Terdaftar</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
-                                {visible.map((record) => (
+                                {filtered.map((record) => (
                                     <tr key={record.id} className="transition-colors hover:bg-slate-50/80">
                                         <td className="py-3 pr-4">
                                             <p className="font-semibold text-ink">{record.businessName}</p>
@@ -106,7 +107,7 @@ export function AttentionTable({ records, obstacleLabels }) {
                     </div>
 
                     <ul className="flex flex-col gap-2 md:hidden">
-                        {visible.map((record) => (
+                        {filtered.map((record) => (
                             <li key={record.id} className="rounded-xl border border-border p-3.5">
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
@@ -125,43 +126,117 @@ export function AttentionTable({ records, obstacleLabels }) {
                             </li>
                         ))}
                     </ul>
-
-                    {filtered.length > INITIAL_VISIBLE_ROWS && (
-                        <ShowMoreButton
-                            isExpanded={isExpanded}
-                            hiddenCount={filtered.length - INITIAL_VISIBLE_ROWS}
-                            onToggle={() => setIsExpanded((current) => !current)}
-                        />
-                    )}
-                </>
+                </div>
             )}
         </Panel>
     );
 }
 
-export function VerificationQueue({ records, role }) {
-    const [isExpanded, setIsExpanded] = useState(false);
-    const visible = isExpanded ? records : records.slice(0, INITIAL_VISIBLE_ROWS);
-    const overdueCount = records.filter((record) => record.waitingDays > 7).length;
+export function VerificationQueue({ records = [], role, followUpQueue = [], routes = {}, className }) {
     const isHead = role === 'kepala-desa';
+    const safeQueue = Array.isArray(followUpQueue) ? followUpQueue : [];
+    const safeRecords = Array.isArray(records) ? records : [];
+    const safeRoutes = routes || {};
+    const queueData = isHead ? safeQueue : safeRecords;
+    const overdueCount = queueData.filter((record) => (record.waitingDays ?? record.usia_hari ?? 0) > 7).length;
 
     return (
         <Panel
             id="antrean-verifikasi"
+            className={cn('h-[480px]', className)}
             title={isHead ? 'Antrean Persetujuan Tindak Lanjut' : 'Antrean verifikasi'}
             description={
                 isHead
-                    ? (overdueCount > 0 ? `${overdueCount} pengajuan menunggu lebih dari 7 hari.` : 'Pengajuan tindak lanjut menunggu persetujuan kepala desa.')
-                    : (overdueCount > 0 ? `${overdueCount} data sudah menunggu lebih dari 7 hari.` : 'Data paling lama menunggu tampil di atas.')
+                    ? (overdueCount > 0
+                        ? `${overdueCount} pengajuan menunggu lebih dari 7 hari.`
+                        : `${queueData.length} pengajuan berstatus pending menunggu persetujuan.`)
+                    : (overdueCount > 0
+                        ? `${overdueCount} data sudah menunggu lebih dari 7 hari.`
+                        : 'Data paling lama menunggu tampil di atas.')
+            }
+            action={
+                isHead ? (
+                    <a
+                        href={safeRoutes.pimpinanFollowUps || '/pimpinan/persetujuan-tindak-lanjut'}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:text-brand-hover hover:underline"
+                    >
+                        Buka persetujuan ({queueData.length}) →
+                    </a>
+                ) : (
+                    <a
+                        href="/petugas/umkm"
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:text-brand-hover hover:underline"
+                    >
+                        Buka verifikasi ({queueData.length}) →
+                    </a>
+                )
             }
         >
-            {records.length === 0 ? (
-                <EmptyState message="Tidak ada data yang menunggu verifikasi." />
+            {queueData.length === 0 ? (
+                <EmptyState
+                    message={
+                        isHead
+                            ? 'Tidak ada pengajuan tindak lanjut yang menunggu persetujuan.'
+                            : 'Tidak ada data yang menunggu verifikasi.'
+                    }
+                />
             ) : (
-                <>
+                <div className="flex-1 min-h-0 overflow-y-auto pr-1.5 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent]">
                     <ul className="flex flex-col divide-y divide-border">
-                        {visible.map((record) => {
-                            const isOverdue = record.waitingDays > 7;
+                        {queueData.map((record) => {
+                            const waitingDays = record.waitingDays ?? record.usia_hari ?? 0;
+                            const isOverdue = waitingDays > 7;
+
+                            if (isHead) {
+                                return (
+                                    <li key={record.id} className="group/queue flex items-center justify-between gap-3 py-3 first:pt-0">
+                                        <div className="flex min-w-0 items-center gap-3">
+                                            <span
+                                                className={cn(
+                                                    'grid size-9 shrink-0 place-items-center rounded-xl',
+                                                    isOverdue ? 'bg-rose-50 text-rose-600' : 'bg-sun-50 text-sun',
+                                                )}
+                                            >
+                                                <Icon icon={isOverdue ? Alert02Icon : Clock01Icon} size={18} />
+                                            </span>
+                                            <div className="min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <p className="truncate text-sm font-semibold text-ink">
+                                                        {record.businessName || record.nama_usaha}
+                                                    </p>
+                                                    <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                                                        Pending
+                                                    </span>
+                                                </div>
+                                                <p className="truncate text-xs text-muted-foreground">
+                                                    {record.programName || record.plannedActivity || record.rencana_kegiatan || 'Program Pendampingan'} · Dusun {record.hamlet || record.dusun || '-'}
+                                                </p>
+                                                <p className="text-[11px] text-slate-400">
+                                                    Diajukan oleh {record.submittedBy || record.diajukan_oleh || 'Petugas Desa'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex shrink-0 items-center gap-2">
+                                            <span
+                                                className={cn(
+                                                    'rounded-md px-2 py-0.5 text-xs font-semibold whitespace-nowrap tabular-nums',
+                                                    isOverdue ? 'bg-rose-50 text-rose-700' : 'bg-slate-100 text-slate-600',
+                                                )}
+                                            >
+                                                {waitingDays === 0 ? 'Hari ini' : `${waitingDays} hari`}
+                                            </span>
+                                            <a
+                                                href={safeRoutes.pimpinanFollowUps || '/pimpinan/persetujuan-tindak-lanjut'}
+                                                className="inline-flex size-7 items-center justify-center rounded-lg border border-border text-slate-500 hover:border-brand-300 hover:bg-brand-50 hover:text-brand"
+                                                title="Buka persetujuan"
+                                            >
+                                                <span className="text-xs font-bold">→</span>
+                                            </a>
+                                        </div>
+                                    </li>
+                                );
+                            }
+
                             const needsFix = record.verificationStatus === 'needs_revision';
 
                             return (
@@ -186,21 +261,13 @@ export function VerificationQueue({ records, role }) {
                                             isOverdue ? 'bg-rose-50 text-rose-700' : 'bg-slate-100 text-slate-600',
                                         )}
                                     >
-                                        {record.waitingDays === 0 ? 'Hari ini' : `${record.waitingDays} hari`}
+                                        {waitingDays === 0 ? 'Hari ini' : `${waitingDays} hari`}
                                     </span>
                                 </li>
                             );
                         })}
                     </ul>
-
-                    {records.length > INITIAL_VISIBLE_ROWS && (
-                        <ShowMoreButton
-                            isExpanded={isExpanded}
-                            hiddenCount={records.length - INITIAL_VISIBLE_ROWS}
-                            onToggle={() => setIsExpanded((current) => !current)}
-                        />
-                    )}
-                </>
+                </div>
             )}
         </Panel>
     );

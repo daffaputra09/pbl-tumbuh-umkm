@@ -19,18 +19,45 @@ function SectionLabel({ children }) {
     return <h2 className="-mb-1 pt-2 text-xs font-bold tracking-wider text-slate-500 uppercase">{children}</h2>;
 }
 
-export default function Dashboard({ role, generatedAt, isSampleData, references, businesses }) {
-    const [filters, setFilters] = useState(DEFAULT_FILTERS);
-    const now = useMemo(() => new Date(generatedAt), [generatedAt]);
+export default function Dashboard({
+    role = 'petugas',
+    generatedAt = new Date().toISOString(),
+    isSampleData = false,
+    references = { hamlets: [], businessTypes: [], obstacleCategories: [] },
+    businesses = [],
+    followUpQueue = [],
+    coachingProgress = { scheduled: 0, completed: 0, cancelled: 0, total: 0 },
+    routes = {},
+}) {
+    const safeReferences = useMemo(() => ({
+        hamlets: Array.isArray(references?.hamlets) ? references.hamlets : [],
+        businessTypes: Array.isArray(references?.businessTypes) ? references.businessTypes : [],
+        obstacleCategories: Array.isArray(references?.obstacleCategories) ? references.obstacleCategories : [],
+    }), [references]);
+    const safeBusinesses = Array.isArray(businesses) ? businesses : [];
+    const safeFollowUpQueue = Array.isArray(followUpQueue) ? followUpQueue : [];
+    const safeCoachingProgress = coachingProgress || { scheduled: 0, completed: 0, cancelled: 0, total: 0 };
+    const safeRoutes = routes || {};
 
-    const records = useMemo(() => filterRecords(businesses, filters), [businesses, filters]);
+    const [filters, setFilters] = useState(DEFAULT_FILTERS);
+    const now = useMemo(() => new Date(generatedAt || Date.now()), [generatedAt]);
+
+    const records = useMemo(() => filterRecords(safeBusinesses, filters), [safeBusinesses, filters]);
+    const filteredFollowUpQueue = useMemo(() => {
+        if (!filters.hamlet || filters.hamlet === 'semua') {
+            return safeFollowUpQueue;
+        }
+
+        return safeFollowUpQueue.filter((item) => (item.hamlet || '').toLowerCase() === filters.hamlet.toLowerCase());
+    }, [safeFollowUpQueue, filters.hamlet]);
+
     const metrics = useMemo(
-        () => computeMetrics(records, { references, periodMonths: filters.periodMonths, now }),
-        [records, references, filters.periodMonths, now],
+        () => computeMetrics(records, { references: safeReferences, periodMonths: filters.periodMonths, now }),
+        [records, safeReferences, filters.periodMonths, now],
     );
     const obstacleLabels = useMemo(
-        () => Object.fromEntries(references.obstacleCategories.map((category) => [category.slug, category.name])),
-        [references],
+        () => Object.fromEntries((safeReferences.obstacleCategories || []).map((category) => [category.slug, category.name])),
+        [safeReferences],
     );
 
     const updateFilters = (changes) => setFilters((current) => ({ ...current, ...changes }));
@@ -45,25 +72,40 @@ export default function Dashboard({ role, generatedAt, isSampleData, references,
                         pendingCount={metrics.summary.verified.waiting}
                         attentionCount={metrics.needsAttention.length}
                         isSampleData={isSampleData}
+                        followUpCount={safeFollowUpQueue.length}
+                        routes={safeRoutes}
                     />
 
                     <FilterBar
-                        references={references}
+                        references={safeReferences}
                         filters={filters}
                         onChange={updateFilters}
                         onReset={() => setFilters((current) => ({ ...DEFAULT_FILTERS, periodMonths: current.periodMonths }))}
                         shownCount={records.length}
-                        totalCount={businesses.length}
+                        totalCount={safeBusinesses.length}
                     />
 
-                    {role === 'kepala-desa' && <HeadInsights metrics={metrics} />}
+                    {role === 'kepala-desa' && (
+                        <HeadInsights
+                            metrics={metrics}
+                            coachingProgress={safeCoachingProgress}
+                            followUpQueue={filteredFollowUpQueue}
+                            routes={safeRoutes}
+                        />
+                    )}
 
                     <SectionLabel>Ringkasan UMKM</SectionLabel>
-                    <StatCards summary={metrics.summary} periodLabel={periodLabel} />
+                    <StatCards
+                        summary={metrics.summary}
+                        periodLabel={periodLabel}
+                        role={role}
+                        coachingProgress={safeCoachingProgress}
+                        routes={safeRoutes}
+                    />
 
                     <div className="grid gap-5 sm:gap-6 lg:grid-cols-3">
                         <Panel
-                            className="lg:col-span-2"
+                            className="h-[480px] lg:col-span-2"
                             title="Tren pendaftaran UMKM"
                             description={`Pendaftar baru per bulan selama ${periodLabel}.`}
                         >
@@ -71,7 +113,7 @@ export default function Dashboard({ role, generatedAt, isSampleData, references,
                                 <TrendChart data={metrics.trend} />
                             </Suspense>
                         </Panel>
-                        <Panel title="Status verifikasi" description="Kondisi data yang sudah masuk.">
+                        <Panel className="h-[480px]" title="Status verifikasi" description="Kondisi data yang sudah masuk.">
                             <Suspense fallback={<ChartPlaceholder />}>
                                 <VerificationDonut data={metrics.verification} />
                             </Suspense>
@@ -81,17 +123,22 @@ export default function Dashboard({ role, generatedAt, isSampleData, references,
                     <SectionLabel>Status kendala</SectionLabel>
                     <div className="grid gap-5 sm:gap-6 lg:grid-cols-3">
                         <ObstaclePanel
-                            className="lg:col-span-2"
+                            className="h-[480px] lg:col-span-2"
                             obstacles={metrics.obstacles}
                             assessedCount={metrics.assessedCount}
                         />
-                        <GroupingPanel grouping={metrics.grouping} unassigned={metrics.groupingUnassigned} totalRecords={records.length} />
+                        <GroupingPanel
+                            className="h-[480px]"
+                            grouping={metrics.grouping}
+                            unassigned={metrics.groupingUnassigned}
+                            totalRecords={records.length}
+                        />
                     </div>
 
                     <SectionLabel>Sebaran data</SectionLabel>
                     <div className="grid gap-5 sm:gap-6 lg:grid-cols-3">
                         <Panel
-                            className="lg:col-span-2"
+                            className="h-[480px] lg:col-span-2"
                             title="Sebaran per dusun"
                             description="Jumlah UMKM aktif dan tidak aktif di setiap dusun."
                         >
@@ -100,6 +147,7 @@ export default function Dashboard({ role, generatedAt, isSampleData, references,
                             </Suspense>
                         </Panel>
                         <BusinessTypePanel
+                            className="h-[480px]"
                             businessTypes={metrics.businessTypes}
                             totalRecords={records.length}
                             selectedType={filters.businessType}
@@ -108,11 +156,19 @@ export default function Dashboard({ role, generatedAt, isSampleData, references,
                     </div>
 
                     <SectionLabel>Tindak lanjut</SectionLabel>
-                    <div className="grid items-start gap-5 sm:gap-6 lg:grid-cols-3">
-                        <div className="min-w-0 lg:col-span-2">
-                            <AttentionTable records={metrics.needsAttention} obstacleLabels={obstacleLabels} />
-                        </div>
-                        <VerificationQueue records={metrics.verificationQueue} role={role} />
+                    <div className="grid gap-5 sm:gap-6 lg:grid-cols-3">
+                        <AttentionTable
+                            className="h-[480px] lg:col-span-2"
+                            records={metrics.needsAttention}
+                            obstacleLabels={obstacleLabels}
+                        />
+                        <VerificationQueue
+                            className="h-[480px]"
+                            records={metrics.verificationQueue}
+                            role={role}
+                            followUpQueue={filteredFollowUpQueue}
+                            routes={safeRoutes}
+                        />
                     </div>
             </div>
         </MotionConfig>

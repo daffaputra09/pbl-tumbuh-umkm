@@ -10,14 +10,14 @@ export function Panel({ id, title, description, action, children, className, bod
             id={id}
             className={cn('flex min-w-0 scroll-mt-24 flex-col rounded-2xl border border-border bg-white shadow-xs', className)}
         >
-            <header className="flex flex-wrap items-start justify-between gap-3 px-5 pt-5 sm:px-6 sm:pt-6">
+            <header className="flex shrink-0 flex-wrap items-start justify-between gap-3 px-5 pt-5 sm:px-6 sm:pt-6">
                 <div className="min-w-0">
                     <h2 className="text-base font-bold text-ink sm:text-lg">{title}</h2>
                     {description && <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">{description}</p>}
                 </div>
                 {action}
             </header>
-            <div className={cn('flex-1 px-5 pt-4 pb-5 sm:px-6 sm:pb-6', bodyClassName)}>{children}</div>
+            <div className={cn('flex flex-1 min-h-0 flex-col px-5 pt-4 pb-5 sm:px-6 sm:pb-6', bodyClassName)}>{children}</div>
         </section>
     );
 }
@@ -41,7 +41,7 @@ export function ChartPlaceholder({ className }) {
 
 export function EmptyState({ message = 'Tidak ada data untuk filter yang dipilih.', className }) {
     return (
-        <div className={cn('flex h-full min-h-40 flex-col items-center justify-center gap-2 rounded-xl bg-slate-50 p-6 text-center', className)}>
+        <div className={cn('flex h-full min-h-40 flex-1 flex-col items-center justify-center gap-2 rounded-xl bg-slate-50 p-6 text-center', className)}>
             <span className="grid size-10 place-items-center rounded-full bg-white text-slate-400 shadow-xs">
                 <Icon icon={SearchRemoveIcon} size={20} />
             </span>

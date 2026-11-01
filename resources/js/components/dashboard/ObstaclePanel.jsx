@@ -4,6 +4,7 @@ import { Factory01Icon, Idea01Icon, LegalDocument01Icon, Megaphone01Icon, Money0
 import { Icon } from '@/components/landing/shared';
 import { EmptyState, Legend, Panel, SegmentedControl } from '@/components/dashboard/Panel';
 import { NEED_LEVELS, formatNumber } from '@/components/dashboard/lib/metrics';
+import { cn } from '@/lib/utils';
 
 export const OBSTACLE_ICONS = {
     modal: Money03Icon,
@@ -22,28 +23,31 @@ const DISPLAY_OPTIONS = [
     { value: 'persen', label: 'Persen' },
 ];
 
-export default function ObstaclePanel({ obstacles, assessedCount, className }) {
+export default function ObstaclePanel({ obstacles = [], assessedCount = 0, className }) {
+    const safeObstacles = Array.isArray(obstacles) ? obstacles : [];
     const [displayMode, setDisplayMode] = useState('jumlah');
-    const topObstacle = obstacles[0];
+    const topObstacle = safeObstacles[0];
     const denominator = assessedCount || 1;
 
     const formatValue = (value) => (displayMode === 'persen' ? `${Math.round((value / denominator) * 100)}%` : formatNumber(value));
 
     return (
         <Panel
-            className={className}
+            className={cn('h-[480px]', className)}
             title="Status kendala per bidang"
             description="Skor dari asesmen terkini, diurutkan dari bidang dengan kebutuhan tinggi terbanyak."
             action={<SegmentedControl label="Tampilkan nilai sebagai" options={DISPLAY_OPTIONS} value={displayMode} onChange={setDisplayMode} />}
         >
-            {assessedCount === 0 ? (
+            {assessedCount === 0 || safeObstacles.length === 0 ? (
                 <EmptyState message="Belum ada UMKM yang menyelesaikan kuesioner kendala." />
             ) : (
-                <div className="flex flex-col gap-5">
-                    <Legend items={NEED_LEVELS.map((level) => ({ label: `Kebutuhan ${level.label.toLowerCase()}`, className: level.className }))} />
+                <div className="flex flex-1 min-h-0 flex-col gap-4 overflow-y-auto pr-1.5 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent]">
+                    <div className="shrink-0">
+                        <Legend items={NEED_LEVELS.map((level) => ({ label: `Kebutuhan ${level.label.toLowerCase()}`, className: level.className }))} />
+                    </div>
 
                     <ul className="flex flex-col gap-4">
-                        {obstacles.map((obstacle, index) => (
+                        {safeObstacles.map((obstacle, index) => (
                             <li key={obstacle.key} className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 sm:grid-cols-[auto_9rem_1fr_4.5rem]">
                                 <span className="grid size-9 place-items-center rounded-xl bg-brand-50 text-brand">
                                     <Icon icon={getObstacleIcon(obstacle.key)} size={18} />
@@ -83,7 +87,7 @@ export default function ObstaclePanel({ obstacles, assessedCount, className }) {
                     </ul>
 
                     {topObstacle && topObstacle.high > 0 && (
-                        <div className="flex items-start gap-3 rounded-xl border border-sun-200 bg-sun-50/70 p-4">
+                        <div className="shrink-0 flex items-start gap-3 rounded-xl border border-sun-200 bg-sun-50/70 p-4">
                             <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-white text-sun">
                                 <Icon icon={Idea01Icon} size={18} />
                             </span>
