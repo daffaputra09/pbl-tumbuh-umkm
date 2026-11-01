@@ -35,8 +35,9 @@ function greeting(date) {
     return hour < 18 ? 'Selamat sore' : 'Selamat malam';
 }
 
-export function WelcomeBanner({ role, now, pendingCount, attentionCount, isSampleData }) {
+export function WelcomeBanner({ role, now, pendingCount, attentionCount, isSampleData, followUpCount = 0, routes = {} }) {
     const isHead = role === 'kepala-desa';
+    const safeRoutes = routes || {};
     const dateLabel = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
     return (
@@ -62,8 +63,8 @@ export function WelcomeBanner({ role, now, pendingCount, attentionCount, isSampl
                     <p className="mt-2 text-sm leading-relaxed text-brand-50/90 sm:text-base print:text-muted-foreground">
                         {isHead ? (
                             <>
-                                Ada <strong className="font-bold text-sun-200">{formatNumber(attentionCount)} UMKM</strong> berkebutuhan tinggi yang
-                                belum punya sesi pembinaan. Pakai ringkasan di bawah untuk menentukan urutan program desa.
+                                Ada <strong className="font-bold text-sun-200">{formatNumber(followUpCount)} pengajuan tindak lanjut</strong> menunggu persetujuan dan{' '}
+                                <strong className="font-bold text-sun-200">{formatNumber(attentionCount)} UMKM</strong> berkebutuhan tinggi belum punya sesi pembinaan.
                             </>
                         ) : (
                             <>
@@ -75,9 +76,9 @@ export function WelcomeBanner({ role, now, pendingCount, attentionCount, isSampl
                 </div>
 
                 <div className="flex flex-wrap gap-2 print:hidden">
-                    <a href={isHead ? '#perlu-perhatian' : '#antrean-verifikasi'} className={buttonVariants({ variant: 'light' })}>
-                        <Icon icon={isHead ? Target02Icon : CheckListIcon} size={18} />
-                        {isHead ? 'Lihat UMKM prioritas' : 'Cek antrean'}
+                    <a href={isHead ? (safeRoutes.pimpinanFollowUps || '/pimpinan/persetujuan-tindak-lanjut') : '#antrean-verifikasi'} className={buttonVariants({ variant: 'light' })}>
+                        <Icon icon={isHead ? CheckListIcon : CheckListIcon} size={18} />
+                        {isHead ? 'Cek persetujuan' : 'Cek antrean'}
                     </a>
                     <Button variant="outline-light" onClick={() => window.print()}>
                         <Icon icon={FileExportIcon} size={18} />
@@ -150,16 +151,37 @@ export function FilterBar({ references, filters, onChange, onReset, shownCount, 
     );
 }
 
-export function HeadInsights({ metrics }) {
-    const busiestHamlet = [...metrics.hamlets].sort((first, second) => second.highNeed - first.highNeed)[0];
-    const topGroup = metrics.grouping[0];
-    const overdue = metrics.verificationQueue.filter((record) => record.waitingDays > 7).length;
+export function HeadInsights({ metrics, coachingProgress = { scheduled: 0, completed: 0, cancelled: 0, total: 0 }, followUpQueue = [], routes = {} }) {
+    const safeRoutes = routes || {};
+    const safeQueue = Array.isArray(followUpQueue) ? followUpQueue : [];
+    const busiestHamlet = [...(metrics.hamlets || [])].sort((first, second) => second.highNeed - first.highNeed)[0];
+    const topGroup = (metrics.grouping || [])[0];
+    const pendingFollowUps = safeQueue.length;
+    const overdueFollowUps = safeQueue.filter((item) => (item.waitingDays || item.usia_hari || 0) > 7).length;
+
+    const progressScheduled = coachingProgress?.scheduled ?? 0;
+    const progressCompleted = coachingProgress?.completed ?? 0;
+    const progressCancelled = coachingProgress?.cancelled ?? 0;
+    const progressTotal = coachingProgress?.total ?? (progressScheduled + progressCompleted + progressCancelled);
 
     const insights = [
         {
             icon: TeachingIcon,
-            title: `${metrics.summary.mentored.share}% UMKM terverifikasi sudah dibina`,
-            body: `${formatNumber(metrics.needsAttention.length)} UMKM berkebutuhan tinggi belum punya sesi pembinaan.`,
+            title: `Progres Pembinaan: ${formatNumber(progressCompleted)} Selesai`,
+            body: `${formatNumber(progressScheduled)} dijadwalkan, ${formatNumber(progressCancelled)} dibatalkan (total ${formatNumber(progressTotal)} sesi).`,
+            href: safeRoutes.pimpinanCoachingHistory || '/pimpinan/riwayat-pembinaan',
+            actionLabel: 'Buka riwayat pembinaan →',
+        },
+        {
+            icon: CheckListIcon,
+            title: overdueFollowUps > 0
+                ? `${overdueFollowUps} pengajuan tertahan > 7 hari`
+                : `${formatNumber(pendingFollowUps)} pengajuan menunggu persetujuan`,
+            body: pendingFollowUps > 0
+                ? 'Tinjau dan proses pengajuan tindak lanjut dari petugas untuk UMKM.'
+                : 'Semua pengajuan tindak lanjut dari petugas telah diproses.',
+            href: safeRoutes.pimpinanFollowUps || '/pimpinan/persetujuan-tindak-lanjut',
+            actionLabel: 'Buka antrean tindak lanjut →',
         },
         busiestHamlet &&
             busiestHamlet.highNeed > 0 && {
@@ -173,11 +195,6 @@ export function HeadInsights({ metrics }) {
                 title: `Kelompok ${topGroup.label} paling banyak`,
                 body: `${formatNumber(topGroup.value)} UMKM punya kendala utama di bidang itu pada asesmen terkini.`,
             },
-        {
-            icon: CheckListIcon,
-            title: overdue > 0 ? `${overdue} data tertahan lebih dari 7 hari` : 'Verifikasi berjalan lancar',
-            body: overdue > 0 ? 'Minta petugas menuntaskan antrean agar UMKM bisa segera dianalisis.' : 'Tidak ada data yang menunggu lebih dari seminggu.',
-        },
     ].filter(Boolean);
 
     return (
@@ -188,15 +205,27 @@ export function HeadInsights({ metrics }) {
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.05 * index }}
-                    className="flex gap-3 rounded-2xl border border-brand-100 bg-brand-50/60 p-4"
+                    className="flex flex-col justify-between gap-2 rounded-2xl border border-brand-100 bg-brand-50/60 p-4"
                 >
-                    <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white text-brand shadow-xs">
-                        <Icon icon={insight.icon} size={18} />
-                    </span>
-                    <div>
-                        <h3 className="text-sm font-bold text-ink">{insight.title}</h3>
-                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{insight.body}</p>
+                    <div className="flex gap-3">
+                        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white text-brand shadow-xs">
+                            <Icon icon={insight.icon} size={18} />
+                        </span>
+                        <div>
+                            <h3 className="text-sm font-bold text-ink">{insight.title}</h3>
+                            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{insight.body}</p>
+                        </div>
                     </div>
+                    {insight.href && (
+                        <div className="pt-1 pl-12">
+                            <a
+                                href={insight.href}
+                                className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:text-brand-hover hover:underline"
+                            >
+                                {insight.actionLabel}
+                            </a>
+                        </div>
+                    )}
                 </motion.article>
             ))}
         </section>

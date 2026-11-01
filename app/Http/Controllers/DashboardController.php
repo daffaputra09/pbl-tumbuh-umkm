@@ -35,6 +35,13 @@ class DashboardController extends Controller
         $dataTerverifikasi = Business::whereIn('verification_status', ['verified', 'terverifikasi'])->count();
         $sudahDibina = CoachingSession::where('status', 'completed')->whereNotNull('business_id')->distinct('business_id')->count('business_id');
 
+        $coachingProgress = [
+            'scheduled' => CoachingSession::where('status', 'scheduled')->count(),
+            'completed' => CoachingSession::where('status', 'completed')->count(),
+            'cancelled' => CoachingSession::where('status', 'cancelled')->count(),
+            'total' => CoachingSession::count(),
+        ];
+
         // 2. Grafik Tren Pendaftaran UMKM (12 Bulan Terakhir)
         $twelveMonthsAgo = CarbonImmutable::now()->subMonths(11)->startOfMonth();
         $recentBusinesses = Business::where('created_at', '>=', $twelveMonthsAgo)
@@ -172,20 +179,41 @@ class DashboardController extends Controller
             });
 
         // 7. Daftar Antrean Persetujuan (Persetujuan Tindak Lanjut oleh Kepala Desa)
+        // Hanya memuat pengajuan berstatus pending
         $antreanPersetujuan = FollowUp::query()
             ->where('status', 'pending')
-            ->with(['business.owner'])
+            ->with(['business.owner', 'assistanceProgram', 'programRecommendation.assistanceProgram', 'submitter'])
             ->oldest('created_at')
             ->get()
             ->map(function (FollowUp $followUp) {
-                $business = $followUp->business ?? Business::find($followUp->business_id);
+                $business = $followUp->business ?? Business::where('id', $followUp->business_id)->orWhere('user_id', $followUp->business_id)->first();
                 $diffDays = $followUp->created_at ? (int) $followUp->created_at->diffInDays(now()) : 0;
+                $programName = $followUp->assistanceProgram?->name
+                    ?? $followUp->programRecommendation?->assistanceProgram?->name
+                    ?? $followUp->planned_activity
+                    ?? 'Program Pendampingan';
 
                 return [
                     'id' => $followUp->id,
-                    'nama_usaha' => $business->business_name ?? 'UMKM Tidak Diketahui',
-                    'dusun' => $business->hamlet ?? '-',
+                    'businessId' => $business?->id ?? $followUp->business_id,
+                    'businessName' => $business?->business_name ?? 'UMKM Tidak Diketahui',
+                    'ownerName' => $business?->owner_name ?? $business?->owner?->name ?? '-',
+                    'hamlet' => $business?->hamlet ?? '-',
+                    'programName' => $programName,
+                    'plannedActivity' => $followUp->planned_activity,
+                    'submittedBy' => $followUp->submitter?->name ?? 'Petugas Desa',
+                    'waitingDays' => $diffDays,
+                    'waitingDaysLabel' => $diffDays === 0 ? 'Hari ini' : "{$diffDays} hari lalu",
+                    'isOverdue' => $diffDays > 7,
+                    'createdAt' => $followUp->created_at?->toDateString(),
+                    'status' => $followUp->status,
+                    // Format kompatibilitas blade/legacy
+                    'nama_usaha' => $business?->business_name ?? 'UMKM Tidak Diketahui',
+                    'pemilik' => $business?->owner_name ?? $business?->owner?->name ?? '-',
+                    'dusun' => $business?->hamlet ?? '-',
                     'rencana_kegiatan' => $followUp->planned_activity,
+                    'program_bantuan' => $programName,
+                    'diajukan_oleh' => $followUp->submitter?->name ?? 'Petugas Desa',
                     'usia_hari' => $diffDays,
                     'usia_label' => $diffDays === 0 ? 'Hari ini' : "{$diffDays} hari lalu",
                     'is_overdue' => $diffDays > 7,
@@ -271,6 +299,12 @@ class DashboardController extends Controller
                     ] : null,
                 ];
             })->values()->all(),
+            'followUpQueue' => $antreanPersetujuan->values()->all(),
+            'coachingProgress' => $coachingProgress,
+            'routes' => [
+                'pimpinanFollowUps' => route('pimpinan.persetujuan-tindak-lanjut'),
+                'pimpinanCoachingHistory' => route('pimpinan.riwayat-pembinaan'),
+            ],
         ];
 
         return view('dashboard.index', compact(
@@ -278,6 +312,7 @@ class DashboardController extends Controller
             'umkmAktif',
             'dataTerverifikasi',
             'sudahDibina',
+            'coachingProgress',
             'chartTrenPendaftaran',
             'chartStatusVerifikasi',
             'sebaranKendalaBidang',
