@@ -13,6 +13,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FollowUpController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\ObstacleCategoryController;
+use App\Http\Controllers\OfficerAccountController;
 use App\Http\Controllers\OwnerCoachingSessionController;
 use App\Http\Controllers\OwnerRecommendationController;
 use App\Http\Controllers\PasswordResetController;
@@ -139,4 +140,8 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_VILLAGE_HEAD])->group(fu
     Route::get('/pimpinan/persetujuan-tindak-lanjut', [ApprovalController::class, 'index'])->name('pimpinan.persetujuan-tindak-lanjut');
     Route::patch('/pimpinan/persetujuan-tindak-lanjut/{followUp}', [ApprovalController::class, 'update'])->name('pimpinan.persetujuan-tindak-lanjut.update');
     Route::get('/pimpinan/riwayat-pembinaan', [CoachingSessionController::class, 'pimpinanIndex'])->name('pimpinan.riwayat-pembinaan');
+
+    Route::get('/pimpinan/petugas', [OfficerAccountController::class, 'index'])->name('pimpinan.petugas.index');
+    Route::post('/pimpinan/petugas', [OfficerAccountController::class, 'store'])->name('pimpinan.petugas.store');
+    Route::patch('/pimpinan/petugas/{officer}/status', [OfficerAccountController::class, 'toggle'])->name('pimpinan.petugas.toggle');
 });
