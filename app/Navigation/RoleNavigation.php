@@ -2,6 +2,7 @@
 
 namespace App\Navigation;
 
+use App\Models\Business;
 use App\Models\User;
 
 class RoleNavigation
@@ -54,26 +55,72 @@ class RoleNavigation
     }
 
     /**
-     * @return list<array{title: string, items: list<array{label: string, href: ?string, icon: string}>}>
+     * @return list<array{title: string, items: list<array{label: string, href: ?string, icon: string, reason?: ?string}>}>
      */
     private static function businessOwner(): array
     {
+        $access = self::ownerAccess();
+
         return [
             ['title' => 'Utama', 'items' => [
-                ['label' => 'Dashboard', 'href' => '/umkm/dashboard', 'icon' => 'DashboardSquare01Icon'],
+                self::ownerItem('Dashboard', '/umkm/dashboard', 'DashboardSquare01Icon', self::lockReason($access, false)),
             ]],
             ['title' => 'Usaha', 'items' => [
-                ['label' => 'Profil usaha', 'href' => '/umkm/profil', 'icon' => 'Store04Icon'],
-                ['label' => 'Produk', 'href' => '/umkm/produk', 'icon' => 'Factory01Icon'],
-                ['label' => 'Kebutuhan dan kendala', 'href' => '/umkm/kebutuhan', 'icon' => 'CheckListIcon'],
+                self::ownerItem('Profil usaha', '/umkm/profil', 'Store04Icon', null),
+                self::ownerItem('Produk', '/umkm/produk', 'Factory01Icon', self::lockReason($access, true)),
+                self::ownerItem('Kebutuhan dan kendala', '/umkm/kebutuhan', 'CheckListIcon', self::lockReason($access, true)),
             ]],
             ['title' => 'Hasil', 'items' => [
-                ['label' => 'Rekomendasi program', 'href' => '/umkm/rekomendasi', 'icon' => 'GiftIcon'],
-                ['label' => 'Riwayat pembinaan', 'href' => '/umkm/riwayat-pembinaan', 'icon' => 'TeachingIcon'],
+                self::ownerItem('Rekomendasi program', '/umkm/rekomendasi', 'GiftIcon', self::lockReason($access, true)),
+                self::ownerItem('Riwayat pembinaan', '/umkm/riwayat-pembinaan', 'TeachingIcon', self::lockReason($access, true)),
             ]],
             ['title' => 'Akun', 'items' => [
-                ['label' => 'Profil akun', 'href' => '/akun', 'icon' => 'User02Icon'],
+                self::ownerItem('Profil akun', '/akun', 'User02Icon', null),
             ]],
+        ];
+    }
+
+    /**
+     * @return array{profile: bool, verified: bool}
+     */
+    private static function ownerAccess(): array
+    {
+        $user = auth()->user();
+        $business = $user instanceof User ? $user->business : null;
+        $profileReady = $business instanceof Business && $business->hasCompleteProfile();
+
+        return [
+            'profile' => $profileReady,
+            'verified' => $profileReady && $business->isVerified(),
+        ];
+    }
+
+    /**
+     * @param  array{profile: bool, verified: bool}  $access
+     */
+    private static function lockReason(array $access, bool $needsVerification): ?string
+    {
+        if (! $access['profile']) {
+            return 'Lengkapi profil usaha terlebih dahulu.';
+        }
+
+        if ($needsVerification && ! $access['verified']) {
+            return 'Usaha belum diverifikasi petugas desa.';
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array{label: string, href: ?string, icon: string, reason: ?string}
+     */
+    private static function ownerItem(string $label, string $href, string $icon, ?string $lockedReason): array
+    {
+        return [
+            'label' => $label,
+            'href' => $lockedReason === null ? $href : null,
+            'icon' => $icon,
+            'reason' => $lockedReason,
         ];
     }
 

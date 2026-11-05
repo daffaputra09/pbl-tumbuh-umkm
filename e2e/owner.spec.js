@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { accounts, login } from './auth.js';
+import { createOwner } from './support/helpers.js';
 
 test('TC_BIZ_001 profil usaha pemilik menampilkan data yang tersimpan', async ({ page }) => {
     await login(page, accounts.owner);
@@ -22,7 +23,7 @@ test('TC_DASH_001 dashboard pemilik menampilkan status verifikasi', async ({ pag
 test('TC_PROD_001 dan TC_PROD_003 pemilik menambah produk lalu menonaktifkannya', async ({ page }) => {
     const name = `Keripik Uji ${Date.now()}`;
 
-    await login(page, accounts.owner);
+    await login(page, createOwner('produk', 'Usaha Produk', { verified: true }).email);
     await page.goto('/umkm/produk');
 
     await page.getByRole('button', { name: 'Tambah Produk' }).click();
@@ -59,7 +60,7 @@ test('TC_PROD_002 pemilik mengubah nama produk', async ({ page }) => {
     const name = `Keripik Edit ${Date.now()}`;
     const renamed = `${name} Asin`;
 
-    await login(page, accounts.owner);
+    await login(page, createOwner('produk', 'Usaha Produk', { verified: true }).email);
     await page.goto('/umkm/produk');
 
     await page.getByRole('button', { name: 'Tambah Produk' }).click();
@@ -86,7 +87,7 @@ test('TC_PROD_002 pemilik mengubah nama produk', async ({ page }) => {
 });
 
 test('TC_PROD_004 produk tanpa nama tidak tersimpan', async ({ page }) => {
-    await login(page, accounts.owner);
+    await login(page, createOwner('produk', 'Usaha Produk', { verified: true }).email);
     await page.goto('/umkm/produk');
 
     await page.getByRole('button', { name: 'Tambah Produk' }).click();

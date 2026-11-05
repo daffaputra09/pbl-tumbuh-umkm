@@ -273,7 +273,7 @@ class UmkmCoachingHistoryTest extends TestCase
     {
         $owner = User::factory()->create(['role' => User::ROLE_BUSINESS_OWNER]);
 
-        $business = Business::factory()->create([
+        $business = Business::factory()->verified()->create([
             'user_id' => $owner->id,
             'business_name' => $businessName,
             'owner_name' => $owner->name,

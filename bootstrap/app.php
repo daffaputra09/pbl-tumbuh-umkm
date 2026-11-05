@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureBusinessIsVerified;
 use App\Http\Middleware\EnsureBusinessOwnerHasProfile;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsActive;
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => EnsureUserHasRole::class,
             'active' => EnsureUserIsActive::class,
             'business.profile' => EnsureBusinessOwnerHasProfile::class,
+            'business.verified' => EnsureBusinessIsVerified::class,
         ]);
 
         $middleware->redirectGuestsTo(fn () => route('login'));

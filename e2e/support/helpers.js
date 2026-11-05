@@ -32,8 +32,8 @@ export function uniqueEmail(prefix) {
 }
 
 /** Pemilik lengkap (akun + profil usaha) beserta jawaban kuesioner siap kirim. */
-export function createOwner(prefix, business = 'Usaha Uji') {
-    return fx('owner', { email: uniqueEmail(prefix), name: `Pemilik ${prefix}`, business });
+export function createOwner(prefix, business = 'Usaha Uji', { verified = false } = {}) {
+    return fx('owner', { email: uniqueEmail(prefix), name: `Pemilik ${prefix}`, business, verified });
 }
 
 /**

@@ -41,7 +41,7 @@ async function createScoredCategory(page, questions) {
 }
 
 async function ownerSubmits(browser, answers) {
-    const owner = createOwner('skor');
+    const owner = createOwner('skor', 'Usaha Uji', { verified: true });
     const context = await browser.newContext();
     const page = await context.newPage();
     await login(page, owner.email);

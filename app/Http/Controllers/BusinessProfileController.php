@@ -25,7 +25,7 @@ class BusinessProfileController extends Controller
 
     public function save(Request $request): JsonResponse
     {
-        $validated = $request->validate($this->rules());
+        $validated = $request->validate($this->rules(), $this->messages());
         $business = Business::where('user_id', $request->user()->id)->first();
         $this->authorizeOwnProfile($business);
 
@@ -67,7 +67,7 @@ class BusinessProfileController extends Controller
     {
         Gate::authorize('create', Business::class);
 
-        $validated = $request->validate($this->rules());
+        $validated = $request->validate($this->rules(), $this->messages());
 
         $business = Business::create([
             ...$validated,
@@ -96,7 +96,7 @@ class BusinessProfileController extends Controller
             'business_name' => ['required', 'string', 'max:255'],
             'owner_name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:20'],
-            'email' => ['nullable', 'string', 'email', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255'],
             'address' => ['required', 'string'],
             'hamlet' => ['required', 'string', 'max:255'],
             'rt' => ['nullable', 'string', 'max:10'],
@@ -104,6 +104,17 @@ class BusinessProfileController extends Controller
             'established_year' => ['required', 'integer', 'min:1900', 'max:'.date('Y')],
             'employee_count' => ['required', 'integer', 'min:0'],
             'description' => ['nullable', 'string'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function messages(): array
+    {
+        return [
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Masukkan email yang valid.',
         ];
     }
 

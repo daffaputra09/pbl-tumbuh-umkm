@@ -94,7 +94,9 @@ export default function UmkmProfileForm({ business = null, businessTypes = [], m
         }
 
         const email = formData.email.trim();
-        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        if (!email) {
+            nextErrors.email = 'Email wajib diisi.';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             nextErrors.email = 'Format email tidak valid.';
         }
 
@@ -143,7 +145,7 @@ export default function UmkmProfileForm({ business = null, businessTypes = [], m
                     business_name: formData.businessName.trim(),
                     owner_name: formData.ownerName.trim(),
                     phone: formData.phone.trim(),
-                    email: formData.email.trim() || null,
+                    email: formData.email.trim(),
                     address: formData.address.trim(),
                     hamlet: formData.hamlet.trim(),
                     rt: formData.rt.trim() || null,
@@ -252,7 +254,7 @@ export default function UmkmProfileForm({ business = null, businessTypes = [], m
                             />
                         </Field>
 
-                        <Field label="Email (opsional)" error={errors.email}>
+                        <Field label="Email" required error={errors.email}>
                             <Input
                                 type="email"
                                 value={formData.email}

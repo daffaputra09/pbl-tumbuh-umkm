@@ -3,9 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Business;
+use App\Models\User;
+use App\Notifications\BusinessVerificationNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Notification;
+use Throwable;
 
 class PetugasUmkmController extends Controller
 {
@@ -128,9 +132,33 @@ class PetugasUmkmController extends Controller
 
         $umkm->save();
 
+        $this->notifyOwner($umkm);
+
         $label = $status === Business::STATUS_VERIFIED ? 'diverifikasi' : 'diminta perbaikan';
 
         return redirect()->route('petugas.umkm.detail', $id)
             ->with('success', 'Status verifikasi UMKM "'.$umkm->business_name.'" berhasil diubah menjadi '.$label.'.');
+    }
+
+    private function notifyOwner(Business $business): void
+    {
+        $business->loadMissing('owner');
+        $notification = new BusinessVerificationNotification($business);
+
+        try {
+            $owner = $business->owner;
+
+            if ($owner instanceof User) {
+                $owner->notify($notification);
+
+                return;
+            }
+
+            if (filled($business->email)) {
+                Notification::route('mail', $business->email)->notify($notification);
+            }
+        } catch (Throwable $exception) {
+            report($exception);
+        }
     }
 }

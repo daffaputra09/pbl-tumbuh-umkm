@@ -1,9 +1,16 @@
 import { expect, test } from '@playwright/test';
 import { acceptDialogs, accounts, login } from './auth.js';
+import { createOwner } from './support/helpers.js';
 
 const programName = `Bantuan Modal E2E ${Date.now()}`;
 
 test.describe.serial('jalur kuesioner sampai pembinaan', () => {
+    let ownerEmail;
+
+    test.beforeAll(() => {
+        ownerEmail = createOwner('journey', 'Usaha Journey', { verified: true }).email;
+    });
+
     test('TC_PROG_002 petugas membuat program bantuan aktif', async ({ page }) => {
         await login(page, accounts.officer);
         await page.goto('/petugas/program-bantuan/create');
@@ -20,7 +27,7 @@ test.describe.serial('jalur kuesioner sampai pembinaan', () => {
     });
 
     test('TC_ASM_003 pemilik menyelesaikan kuesioner', async ({ page }) => {
-        await login(page, accounts.owner);
+        await login(page, ownerEmail);
         await page.goto('/umkm/kebutuhan');
 
         await expect(page.getByRole('heading', { name: 'Ceritakan Kesulitan Usahamu' })).toBeVisible();
@@ -44,7 +51,7 @@ test.describe.serial('jalur kuesioner sampai pembinaan', () => {
     });
 
     test('TC_SCORE_001 dan TC_REC_005 pemilik melihat program yang cocok', async ({ page }) => {
-        await login(page, accounts.owner);
+        await login(page, ownerEmail);
         await page.goto('/umkm/rekomendasi');
 
         await expect(page.getByRole('heading', { name: 'Rekomendasi program' })).toBeVisible();
@@ -53,7 +60,7 @@ test.describe.serial('jalur kuesioner sampai pembinaan', () => {
     });
 
     test('TC_REC_009 pemilik mendaftarkan minat', async ({ page }) => {
-        await login(page, accounts.owner);
+        await login(page, ownerEmail);
         await page.goto('/umkm/rekomendasi');
 
         const row = page.getByRole('row').filter({ hasText: programName });

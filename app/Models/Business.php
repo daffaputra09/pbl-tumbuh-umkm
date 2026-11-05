@@ -57,10 +57,16 @@ class Business extends Model
             && filled($this->business_name)
             && filled($this->owner_name)
             && filled($this->phone)
+            && filled($this->email)
             && filled($this->address)
             && filled($this->hamlet)
             && filled($this->established_year)
             && filled($this->employee_count);
+    }
+
+    public function isVerified(): bool
+    {
+        return $this->verification_status === self::STATUS_VERIFIED;
     }
 
     public function businessType()
