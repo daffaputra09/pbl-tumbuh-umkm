@@ -43,7 +43,7 @@ test('TC_NAV_003 menu kepala desa memuat pemantauan yang sudah ada', async ({ pa
     }
 
     await expect(menu.getByRole('link', { name: 'Riwayat pembinaan' })).toHaveAttribute('href', '/pimpinan/riwayat-pembinaan');
-    await expect(menu.getByRole('link', { name: 'Data UMKM' })).toHaveCount(0);
+    await expect(menu.getByRole('link', { name: 'Data UMKM' })).toHaveAttribute('href', '/petugas/umkm');
 });
 
 test('TC_NAV_001 menu pemilik memuat riwayat pembinaan', async ({ page }) => {

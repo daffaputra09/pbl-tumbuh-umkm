@@ -385,6 +385,7 @@
                         </div>
                     @endif
 
+                    @can('verify', $umkm)
                     <div class="pumkm-decision-box">
                         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
                             <h3 class="pumkm-decision-box-title" style="margin: 0;">
@@ -462,6 +463,7 @@
                             </div>
                         </form>
                     </div>
+                    @endcan
             </div>
         </main>
 

@@ -432,6 +432,31 @@ class BusinessVerificationTest extends TestCase
         $this->assertNull($business->verified_by);
     }
 
+    public function test_village_head_can_view_the_business_list_and_detail_without_deciding(): void
+    {
+        $business = Business::factory()->pending()->create([
+            'business_type_id' => $this->businessType->id,
+            'business_name' => 'Warung Pantauan Desa',
+        ]);
+
+        $this->actingAs($this->villageHead)
+            ->get(route('petugas.umkm.verifikasi'))
+            ->assertOk()
+            ->assertSee('Warung Pantauan Desa')
+            ->assertSee('Data UMKM')
+            ->assertDontSee('Kelola Data UMKM');
+
+        $this->actingAs($this->villageHead)
+            ->get(route('petugas.umkm.detail', $business))
+            ->assertOk()
+            ->assertSee('Warung Pantauan Desa')
+            ->assertDontSee('Formulir Keputusan Verifikasi');
+
+        $this->actingAs($this->villageHead)
+            ->get(route('petugas.umkm.pendataan-umkm'))
+            ->assertForbidden();
+    }
+
     public function test_village_head_cannot_verify_business(): void
     {
         $business = Business::factory()->pending()->create([

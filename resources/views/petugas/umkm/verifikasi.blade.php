@@ -1,6 +1,6 @@
 @extends('layouts.app-shell')
 
-@section('title', 'Kelola Data UMKM — TUMBUH UMKM')
+@section('title', (auth()->user()?->can('create', \App\Models\Business::class) ? 'Kelola Data UMKM' : 'Data UMKM').' — TUMBUH UMKM')
 
 @push('head')
     @vite(['resources/css/petugas-umkm.css'])
@@ -49,9 +49,13 @@
         </a>
 
         <div class="pumkm-page-header">
-            <h1 class="pumkm-page-title">Kelola Data UMKM</h1>
+            <h1 class="pumkm-page-title">{{ auth()->user()?->can('create', \App\Models\Business::class) ? 'Kelola Data UMKM' : 'Data UMKM' }}</h1>
             <p class="pumkm-page-subtitle">
-                Pantau seluruh data UMKM desa yang terdaftar. Gunakan pencarian dan filter untuk meninjau status, lalu klik tombol <strong>Detail</strong> untuk melihat profil lengkap.
+                @if(auth()->user()?->can('create', \App\Models\Business::class))
+                    Pantau seluruh data UMKM desa yang terdaftar. Gunakan pencarian dan filter untuk meninjau status, lalu klik tombol <strong>Detail</strong> untuk melihat profil lengkap.
+                @else
+                    Daftar usaha yang terdaftar di desa. Buka <strong>Detail</strong> untuk melihat profil, produk, dan status verifikasi. Keputusan verifikasi tetap dilakukan petugas desa.
+                @endif
             </p>
         </div>
 

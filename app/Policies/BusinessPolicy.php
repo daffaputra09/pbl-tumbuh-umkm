@@ -7,18 +7,18 @@ use App\Models\User;
 
 /**
  * Petugas mengelola seluruh usaha. Pemilik hanya usaha miliknya.
- * Kepala desa tidak mengubah data operasional UMKM.
+ * Kepala desa boleh melihat daftar dan detail, tanpa mengubah data operasional.
  */
 class BusinessPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(User::ROLE_OFFICER);
+        return $user->hasRole(User::ROLE_OFFICER, User::ROLE_VILLAGE_HEAD);
     }
 
     public function view(User $user, Business $business): bool
     {
-        return $user->hasRole(User::ROLE_OFFICER) || $this->owns($user, $business);
+        return $user->hasRole(User::ROLE_OFFICER, User::ROLE_VILLAGE_HEAD) || $this->owns($user, $business);
     }
 
     /**
