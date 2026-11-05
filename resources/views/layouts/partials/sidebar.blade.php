@@ -25,7 +25,7 @@
                                     {{ $item['label'] }}
                                 </a>
                             @else
-                                <span class="flex cursor-not-allowed items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400" title="Halaman ini sedang dikerjakan" aria-disabled="true">
+                                <span class="flex cursor-not-allowed items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400" title="{{ $item['reason'] ?? 'Halaman ini sedang dikerjakan' }}" aria-disabled="true">
                                     <x-hugeicon :name="$item['icon']" />
                                     <span class="flex-1">{{ $item['label'] }}</span>
                                 </span>

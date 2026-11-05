@@ -12,6 +12,7 @@ const profile = (extra = {}) => ({
     business_name: 'Usaha Uji',
     owner_name: 'Pemilik Uji',
     phone: '081200000000',
+    email: 'usaha@uji.test',
     address: 'Jl. Uji No. 1',
     hamlet: 'Krajan',
     established_year: 2019,
@@ -28,10 +29,10 @@ test.describe('profil usaha', () => {
 
         expect(response.status()).toBe(422);
         const { errors } = await response.json();
-        for (const field of ['business_type_id', 'business_name', 'owner_name', 'phone', 'address', 'hamlet', 'established_year', 'employee_count']) {
+        for (const field of ['business_type_id', 'business_name', 'owner_name', 'phone', 'email', 'address', 'hamlet', 'established_year', 'employee_count']) {
             expect(errors).toHaveProperty(field);
         }
-        for (const field of ['email', 'rt', 'rw', 'description']) {
+        for (const field of ['rt', 'rw', 'description']) {
             expect(errors).not.toHaveProperty(field);
         }
     });
@@ -53,7 +54,7 @@ test.describe('profil usaha', () => {
 
 test.describe('produk', () => {
     test('TC_PROD_005 foto produk bukan gambar atau lebih dari 2 MB ditolak', async ({ page }) => {
-        const owner = createOwner('prod005');
+        const owner = createOwner('prod005', 'Usaha Uji', { verified: true });
         await login(page, owner.email);
 
         const notImage = await api(page, 'POST', '/umkm/produk', {
@@ -80,8 +81,8 @@ test.describe('produk', () => {
     });
 
     test('TC_PROD_006 pemilik tidak dapat mengubah produk UMKM lain', async ({ page }) => {
-        const first = createOwner('prod006a');
-        const second = createOwner('prod006b');
+        const first = createOwner('prod006a', 'Usaha Uji', { verified: true });
+        const second = createOwner('prod006b', 'Usaha Uji', { verified: true });
 
         await login(page, first.email);
         const created = await api(page, 'POST', '/umkm/produk', { data: { name: 'Produk Milik A', category: 'Makanan' } });
@@ -99,7 +100,7 @@ test.describe('produk', () => {
 
 test.describe('kuesioner dan rekomendasi', () => {
     test('TC_ASM_004 kuesioner tidak dapat diselesaikan jika masih ada soal kosong', async ({ page }) => {
-        const owner = createOwner('asm004');
+        const owner = createOwner('asm004', 'Usaha Uji', { verified: true });
         await login(page, owner.email);
 
         const response = await api(page, 'POST', '/umkm/kebutuhan', { data: { answers: owner.answersHigh.slice(0, 1) } });
@@ -110,7 +111,7 @@ test.describe('kuesioner dan rekomendasi', () => {
 
     test('TC_ASM_005 dan TC_REC_012 hanya satu asesmen berjalan, rekomendasi lama nonaktif', async ({ page }) => {
         fx('program', { name: `Program Asesmen ${Date.now()}` });
-        const owner = createOwner('asm005');
+        const owner = createOwner('asm005', 'Usaha Uji', { verified: true });
         await login(page, owner.email);
 
         const first = await api(page, 'POST', '/umkm/kebutuhan', { data: { answers: owner.answersHigh } });
@@ -130,8 +131,8 @@ test.describe('kuesioner dan rekomendasi', () => {
 
     test('TC_REC_010 dan TC_REC_011 daftar minat tidak ganda dan tidak bisa pada rekomendasi usaha lain', async ({ page }) => {
         fx('program', { name: `Program Minat ${Date.now()}` });
-        const first = createOwner('rec010a');
-        const second = createOwner('rec010b');
+        const first = createOwner('rec010a', 'Usaha Uji', { verified: true });
+        const second = createOwner('rec010b', 'Usaha Uji', { verified: true });
 
         await login(page, first.email);
         const submitted = await api(page, 'POST', '/umkm/kebutuhan', { data: { answers: first.answersHigh } });

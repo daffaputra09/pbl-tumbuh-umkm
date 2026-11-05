@@ -125,7 +125,7 @@ class ProductPolicyTest extends TestCase
     private function ownedProduct(string $name = 'Keripik'): array
     {
         $owner = User::factory()->create(['role' => User::ROLE_BUSINESS_OWNER]);
-        $business = Business::factory()->create([
+        $business = Business::factory()->verified()->create([
             'user_id' => $owner->id,
             'created_by' => $owner->id,
         ]);

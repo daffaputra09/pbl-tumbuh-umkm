@@ -26,6 +26,7 @@ class BusinessFactory extends Factory
             'business_name' => fake()->company(),
             'owner_name' => fake()->name(),
             'phone' => fake()->numerify('08##########'),
+            'email' => fake()->unique()->safeEmail(),
             'address' => fake()->streetAddress(),
             'hamlet' => fake()->streetName(),
             'established_year' => 2018,

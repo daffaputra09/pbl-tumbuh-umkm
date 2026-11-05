@@ -14,11 +14,12 @@ use App\Models\CoachingSession;
 use App\Models\FollowUp;
 use App\Models\ObstacleCategory;
 use App\Models\User;
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\DB;
 
 require __DIR__.'/../../vendor/autoload.php';
 $app = require __DIR__.'/../../bootstrap/app.php';
-$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+$app->make(Kernel::class)->bootstrap();
 
 $command = $argv[1] ?? '';
 $args = json_decode($argv[2] ?? '{}', true) ?: [];
@@ -58,7 +59,10 @@ switch ($command) {
             'business_name' => $args['business'] ?? 'Usaha Uji',
             'owner_name' => $user->name,
             'phone' => '081200000000',
+            'email' => $email,
             'address' => 'Jl. Uji No. 1',
+            'verification_status' => ! empty($args['verified']) ? Business::STATUS_VERIFIED : Business::STATUS_PENDING,
+            'verified_at' => ! empty($args['verified']) ? now() : null,
             'hamlet' => 'Krajan',
             'established_year' => 2019,
             'employee_count' => 2,

@@ -53,6 +53,7 @@ class OfficerBusinessRegistrationTest extends TestCase
             'business_name' => 'Warung Tanpa Akun',
             'owner_name' => 'Bu Rini',
             'phone' => '081234567890',
+            'email' => 'rini@desa.test',
             'address' => 'Jl. Melati No. 2',
             'hamlet' => 'Krajan',
             'established_year' => 2019,

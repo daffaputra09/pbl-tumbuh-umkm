@@ -24,7 +24,7 @@ class AssessmentCompletionTest extends TestCase
     public function test_saving_the_questionnaire_stores_the_score_and_recommends_a_matching_program(): void
     {
         $owner = User::factory()->create();
-        $business = Business::factory()->create([
+        $business = Business::factory()->verified()->create([
             'user_id' => $owner->id,
             'created_by' => $owner->id,
         ]);
@@ -68,7 +68,7 @@ class AssessmentCompletionTest extends TestCase
     public function test_subsequent_assessment_deactivates_previous_assessment_and_sets_new_one_as_current(): void
     {
         $owner = User::factory()->create();
-        $business = Business::factory()->create([
+        $business = Business::factory()->verified()->create([
             'user_id' => $owner->id,
             'created_by' => $owner->id,
         ]);
@@ -120,7 +120,7 @@ class AssessmentCompletionTest extends TestCase
     public function test_failed_submission_rolls_back_and_preserves_previous_current_assessment(): void
     {
         $owner = User::factory()->create();
-        $business = Business::factory()->create([
+        $business = Business::factory()->verified()->create([
             'user_id' => $owner->id,
             'created_by' => $owner->id,
         ]);
@@ -162,7 +162,7 @@ class AssessmentCompletionTest extends TestCase
     public function test_saving_answers_stores_raw_score_and_scoring_service_handles_reverse_scored_questions(): void
     {
         $owner = User::factory()->create();
-        $business = Business::factory()->create([
+        $business = Business::factory()->verified()->create([
             'user_id' => $owner->id,
             'created_by' => $owner->id,
         ]);
@@ -203,7 +203,7 @@ class AssessmentCompletionTest extends TestCase
     public function test_saving_questionnaire_with_single_choice_sentence_question_type(): void
     {
         $owner = User::factory()->create();
-        $business = Business::factory()->create([
+        $business = Business::factory()->verified()->create([
             'user_id' => $owner->id,
             'created_by' => $owner->id,
         ]);

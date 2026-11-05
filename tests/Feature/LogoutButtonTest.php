@@ -23,17 +23,17 @@ class LogoutButtonTest extends TestCase
             ->assertOk()
             ->assertSee('Keluar', false)
             ->assertSee('Profil usaha', false)
-            ->assertDontSee('Verifikasi data', false);
+            ->assertDontSee('Pendataan UMKM', false);
 
         $this->actingAs($officer)->get('/akun')
             ->assertOk()
-            ->assertSee('Verifikasi data', false)
+            ->assertSee('Pendataan UMKM', false)
             ->assertSee('Keluar', false);
 
         $this->actingAs($head)->get('/akun')
             ->assertOk()
             ->assertSee('Persetujuan tindak lanjut', false)
-            ->assertDontSee('Verifikasi data', false);
+            ->assertDontSee('Pendataan UMKM', false);
     }
 
     public function test_officer_pages_render_the_shared_shell_without_waiting_for_react(): void
@@ -44,22 +44,23 @@ class LogoutButtonTest extends TestCase
             'role' => User::ROLE_OFFICER,
             'name' => 'Siti Aminah',
         ]);
+        $business = Business::factory()->create();
 
         $this->actingAs($user)
             ->get('/petugas/umkm')
             ->assertOk()
-            ->assertSee('Verifikasi data', false)
+            ->assertSee('Pendataan UMKM', false)
             ->assertSee('Siti Aminah', false)
             ->assertSee('Petugas Desa', false)
             ->assertSee('Keluar', false)
             ->assertSee('M13.6903 19.4567', false)
             ->assertSee('M15.5 8.04045', false)
-            ->assertSee('Total UMKM Terdaftar', false)
+            ->assertSee('Total UMKM', false)
             ->assertDontSee('data-page="appShell"', false)
             ->assertDontSee('Smart Profiling', false);
 
         $this->actingAs($user)
-            ->get('/petugas/umkm/1')
+            ->get('/petugas/umkm/'.$business->id)
             ->assertOk()
             ->assertSee('Keluar', false)
             ->assertDontSee('id="shell-content"', false);
@@ -70,7 +71,7 @@ class LogoutButtonTest extends TestCase
         $this->withoutVite();
 
         $user = User::factory()->create(['role' => User::ROLE_BUSINESS_OWNER]);
-        Business::factory()->create([
+        Business::factory()->verified()->create([
             'user_id' => $user->id,
             'created_by' => $user->id,
         ]);

@@ -30,22 +30,24 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_BUSINESS_OWNER, 'busines
     Route::get('/umkm/profil', [BusinessProfileController::class, 'edit'])->name('umkm.profil');
     Route::post('/umkm/profil', [BusinessProfileController::class, 'save'])->name('umkm.profil.save');
 
-    Route::get('/umkm/kebutuhan', [AssessmentController::class, 'page'])->name('umkm.kebutuhan');
-    Route::post('/umkm/kebutuhan', [AssessmentController::class, 'save'])->name('umkm.kebutuhan.save');
-
     Route::get('/umkm/dashboard', [UmkmDashboardController::class, 'index'])->name('umkm.dashboard');
 
-    Route::get('/umkm/rekomendasi', [OwnerRecommendationController::class, 'index'])->name('umkm.rekomendasi');
-    Route::get('/umkm/rekomendasi/{programRecommendation}', [OwnerRecommendationController::class, 'show'])->name('umkm.rekomendasi.show');
-    Route::post('/umkm/rekomendasi/{programRecommendation}/daftar', [OwnerRecommendationController::class, 'apply'])->name('umkm.rekomendasi.apply');
+    Route::middleware('business.verified')->group(function () {
+        Route::get('/umkm/kebutuhan', [AssessmentController::class, 'page'])->name('umkm.kebutuhan');
+        Route::post('/umkm/kebutuhan', [AssessmentController::class, 'save'])->name('umkm.kebutuhan.save');
 
-    Route::get('/umkm/riwayat-pembinaan', [OwnerCoachingSessionController::class, 'index'])->name('umkm.riwayat-pembinaan');
+        Route::get('/umkm/rekomendasi', [OwnerRecommendationController::class, 'index'])->name('umkm.rekomendasi');
+        Route::get('/umkm/rekomendasi/{programRecommendation}', [OwnerRecommendationController::class, 'show'])->name('umkm.rekomendasi.show');
+        Route::post('/umkm/rekomendasi/{programRecommendation}/daftar', [OwnerRecommendationController::class, 'apply'])->name('umkm.rekomendasi.apply');
 
-    Route::get('/umkm/produk', [ProductController::class, 'page'])->name('umkm.produk');
-    Route::get('/umkm/produk/data', [ProductController::class, 'index'])->name('umkm.produk.index');
-    Route::post('/umkm/produk', [ProductController::class, 'store'])->name('umkm.produk.store');
-    Route::put('/umkm/produk/{product}', [ProductController::class, 'update'])->name('umkm.produk.update');
-    Route::patch('/umkm/produk/{product}/toggle', [ProductController::class, 'toggle'])->name('umkm.produk.toggle');
+        Route::get('/umkm/riwayat-pembinaan', [OwnerCoachingSessionController::class, 'index'])->name('umkm.riwayat-pembinaan');
+
+        Route::get('/umkm/produk', [ProductController::class, 'page'])->name('umkm.produk');
+        Route::get('/umkm/produk/data', [ProductController::class, 'index'])->name('umkm.produk.index');
+        Route::post('/umkm/produk', [ProductController::class, 'store'])->name('umkm.produk.store');
+        Route::put('/umkm/produk/{product}', [ProductController::class, 'update'])->name('umkm.produk.update');
+        Route::patch('/umkm/produk/{product}/toggle', [ProductController::class, 'toggle'])->name('umkm.produk.toggle');
+    });
 });
 
 Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER.','.User::ROLE_VILLAGE_HEAD])->group(function () {

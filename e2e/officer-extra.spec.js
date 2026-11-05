@@ -124,7 +124,7 @@ test.describe('master data oleh petugas', () => {
     });
 
     test('TC_Q_007 soal yang sudah dijawab tidak dapat dihapus', async ({ page, browser }) => {
-        const owner = createOwner('soaldijawab');
+        const owner = createOwner('soaldijawab', 'Usaha Uji', { verified: true });
         const ownerContext = await browser.newContext();
         const ownerPage = await ownerContext.newPage();
         await login(ownerPage, owner.email);

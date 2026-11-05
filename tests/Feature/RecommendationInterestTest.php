@@ -89,7 +89,7 @@ class RecommendationInterestTest extends TestCase
     {
         $data = $this->scoredBusiness('Warung Sari', 'Permodalan', 'Pelatihan Pembukuan');
         $other = User::factory()->create();
-        Business::factory()->create([
+        Business::factory()->verified()->create([
             'user_id' => $other->id,
             'created_by' => $other->id,
         ]);
@@ -180,7 +180,7 @@ class RecommendationInterestTest extends TestCase
     public function test_a_program_added_after_the_questionnaire_appears_for_the_owner(): void
     {
         $owner = User::factory()->create();
-        $business = Business::factory()->create([
+        $business = Business::factory()->verified()->create([
             'user_id' => $owner->id,
             'created_by' => $owner->id,
             'business_name' => 'DAFFA CRAFT',
@@ -225,7 +225,7 @@ class RecommendationInterestTest extends TestCase
     private function scoredBusiness(string $businessName, string $categoryName, string $programName, bool $applied = false): array
     {
         $owner = User::factory()->create();
-        $business = Business::factory()->create([
+        $business = Business::factory()->verified()->create([
             'user_id' => $owner->id,
             'created_by' => $owner->id,
             'business_name' => $businessName,
@@ -249,6 +249,8 @@ class RecommendationInterestTest extends TestCase
             'description' => 'Penjelasan program pembukuan.',
             'requirements' => 'Memiliki usaha aktif.',
             'url' => 'https://example.test/program',
+            'starts_on' => null,
+            'ends_on' => null,
             'created_by' => $owner->id,
         ]);
         $program->obstacleCategories()->attach($category->id, ['minimum_level' => 'moderate']);

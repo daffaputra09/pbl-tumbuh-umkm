@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\EnsureBusinessIsVerified;
 use App\Models\Business;
 use App\Models\BusinessType;
 use App\Models\User;
@@ -71,6 +72,7 @@ class RegistrationProfileFlowTest extends TestCase
             'business_name' => 'Keripik Rejoso',
             'owner_name' => 'Siti Aminah',
             'phone' => '081234567890',
+            'email' => 'siti@example.com',
             'address' => 'Rejoso',
             'hamlet' => 'Krajan',
             'established_year' => 2018,
@@ -86,6 +88,9 @@ class RegistrationProfileFlowTest extends TestCase
         ]);
 
         $this->get(route('umkm.dashboard'))->assertOk();
+        $this->get(route('umkm.produk'))
+            ->assertRedirect(route('umkm.dashboard'))
+            ->assertSessionHas('status', EnsureBusinessIsVerified::MESSAGE);
 
         $this->post(route('logout'));
 
