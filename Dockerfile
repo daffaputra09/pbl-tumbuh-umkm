@@ -16,13 +16,17 @@ FROM php:8.4-fpm-bookworm
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         git \
+        libfreetype6-dev \
+        libjpeg62-turbo-dev \
+        libpng-dev \
         libpq-dev \
         libsqlite3-dev \
         libzip-dev \
         nginx \
         supervisor \
         unzip \
-    && docker-php-ext-install bcmath opcache pdo pdo_pgsql pdo_sqlite zip \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install bcmath gd opcache pdo pdo_pgsql pdo_sqlite zip \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
