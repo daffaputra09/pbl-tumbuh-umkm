@@ -74,15 +74,18 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::put('/akun', [AccountController::class, 'update'])->name('account.update');
 });
 
+Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER.','.User::ROLE_VILLAGE_HEAD])->group(function () {
+    Route::get('/petugas/umkm', [PetugasUmkmController::class, 'verifikasi'])->name('petugas.umkm.verifikasi');
+    Route::get('/petugas/umkm/{id}', [PetugasUmkmController::class, 'detail'])->whereNumber('id')->name('petugas.umkm.detail');
+});
+
 Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(function () {
     Route::get('/petugas/dashboard', [AuthController::class, 'dashboardPetugas'])->name('petugas.dashboard');
-    Route::get('/petugas/umkm', [PetugasUmkmController::class, 'verifikasi'])->name('petugas.umkm.verifikasi');
 
     Route::get('/petugas/umkm/pendataan-umkm', [BusinessProfileController::class, 'officerEdit'])->name('petugas.umkm.pendataan-umkm');
     Route::post('/petugas/umkm/pendataan-umkm', [BusinessProfileController::class, 'officerSave'])->name('petugas.umkm.pendataan-umkm.save');
 
-    Route::get('/petugas/umkm/{id}', [PetugasUmkmController::class, 'detail'])->name('petugas.umkm.detail');
-    Route::post('/petugas/umkm/{id}/verifikasi', [PetugasUmkmController::class, 'prosesVerifikasi'])->name('petugas.umkm.proses-verifikasi');
+    Route::post('/petugas/umkm/{id}/verifikasi', [PetugasUmkmController::class, 'prosesVerifikasi'])->whereNumber('id')->name('petugas.umkm.proses-verifikasi');
 
     Route::view('/petugas/jenis-usaha', 'petugas.umkm.jenis-usaha')->name('petugas.jenis-usaha');
     Route::get('/petugas/kategori-kendala', [ObstacleCategoryController::class, 'index'])->name('petugas.kategori-kendala.index');

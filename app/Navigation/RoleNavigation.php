@@ -166,7 +166,7 @@ class RoleNavigation
                 ['label' => 'Dashboard', 'href' => '/dashboard', 'icon' => 'DashboardSquare01Icon'],
             ]],
             ['title' => 'Pemantauan', 'items' => [
-                ['label' => 'Data UMKM', 'href' => null, 'icon' => 'Store01Icon'],
+                ['label' => 'Data UMKM', 'href' => '/petugas/umkm', 'icon' => 'Store01Icon'],
                 ['label' => 'Pengelompokan', 'href' => '/pimpinan/pengelompokan', 'icon' => 'Analytics01Icon'],
                 ['label' => 'Rekomendasi', 'href' => '/pimpinan/rekomendasi', 'icon' => 'GiftIcon'],
                 ['label' => 'Laporan', 'href' => '/pimpinan/laporan', 'icon' => 'FileExportIcon'],

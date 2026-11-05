@@ -48,8 +48,8 @@ class BusinessPolicyTest extends TestCase
         $head = User::factory()->create(['role' => User::ROLE_VILLAGE_HEAD]);
         $business = Business::factory()->create();
 
-        $this->assertFalse($head->can('viewAny', Business::class));
-        $this->assertFalse($head->can('view', $business));
+        $this->assertTrue($head->can('viewAny', Business::class));
+        $this->assertTrue($head->can('view', $business));
         $this->assertFalse($head->can('create', Business::class));
         $this->assertFalse($head->can('createOwn', Business::class));
         $this->assertFalse($head->can('update', $business));
