@@ -365,6 +365,7 @@ test('TC_BIZ_005 dan TC_VER_002 petugas mendata usaha lalu memverifikasi', async
     await page.getByPlaceholder('Contoh: Warung Nasi Padang').fill(businessName);
     await page.getByPlaceholder('Nama lengkap pemilik usaha').fill('Bu Warung');
     await page.getByPlaceholder('08xxxxxxxxxx').fill('081234009988');
+    await page.getByPlaceholder('nama@email.com').fill(`warung.${Date.now()}@tumbuh.test`);
     await page.getByPlaceholder('Alamat lengkap tempat usaha beroperasi').fill('Jl. Melati No. 2');
     await page.getByPlaceholder('Nama dusun').fill('Krajan');
     await page.getByRole('button', { name: /Pilih tahun/ }).click();

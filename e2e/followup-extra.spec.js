@@ -137,8 +137,8 @@ test.describe('catatan pembinaan', () => {
     });
 
     test('TC_COA_006 dan TC_COA_008 riwayat pembinaan menurut peran', async ({ page }) => {
-        const alpha = createOwner('riwayata', 'Usaha Alpha');
-        const beta = createOwner('riwayatb', 'Usaha Beta');
+        const alpha = createOwner('riwayata', 'Usaha Alpha', { verified: true });
+        const beta = createOwner('riwayatb', 'Usaha Beta', { verified: true });
         const titleA = `Sesi Alpha ${Date.now()}`;
         const titleB = `Sesi Beta ${Date.now()}`;
         fx('session', { followUpId: fx('followup', { userId: alpha.userId, status: 'approved' }).followUpId, title: titleA });

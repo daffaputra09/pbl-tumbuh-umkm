@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { accounts, desktopMenu, login } from './auth.js';
+import { createOwner } from './support/helpers.js';
 
 test('TC_AUTHZ_001 pemilik ditolak dari halaman petugas', async ({ page }) => {
     await login(page, accounts.owner);
@@ -47,7 +48,8 @@ test('TC_NAV_003 menu kepala desa memuat pemantauan yang sudah ada', async ({ pa
 });
 
 test('TC_NAV_001 menu pemilik memuat riwayat pembinaan', async ({ page }) => {
-    await login(page, accounts.owner);
+    const owner = createOwner('nav001', 'Usaha Nav', { verified: true });
+    await login(page, owner.email);
 
     const menu = desktopMenu(page);
     await expect(menu.getByRole('link', { name: 'Riwayat pembinaan' })).toHaveAttribute('href', '/umkm/riwayat-pembinaan');
