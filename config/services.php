@@ -47,4 +47,10 @@ return [
         'refresh_token' => env('GMAIL_REFRESH_TOKEN'),
     ],
 
+    'supabase' => [
+        'url' => env('SUPABASE_URL'),
+        'secret' => env('SUPABASE_SECRET_KEY'),
+        'bucket' => env('SUPABASE_STORAGE_BUCKET', 'bucket-tumbuh-umkm'),
+    ],
+
 ];

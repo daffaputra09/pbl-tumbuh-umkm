@@ -4,14 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\Business;
 use App\Models\Product;
+use App\Services\SupabaseStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Throwable;
 
 class ProductController extends Controller
 {
+    public function __construct(private SupabaseStorage $storage) {}
     // ---------- Pelaku UMKM mengelola produk miliknya sendiri ----------
 
     public function page(Request $request): View
@@ -78,16 +82,19 @@ class ProductController extends Controller
             'description' => ['nullable', 'string'],
             'price' => ['nullable', 'integer', 'min:0'],
             'unit' => ['nullable', 'string', 'max:50'],
-            'photo' => ['nullable', 'image', 'max:2048'],
+            'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+        ], [
+            'photo.image' => 'Foto produk harus berupa JPG, PNG, atau WebP.',
+            'photo.mimes' => 'Foto produk harus berupa JPG, PNG, atau WebP.',
+            'photo.max' => 'Foto produk maksimal 2 MB.',
         ]);
 
-        $photoPath = $product?->photo_path;
+        $previousPhoto = $product?->photo_path;
+        $photoPath = $previousPhoto;
+        $photo = $request->file('photo');
 
-        if ($request->hasFile('photo')) {
-            if ($photoPath) {
-                Storage::disk('public')->delete($photoPath);
-            }
-            $photoPath = $request->file('photo')->store('products', 'public');
+        if ($photo instanceof UploadedFile) {
+            $photoPath = $this->storage->uploadProductPhoto($photo, $business->id);
         }
 
         $data = [
@@ -99,12 +106,44 @@ class ProductController extends Controller
             'photo_path' => $photoPath,
         ];
 
-        if ($product) {
-            $product->update($data);
+        try {
+            if ($product) {
+                $product->update($data);
+                $saved = $product;
+            } else {
+                $saved = $business->products()->create([...$data, 'is_active' => true]);
+            }
+        } catch (Throwable $exception) {
+            if ($photoPath !== $previousPhoto) {
+                $this->storage->delete($photoPath);
+            }
 
-            return $product;
+            throw $exception;
         }
 
-        return $business->products()->create([...$data, 'is_active' => true]);
+        if ($photoPath !== $previousPhoto) {
+            $this->forgetPreviousPhoto($previousPhoto);
+        }
+
+        return $saved;
+    }
+
+    private function forgetPreviousPhoto(?string $photoPath): void
+    {
+        if ($photoPath === null || $photoPath === '') {
+            return;
+        }
+
+        if (str_starts_with($photoPath, 'https://') || str_starts_with($photoPath, 'http://')) {
+            $this->storage->delete($photoPath);
+
+            return;
+        }
+
+        if (str_contains($photoPath, '..') || str_starts_with($photoPath, '/')) {
+            return;
+        }
+
+        Storage::disk('public')->delete($photoPath);
     }
 }

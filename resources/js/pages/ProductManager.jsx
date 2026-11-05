@@ -13,6 +13,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api';
 
 const UNIT_OPTIONS = ['Pcs', 'Kg', 'Gram', 'Liter', 'Porsi', 'Lusin', 'Lainnya'];
+const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
+const ALLOWED_PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+function productPhotoSrc(path) {
+    if (!path) {
+        return null;
+    }
+
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path;
+    }
+
+    return `/storage/${path}`;
+}
 
 function buildEmptyForm() {
     return {
@@ -53,6 +67,7 @@ export default function ProductManager() {
     const [formData, setFormData] = useState(buildEmptyForm);
     const [formError, setFormError] = useState('');
     const [photoPreview, setPhotoPreview] = useState(null);
+    const [savedPhotoUrl, setSavedPhotoUrl] = useState(null);
     const [editingId, setEditingId] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const fileInputRef = useRef(null);
@@ -88,15 +103,49 @@ export default function ProductManager() {
         setFormData((prev) => ({ ...prev, [field]: value }));
     }
 
+    function rejectPhoto(event, message) {
+        event.target.value = '';
+
+        if (photoPreview?.startsWith('blob:')) {
+            URL.revokeObjectURL(photoPreview);
+        }
+
+        updateField('photoFile', null);
+        setPhotoPreview(savedPhotoUrl);
+        setFormError(message);
+    }
+
     function handlePhotoChange(event) {
         const file = event.target.files?.[0] ?? null;
+
+        if (!file) {
+            updateField('photoFile', null);
+            return;
+        }
+
+        if (!ALLOWED_PHOTO_TYPES.includes(file.type)) {
+            rejectPhoto(event, 'Foto produk harus berupa JPG, PNG, atau WebP.');
+            return;
+        }
+
+        if (file.size > MAX_PHOTO_BYTES) {
+            rejectPhoto(event, 'Foto produk maksimal 2 MB.');
+            return;
+        }
+
+        if (photoPreview?.startsWith('blob:')) {
+            URL.revokeObjectURL(photoPreview);
+        }
+
+        setFormError('');
         updateField('photoFile', file);
-        setPhotoPreview(file ? URL.createObjectURL(file) : null);
+        setPhotoPreview(URL.createObjectURL(file));
     }
 
     function openCreateModal() {
         setEditingId(null);
         setFormData(buildEmptyForm());
+        setSavedPhotoUrl(null);
         setPhotoPreview(null);
         setFormError('');
         setIsModalOpen(true);
@@ -105,7 +154,10 @@ export default function ProductManager() {
     function openEditModal(product) {
         const isKnownUnit = UNIT_OPTIONS.slice(0, -1).includes(product.unit);
 
+        const photoUrl = productPhotoSrc(product.photo_path);
+
         setEditingId(product.id);
+        setSavedPhotoUrl(photoUrl);
         setFormData({
             name: product.name,
             category: product.category,
@@ -115,7 +167,7 @@ export default function ProductManager() {
             customUnit: product.unit && !isKnownUnit ? product.unit : '',
             photoFile: null,
         });
-        setPhotoPreview(product.photo_path ? `/storage/${product.photo_path}` : null);
+        setPhotoPreview(photoUrl);
         setFormError('');
         setIsModalOpen(true);
     }
@@ -128,6 +180,7 @@ export default function ProductManager() {
         setIsModalOpen(false);
         setEditingId(null);
         setFormData(buildEmptyForm());
+        setSavedPhotoUrl(null);
         setPhotoPreview(null);
         setFormError('');
     }
@@ -167,6 +220,7 @@ export default function ProductManager() {
             setIsModalOpen(false);
             setEditingId(null);
             setFormData(buildEmptyForm());
+            setSavedPhotoUrl(null);
             setPhotoPreview(null);
         } catch (error) {
             setFormError(error.message);
@@ -255,9 +309,9 @@ export default function ProductManager() {
                             className="flex items-center justify-between gap-3 rounded-xl border border-border bg-white px-4 py-3"
                         >
                             <div className="flex min-w-0 items-center gap-3">
-                                {product.photo_path ? (
+                                {productPhotoSrc(product.photo_path) ? (
                                     <img
-                                        src={`/storage/${product.photo_path}`}
+                                        src={productPhotoSrc(product.photo_path)}
                                         alt={product.name}
                                         className="size-12 shrink-0 rounded-lg object-cover"
                                     />
@@ -453,7 +507,7 @@ export default function ProductManager() {
                                                 {photoPreview ? 'Ganti foto produk' : 'Pilih foto produk'}
                                             </p>
                                             <p className="mt-1 text-xs text-muted-foreground">
-                                                Klik di sini untuk memilih gambar.
+                                                JPG, PNG, atau WebP. Maksimal 2 MB.
                                             </p>
                                         </div>
                                     </button>
@@ -461,7 +515,7 @@ export default function ProductManager() {
                                     <input
                                         ref={fileInputRef}
                                         type="file"
-                                        accept="image/*"
+                                        accept="image/jpeg,image/png,image/webp"
                                         onChange={handlePhotoChange}
                                         className="hidden"
                                     />
