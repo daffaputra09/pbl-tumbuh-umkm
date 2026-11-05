@@ -129,6 +129,7 @@ class RoleNavigation
                 ['label' => 'Riwayat pembinaan', 'href' => '/pimpinan/riwayat-pembinaan', 'icon' => 'TeachingIcon'],
             ]],
             ['title' => 'Akun', 'items' => [
+                ['label' => 'Kelola petugas', 'href' => '/pimpinan/petugas', 'icon' => 'User02Icon'],
                 ['label' => 'Profil akun', 'href' => '/akun', 'icon' => 'User02Icon'],
             ]],
         ];
