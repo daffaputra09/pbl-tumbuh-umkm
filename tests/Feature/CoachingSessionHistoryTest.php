@@ -446,4 +446,122 @@ class CoachingSessionHistoryTest extends TestCase
             'recommendation' => $recommendation,
         ];
     }
+
+    public function test_pending_follow_up_cannot_be_recorded_as_coaching(): void
+    {
+        $officer = User::factory()->create(['role' => User::ROLE_OFFICER]);
+        $businessData = $this->createAppliedBusiness('UMKM Pending');
+
+        $followUp = FollowUp::create([
+            'business_id' => $businessData['owner']->id,
+            'program_recommendation_id' => $businessData['recommendation']->id,
+            'assistance_program_id' => $businessData['program']->id,
+            'submitted_by' => $officer->id,
+            'status' => 'pending',
+            'planned_activity' => 'Pendampingan',
+            'planned_on' => '2026-11-21',
+            'submission_note' => 'Uraian pengajuan.',
+        ]);
+
+        $response = $this->actingAs($officer)
+            ->postJson(route('petugas.catat-pembinaan.store'), [
+                'follow_up_id' => $followUp->id,
+                'title' => 'Pendampingan',
+                'held_on' => '2026-11-21',
+                'description' => 'Uraian',
+            ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('follow_up_id')
+            ->assertJsonValidationErrors([
+                'follow_up_id' => 'Pembinaan hanya dapat dicatat dari tindak lanjut yang sudah disetujui kepala desa.',
+            ]);
+
+        $this->assertDatabaseCount('coaching_sessions', 0);
+    }
+
+    public function test_rejected_follow_up_cannot_be_recorded_as_coaching(): void
+    {
+        $officer = User::factory()->create(['role' => User::ROLE_OFFICER]);
+        $head = User::factory()->create(['role' => User::ROLE_VILLAGE_HEAD]);
+        $businessData = $this->createAppliedBusiness('UMKM Ditolak');
+
+        $followUp = FollowUp::create([
+            'business_id' => $businessData['owner']->id,
+            'program_recommendation_id' => $businessData['recommendation']->id,
+            'assistance_program_id' => $businessData['program']->id,
+            'submitted_by' => $officer->id,
+            'decided_by' => $head->id,
+            'status' => 'rejected',
+            'planned_activity' => 'Pendampingan',
+            'planned_on' => '2026-11-21',
+            'submission_note' => 'Uraian pengajuan.',
+            'decision_note' => 'Ditolak karena tidak sesuai sasaran.',
+            'decided_at' => now(),
+        ]);
+
+        $response = $this->actingAs($officer)
+            ->postJson(route('petugas.catat-pembinaan.store'), [
+                'follow_up_id' => $followUp->id,
+                'title' => 'Pendampingan',
+                'held_on' => '2026-11-21',
+                'description' => 'Uraian',
+            ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('follow_up_id')
+            ->assertJsonValidationErrors([
+                'follow_up_id' => 'Pembinaan hanya dapat dicatat dari tindak lanjut yang sudah disetujui kepala desa.',
+            ]);
+
+        $this->assertDatabaseCount('coaching_sessions', 0);
+    }
+
+    public function test_a_follow_up_accepts_only_one_coaching_session(): void
+    {
+        $officer = User::factory()->create(['role' => User::ROLE_OFFICER]);
+        $head = User::factory()->create(['role' => User::ROLE_VILLAGE_HEAD]);
+        $businessData = $this->createAppliedBusiness('UMKM Sesi Tunggal');
+
+        $followUp = FollowUp::create([
+            'business_id' => $businessData['owner']->id,
+            'program_recommendation_id' => $businessData['recommendation']->id,
+            'assistance_program_id' => $businessData['program']->id,
+            'submitted_by' => $officer->id,
+            'decided_by' => $head->id,
+            'status' => 'approved',
+            'planned_activity' => 'Pendampingan Pertama',
+            'planned_on' => '2026-11-21',
+            'submission_note' => 'Pengajuan disetujui.',
+            'decision_note' => 'Disetujui.',
+            'decided_at' => now(),
+        ]);
+
+        CoachingSession::create([
+            'follow_up_id' => $followUp->id,
+            'business_id' => $followUp->business_id,
+            'assistance_program_id' => $followUp->assistance_program_id,
+            'recorded_by' => $officer->id,
+            'title' => 'Sesi Pertama',
+            'held_on' => '2026-11-21',
+            'description' => 'Uraian sesi pertama.',
+            'status' => 'completed',
+        ]);
+
+        $response = $this->actingAs($officer)
+            ->postJson(route('petugas.catat-pembinaan.store'), [
+                'follow_up_id' => $followUp->id,
+                'title' => 'Sesi Kedua',
+                'held_on' => '2026-11-22',
+                'description' => 'Uraian sesi kedua.',
+            ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('follow_up_id')
+            ->assertJsonValidationErrors([
+                'follow_up_id' => 'Tindak lanjut ini sudah memiliki catatan pembinaan.',
+            ]);
+
+        $this->assertDatabaseCount('coaching_sessions', 1);
+    }
 }
