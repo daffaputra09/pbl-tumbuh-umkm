@@ -285,4 +285,67 @@ class FollowUpWorkflowTest extends TestCase
             'recommendation' => $recommendation,
         ];
     }
+
+    public function test_follow_up_requires_a_planned_activity(): void
+    {
+        $officer = User::factory()->create(['role' => 'officer']);
+        $owner = User::factory()->create();
+        Business::factory()->create(['user_id' => $owner->id]);
+
+        $payload = [
+            'business_id' => $owner->id,
+            'planned_activity' => '',
+            'planned_on' => '2026-12-01',
+            'submission_note' => 'Pemilik sudah mendaftarkan minat.',
+        ];
+
+        $this->actingAs($officer)
+            ->postJson(route('petugas.tindak-lanjut.store'), $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('planned_activity');
+
+        $this->assertDatabaseCount('follow_ups', 0);
+    }
+
+    public function test_follow_up_requires_a_planned_date(): void
+    {
+        $officer = User::factory()->create(['role' => 'officer']);
+        $owner = User::factory()->create();
+        Business::factory()->create(['user_id' => $owner->id]);
+
+        $payload = [
+            'business_id' => $owner->id,
+            'planned_activity' => 'Pendampingan foto produk',
+            'planned_on' => '',
+            'submission_note' => 'Pemilik sudah mendaftarkan minat.',
+        ];
+
+        $this->actingAs($officer)
+            ->postJson(route('petugas.tindak-lanjut.store'), $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('planned_on');
+
+        $this->assertDatabaseCount('follow_ups', 0);
+    }
+
+    public function test_follow_up_requires_a_submission_note(): void
+    {
+        $officer = User::factory()->create(['role' => 'officer']);
+        $owner = User::factory()->create();
+        Business::factory()->create(['user_id' => $owner->id]);
+
+        $payload = [
+            'business_id' => $owner->id,
+            'planned_activity' => 'Pendampingan foto produk',
+            'planned_on' => '2026-12-01',
+            'submission_note' => '',
+        ];
+
+        $this->actingAs($officer)
+            ->postJson(route('petugas.tindak-lanjut.store'), $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('submission_note');
+
+        $this->assertDatabaseCount('follow_ups', 0);
+    }
 }
