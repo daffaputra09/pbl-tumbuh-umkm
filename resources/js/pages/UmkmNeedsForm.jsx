@@ -131,11 +131,6 @@ export default function UmkmNeedsForm({ categories = [] }) {
             }));
         });
 
-        if (answers.length === 0) {
-            setServerError('Belum ada jawaban yang bisa dikirim. Pilih "Ya, ada" di minimal satu bidang dulu.');
-            return;
-        }
-
         setIsSubmitting(true);
 
         try {

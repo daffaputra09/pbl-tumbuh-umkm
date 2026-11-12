@@ -61,7 +61,7 @@ class AssessmentController extends Controller
         $business = $this->ownBusiness($request);
 
         $validated = $request->validate([
-            'answers' => ['required', 'array', 'min:1'],
+            'answers' => ['present', 'array'],
             'answers.*.questionId' => ['required', 'integer', 'exists:assessment_questions,id'],
             'answers.*.optionId' => ['required', 'integer', 'exists:question_options,id'],
             'otherObstacle' => ['nullable', 'string'],
