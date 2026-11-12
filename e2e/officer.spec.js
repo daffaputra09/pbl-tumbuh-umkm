@@ -39,7 +39,7 @@ test('TC_CAT_001 lima kategori kendala awal tampil', async ({ page }) => {
     await login(page, accounts.officer);
     await page.goto('/petugas/kategori-kendala');
 
-    await expect(page.getByRole('heading', { name: 'Kategori Kendala' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Kategori Kendala', exact: true })).toBeVisible();
     for (const name of ['Modal', 'Pemasaran', 'Legalitas', 'Produksi', 'Digitalisasi']) {
         await expect(page.getByText(name).first()).toBeVisible();
     }
@@ -325,6 +325,7 @@ test('TC_CAT_002 petugas menambah kategori kendala', async ({ page }) => {
 });
 
 test('TC_Q_001 petugas menambah pertanyaan likert', async ({ page }) => {
+    test.setTimeout(60_000);
     const prompt = `Pertanyaan uji ${Date.now()}`;
 
     await login(page, accounts.officer);

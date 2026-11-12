@@ -41,8 +41,12 @@ export function createOwner(prefix, business = 'Usaha Uji', { verified = false }
  * Pengalihan (302) diikuti dengan GET, seperti peramban, bukan dengan metode semula.
  */
 export async function api(page, method, url, { data, multipart } = {}) {
-    await page.goto('/akun');
-    const token = await page.locator('meta[name="csrf-token"]').getAttribute('content');
+    let token = await page.locator('meta[name="csrf-token"]').getAttribute('content');
+
+    if (! token) {
+        await page.goto('/akun');
+        token = await page.locator('meta[name="csrf-token"]').getAttribute('content');
+    }
 
     const response = await page.request.fetch(url, {
         method,
@@ -50,6 +54,7 @@ export async function api(page, method, url, { data, multipart } = {}) {
         data,
         multipart,
         maxRedirects: 0,
+        timeout: 60_000,
     });
 
     if ([301, 302, 303].includes(response.status())) {

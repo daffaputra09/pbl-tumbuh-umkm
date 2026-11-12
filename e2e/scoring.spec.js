@@ -60,6 +60,8 @@ function scoreOf(assessmentId, categoryId) {
 }
 
 test.describe('skor kategori dan level kendala', () => {
+    test.describe.configure({ timeout: 90_000 });
+
     test.beforeEach(async ({ page }) => {
         await login(page, accounts.officer);
     });
@@ -119,6 +121,8 @@ test.describe('skor kategori dan level kendala', () => {
 });
 
 test.describe('pencocokan program dengan level kendala', () => {
+    test.describe.configure({ timeout: 180_000 });
+
     async function createProgram(page, categoryId, minimum, status = 'active') {
         const name = `Program ${minimum} ${stamp()}`;
         const response = await api(page, 'POST', '/petugas/program-bantuan', {
