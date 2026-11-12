@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             BusinessTypeSeeder::class,
             ObstacleCategorySeeder::class,
+            AssessmentQuestionSeeder::class,
+            VillageStaffSeeder::class,
         ]);
     }
 }
