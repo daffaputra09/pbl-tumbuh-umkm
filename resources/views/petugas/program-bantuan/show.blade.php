@@ -46,6 +46,7 @@
             </div>
 
             <div class="flex items-center gap-2.5 shrink-0">
+                @can('update', $program)
                 <a
                     href="{{ route('petugas.program-bantuan.edit', $program) }}"
                     class="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-hover transition-colors"
@@ -56,6 +57,8 @@
                     </svg>
                     Edit Program
                 </a>
+                @endcan
+                @can('delete', $program)
                 <button
                     type="button"
                     onclick="openDeleteModal('{{ $program->id }}', '{{ addslashes($program->name) }}')"
@@ -68,6 +71,7 @@
                     </svg>
                     Hapus
                 </button>
+                @endcan
             </div>
         </div>
 
@@ -211,6 +215,7 @@
     </div>
 
     {{-- Modal Konfirmasi Hapus --}}
+    @can('delete', $program)
     <div id="deleteModal" class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
         <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl space-y-4">
             <div class="flex items-center gap-3">
@@ -269,4 +274,5 @@
             }
         </script>
     @endpush
+    @endcan
 @endsection

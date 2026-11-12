@@ -77,6 +77,14 @@ Route::middleware(['auth', 'active'])->group(function () {
 Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER.','.User::ROLE_VILLAGE_HEAD])->group(function () {
     Route::get('/petugas/umkm', [PetugasUmkmController::class, 'verifikasi'])->name('petugas.umkm.verifikasi');
     Route::get('/petugas/umkm/{id}', [PetugasUmkmController::class, 'detail'])->whereNumber('id')->name('petugas.umkm.detail');
+
+    Route::get('/petugas/program-bantuan', [AssistanceProgramController::class, 'index'])->name('petugas.program-bantuan.index');
+    Route::get('/petugas/program-bantuan/create', [AssistanceProgramController::class, 'create'])->name('petugas.program-bantuan.create');
+    Route::post('/petugas/program-bantuan', [AssistanceProgramController::class, 'store'])->name('petugas.program-bantuan.store');
+    Route::get('/petugas/program-bantuan/{assistanceProgram}', [AssistanceProgramController::class, 'show'])->name('petugas.program-bantuan.show');
+    Route::get('/petugas/program-bantuan/{assistanceProgram}/edit', [AssistanceProgramController::class, 'edit'])->name('petugas.program-bantuan.edit');
+    Route::put('/petugas/program-bantuan/{assistanceProgram}', [AssistanceProgramController::class, 'update'])->name('petugas.program-bantuan.update');
+    Route::delete('/petugas/program-bantuan/{assistanceProgram}', [AssistanceProgramController::class, 'destroy'])->name('petugas.program-bantuan.destroy');
 });
 
 Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(function () {
@@ -102,14 +110,6 @@ Route::middleware(['auth', 'active', 'role:'.User::ROLE_OFFICER])->group(functio
     Route::post('/petugas/bank-soal/{assessmentQuestion}/options', [AssessmentQuestionController::class, 'storeOption'])->name('petugas.bank-soal.options.store');
     Route::put('/petugas/bank-soal/options/{questionOption}', [AssessmentQuestionController::class, 'updateOption'])->name('petugas.bank-soal.options.update');
     Route::delete('/petugas/bank-soal/options/{questionOption}', [AssessmentQuestionController::class, 'destroyOption'])->name('petugas.bank-soal.options.destroy');
-
-    Route::get('/petugas/program-bantuan', [AssistanceProgramController::class, 'index'])->name('petugas.program-bantuan.index');
-    Route::get('/petugas/program-bantuan/create', [AssistanceProgramController::class, 'create'])->name('petugas.program-bantuan.create');
-    Route::post('/petugas/program-bantuan', [AssistanceProgramController::class, 'store'])->name('petugas.program-bantuan.store');
-    Route::get('/petugas/program-bantuan/{assistanceProgram}', [AssistanceProgramController::class, 'show'])->name('petugas.program-bantuan.show');
-    Route::get('/petugas/program-bantuan/{assistanceProgram}/edit', [AssistanceProgramController::class, 'edit'])->name('petugas.program-bantuan.edit');
-    Route::put('/petugas/program-bantuan/{assistanceProgram}', [AssistanceProgramController::class, 'update'])->name('petugas.program-bantuan.update');
-    Route::delete('/petugas/program-bantuan/{assistanceProgram}', [AssistanceProgramController::class, 'destroy'])->name('petugas.program-bantuan.destroy');
 
     Route::get('/petugas/pengelompokan', [StaffInsightController::class, 'grouping'])->name('petugas.pengelompokan');
     Route::get('/petugas/rekomendasi', [StaffInsightController::class, 'recommendations'])->name('petugas.rekomendasi');

@@ -47,6 +47,7 @@
                     Kelola data program bantuan UMKM dan integrasikan dengan kategori kendala untuk pencocokan rekomendasi secara otomatis.
                 </p>
             </div>
+            @can('create', App\Models\AssistanceProgram::class)
             <div class="shrink-0">
                 <a
                     href="{{ route('petugas.program-bantuan.create') }}"
@@ -58,6 +59,7 @@
                     Tambah Program
                 </a>
             </div>
+            @endcan
         </div>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
@@ -300,6 +302,7 @@
                                         @endif
                                     </p>
                                     @if(!($currentSearch || $currentStatus || $currentCategoryId))
+                                        @can('create', App\Models\AssistanceProgram::class)
                                         <div class="mt-4">
                                             <a
                                                 href="{{ route('petugas.program-bantuan.create') }}"
@@ -311,6 +314,7 @@
                                                 Tambah Program Pertama
                                             </a>
                                         </div>
+                                        @endcan
                                     @endif
                                 </td>
                             </tr>
