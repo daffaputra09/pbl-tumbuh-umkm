@@ -130,4 +130,58 @@ class RegistrationProfileFlowTest extends TestCase
             'password' => 'password',
         ])->assertRedirect(route('dashboard'));
     }
+
+    public function test_duplicate_email_is_rejected(): void
+    {
+        User::factory()->create([
+            'email' => 'siti@example.com',
+        ]);
+
+        $this->from('/register')->post('/register', [
+            'name' => 'Siti Aminah',
+            'email' => 'siti@example.com',
+            'password' => 'password',
+            'business_name' => 'Keripik Rejoso',
+        ])->assertSessionHasErrors('email');
+
+        $this->assertSame(1, User::query()->count());
+        $this->assertGuest();
+    }
+
+    public function test_short_password_is_rejected(): void
+    {
+        $this->from('/register')->post('/register', [
+            'name' => 'Siti Aminah',
+            'email' => 'siti@example.com',
+            'password' => 'pendek',
+            'business_name' => 'Keripik Rejoso',
+        ])->assertSessionHasErrors('password');
+
+        $this->assertDatabaseMissing('users', [
+            'email' => 'siti@example.com',
+        ]);
+    }
+
+    public function test_registration_requires_name_email_password_and_business_name(): void
+    {
+        $this->from('/register')->post('/register', [])
+            ->assertSessionHasErrors(['name', 'email', 'password', 'business_name']);
+    }
+
+    public function test_posted_role_is_ignored_and_the_account_stays_a_business_owner(): void
+    {
+        $this->post('/register', [
+            'name' => 'Siti Aminah',
+            'email' => 'siti@example.com',
+            'password' => 'password',
+            'business_name' => 'Keripik Rejoso',
+            'role' => User::ROLE_OFFICER,
+        ])->assertRedirect(route('umkm.profil'));
+
+        $user = User::query()->where('email', 'siti@example.com')->first();
+
+        $this->assertNotNull($user);
+        $this->assertSame(User::ROLE_BUSINESS_OWNER, $user->role);
+        $this->assertAuthenticated();
+    }
 }
