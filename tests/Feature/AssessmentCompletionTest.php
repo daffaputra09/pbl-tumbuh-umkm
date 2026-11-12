@@ -240,4 +240,43 @@ class AssessmentCompletionTest extends TestCase
             'level' => AssessmentCategoryScore::LEVEL_HIGH,
         ]);
     }
+
+    public function test_a_partially_answered_category_is_rejected(): void
+    {
+        $owner = User::factory()->create();
+        Business::factory()->verified()->create([
+            'user_id' => $owner->id,
+            'created_by' => $owner->id,
+        ]);
+        $category = ObstacleCategory::factory()->create([
+            'name' => 'Pemasaran',
+        ]);
+        $firstQuestion = AssessmentQuestion::factory()->create([
+            'obstacle_category_id' => $category->id,
+            'is_active' => true,
+        ]);
+        $secondQuestion = AssessmentQuestion::factory()->create([
+            'obstacle_category_id' => $category->id,
+            'is_active' => true,
+        ]);
+        $firstOption = QuestionOption::factory()->create([
+            'assessment_question_id' => $firstQuestion->id,
+        ]);
+        QuestionOption::factory()->create([
+            'assessment_question_id' => $secondQuestion->id,
+        ]);
+
+        $response = $this->actingAs($owner)
+            ->postJson(route('umkm.kebutuhan.save'), [
+                'answers' => [
+                    ['questionId' => $firstQuestion->id, 'optionId' => $firstOption->id],
+                ],
+            ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('answers');
+
+        $this->assertStringContainsString('Pemasaran', (string) $response->json('errors.answers.0'));
+        $this->assertDatabaseCount('assessments', 0);
+    }
 }
