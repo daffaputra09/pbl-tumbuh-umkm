@@ -28,6 +28,14 @@ class AssistanceProgramManagementTest extends TestCase
         ]);
     }
 
+    private function villageHead(): User
+    {
+        return User::factory()->create([
+            'role' => User::ROLE_VILLAGE_HEAD,
+            'is_active' => true,
+        ]);
+    }
+
     public function test_guest_is_redirected_to_login_when_accessing_assistance_programs(): void
     {
         $response = $this->get(route('petugas.program-bantuan.index'));
@@ -371,5 +379,106 @@ class AssistanceProgramManagementTest extends TestCase
         $this->assertDatabaseMissing('assistance_program_obstacle_category', [
             'assistance_program_id' => $program->id,
         ]);
+    }
+
+    public function test_village_head_can_view_assistance_programs_index(): void
+    {
+        $villageHead = $this->villageHead();
+        $officer = $this->officer();
+        $program = AssistanceProgram::factory()->create([
+            'name' => 'Program Inkubasi',
+            'created_by' => $officer->id,
+        ]);
+
+        $response = $this->actingAs($villageHead)->get(route('petugas.program-bantuan.index'));
+
+        $response->assertOk();
+        $response->assertSee('Program Inkubasi');
+        $response->assertDontSee(route('petugas.program-bantuan.create'));
+    }
+
+    public function test_village_head_can_view_assistance_program_show(): void
+    {
+        $villageHead = $this->villageHead();
+        $officer = $this->officer();
+        $program = AssistanceProgram::factory()->create([
+            'name' => 'Program Inkubasi',
+            'created_by' => $officer->id,
+        ]);
+
+        $response = $this->actingAs($villageHead)->get(route('petugas.program-bantuan.show', $program));
+
+        $response->assertOk();
+        $response->assertSee('Program Inkubasi');
+        $response->assertDontSee(route('petugas.program-bantuan.edit', $program));
+    }
+
+    public function test_village_head_cannot_access_create_assistance_program(): void
+    {
+        $villageHead = $this->villageHead();
+
+        $response = $this->actingAs($villageHead)->get(route('petugas.program-bantuan.create'));
+
+        $response->assertForbidden();
+    }
+
+    public function test_village_head_cannot_store_assistance_program(): void
+    {
+        $villageHead = $this->villageHead();
+        $category = ObstacleCategory::factory()->create();
+
+        $payload = [
+            'name' => 'Program Bantuan Baru',
+            'provider' => 'Kementerian Koperasi',
+            'description' => 'Deskripsi program',
+            'status' => 'active',
+            'obstacle_category_ids' => [$category->id],
+        ];
+
+        $response = $this->actingAs($villageHead)->post(route('petugas.program-bantuan.store'), $payload);
+
+        $response->assertForbidden();
+        $this->assertDatabaseMissing('assistance_programs', [
+            'name' => 'Program Bantuan Baru',
+        ]);
+    }
+
+    public function test_village_head_cannot_update_assistance_program(): void
+    {
+        $villageHead = $this->villageHead();
+        $officer = $this->officer();
+        $category = ObstacleCategory::factory()->create();
+        $program = AssistanceProgram::factory()->create([
+            'name' => 'Program Lama',
+            'created_by' => $officer->id,
+        ]);
+
+        $payload = [
+            'name' => 'Program Diubah',
+            'provider' => 'Penyelenggara Baru',
+            'description' => 'Deskripsi baru',
+            'status' => 'active',
+            'obstacle_category_ids' => [$category->id],
+        ];
+
+        $response = $this->actingAs($villageHead)->put(route('petugas.program-bantuan.update', $program), $payload);
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('assistance_programs', [
+            'id' => $program->id,
+            'name' => 'Program Lama',
+        ]);
+    }
+
+    public function test_village_head_cannot_delete_assistance_program(): void
+    {
+        $villageHead = $this->villageHead();
+        $officer = $this->officer();
+        $program = AssistanceProgram::factory()->create(['created_by' => $officer->id]);
+
+        $response = $this->actingAs($villageHead)->delete(route('petugas.program-bantuan.destroy', $program));
+
+        $response->assertForbidden();
+        $this->assertModelExists($program);
     }
 }

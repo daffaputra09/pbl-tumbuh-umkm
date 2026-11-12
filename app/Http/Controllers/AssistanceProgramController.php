@@ -8,6 +8,7 @@ use App\Services\ProgramRecommendationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -15,6 +16,8 @@ class AssistanceProgramController extends Controller
 {
     public function index(Request $request): View
     {
+        Gate::authorize('viewAny', AssistanceProgram::class);
+
         $search = $request->query('search');
         $status = $request->query('status');
         $categoryId = $request->query('category_id');
@@ -64,6 +67,8 @@ class AssistanceProgramController extends Controller
 
     public function create(): View
     {
+        Gate::authorize('create', AssistanceProgram::class);
+
         $categories = ObstacleCategory::query()
             ->where('is_active', true)
             ->orderBy('sort_order')
@@ -78,6 +83,8 @@ class AssistanceProgramController extends Controller
 
     public function store(Request $request, ProgramRecommendationService $recommendations): RedirectResponse
     {
+        Gate::authorize('create', AssistanceProgram::class);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'provider' => ['required', 'string', 'max:255'],
@@ -144,6 +151,8 @@ class AssistanceProgramController extends Controller
 
     public function show(AssistanceProgram $assistanceProgram): View
     {
+        Gate::authorize('view', $assistanceProgram);
+
         $assistanceProgram->load(['obstacleCategories', 'createdBy']);
 
         return view('petugas.program-bantuan.show', [
@@ -153,6 +162,8 @@ class AssistanceProgramController extends Controller
 
     public function edit(AssistanceProgram $assistanceProgram): View
     {
+        Gate::authorize('update', $assistanceProgram);
+
         $assistanceProgram->load('obstacleCategories');
 
         $categories = ObstacleCategory::query()
@@ -173,6 +184,8 @@ class AssistanceProgramController extends Controller
 
     public function update(Request $request, AssistanceProgram $assistanceProgram, ProgramRecommendationService $recommendations): RedirectResponse
     {
+        Gate::authorize('update', $assistanceProgram);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'provider' => ['required', 'string', 'max:255'],
@@ -238,6 +251,8 @@ class AssistanceProgramController extends Controller
 
     public function destroy(AssistanceProgram $assistanceProgram): RedirectResponse
     {
+        Gate::authorize('delete', $assistanceProgram);
+
         DB::transaction(function () use ($assistanceProgram): void {
             $assistanceProgram->obstacleCategories()->detach();
             $assistanceProgram->delete();
