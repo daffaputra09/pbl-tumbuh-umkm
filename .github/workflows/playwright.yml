@@ -8,6 +8,34 @@ permissions:
   contents: read
 
 jobs:
+  phpunit:
+    name: Tes PHPUnit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Ambil kode
+        uses: actions/checkout@v4
+
+      - name: Pasang PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mbstring, sqlite, pdo_sqlite
+          coverage: none
+
+      - name: Siapkan lingkungan aplikasi
+        run: cp .env.example .env
+
+      - name: Pasang dependensi PHP
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Buat kunci aplikasi
+        run: php artisan key:generate
+
+      - name: Jalankan PHPUnit
+        run: php artisan test
+
   e2e:
     name: Tes Playwright
     runs-on: ubuntu-latest
@@ -96,7 +124,7 @@ jobs:
 
   build:
     name: Build image
-    needs: e2e
+    needs: [e2e, phpunit]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
