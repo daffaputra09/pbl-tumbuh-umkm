@@ -149,7 +149,7 @@ test('TC_AUTHZ_004 kepala desa tidak dapat mengubah data operasional UMKM', asyn
     const owner = createOwner('kadesblok');
     await login(page, accounts.villageHead);
 
-    for (const path of ['/petugas/kategori-kendala', '/petugas/bank-soal', '/petugas/program-bantuan', '/petugas/umkm/pendataan-umkm']) {
+    for (const path of ['/petugas/kategori-kendala', '/petugas/bank-soal', '/petugas/program-bantuan/create', '/petugas/umkm/pendataan-umkm']) {
         const response = await page.goto(path);
         expect(response.status()).toBe(403);
     }
