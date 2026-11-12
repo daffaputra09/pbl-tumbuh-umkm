@@ -279,4 +279,31 @@ class AssessmentCompletionTest extends TestCase
         $this->assertStringContainsString('Pemasaran', (string) $response->json('errors.answers.0'));
         $this->assertDatabaseCount('assessments', 0);
     }
+
+    public function test_umkm_owner_can_complete_questionnaire_when_having_no_obstacles_in_any_category(): void
+    {
+        $owner = User::factory()->create();
+        $business = Business::factory()->verified()->create([
+            'user_id' => $owner->id,
+            'created_by' => $owner->id,
+        ]);
+
+        $response = $this->actingAs($owner)
+            ->postJson(route('umkm.kebutuhan.save'), [
+                'answers' => [],
+            ]);
+
+        $response->assertCreated();
+
+        $assessment = Assessment::query()
+            ->where('business_id', $business->id)
+            ->firstOrFail();
+
+        $this->assertSame(Assessment::STATUS_COMPLETED, $assessment->status);
+        $this->assertTrue($assessment->is_current);
+        $this->assertNull($assessment->primary_obstacle_category_id);
+        $this->assertSame(0, AssessmentAnswer::where('assessment_id', $assessment->id)->count());
+        $this->assertSame(0, AssessmentCategoryScore::where('assessment_id', $assessment->id)->count());
+        $this->assertSame(0, ProgramRecommendation::where('business_id', $business->id)->count());
+    }
 }
