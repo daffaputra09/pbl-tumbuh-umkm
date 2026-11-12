@@ -48,6 +48,10 @@ class PlaywrightAuthSeeder extends Seeder
                 'hamlet' => 'Krajan',
                 'established_year' => 2018,
                 'employee_count' => 3,
+                'verification_status' => Business::STATUS_PENDING,
+                'verified_at' => null,
+                'verified_by' => null,
+                'verification_note' => null,
             ],
         );
     }

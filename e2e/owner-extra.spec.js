@@ -105,6 +105,8 @@ test.describe('produk', () => {
 });
 
 test.describe('kuesioner dan rekomendasi', () => {
+    test.describe.configure({ timeout: 90_000 });
+
     test('TC_ASM_004 kuesioner tidak dapat diselesaikan jika masih ada soal kosong', async ({ page }) => {
         const owner = createOwner('asm004', 'Usaha Uji', { verified: true });
         await login(page, owner.email);

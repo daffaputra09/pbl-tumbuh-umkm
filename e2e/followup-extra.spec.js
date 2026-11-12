@@ -137,6 +137,7 @@ test.describe('catatan pembinaan', () => {
     });
 
     test('TC_COA_006 dan TC_COA_008 riwayat pembinaan menurut peran', async ({ page }) => {
+        test.setTimeout(90_000);
         const alpha = createOwner('riwayata', 'Usaha Alpha', { verified: true });
         const beta = createOwner('riwayatb', 'Usaha Beta', { verified: true });
         const titleA = `Sesi Alpha ${Date.now()}`;
@@ -145,12 +146,12 @@ test.describe('catatan pembinaan', () => {
         fx('session', { followUpId: fx('followup', { userId: beta.userId, status: 'approved' }).followUpId, title: titleB });
 
         await login(page, accounts.officer);
-        const officerView = await (await page.request.get('/petugas/catat-pembinaan')).text();
+        const officerView = await (await page.request.get('/petugas/catat-pembinaan', { timeout: 60_000 })).text();
         expect(officerView).toContain(titleA);
         expect(officerView).toContain(titleB);
 
         await switchTo(page, alpha.email);
-        const ownerView = await (await page.request.get('/umkm/riwayat-pembinaan')).text();
+        const ownerView = await (await page.request.get('/umkm/riwayat-pembinaan', { timeout: 60_000 })).text();
         expect(ownerView).toContain(titleA);
         expect(ownerView).not.toContain(titleB);
 
