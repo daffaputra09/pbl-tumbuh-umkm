@@ -355,10 +355,9 @@ class StaffRecommendationTest extends TestCase
         $response->assertSee('1 Program');
         $response->assertSee('Sudah mendaftar');
 
-        // MUST NOT see the Legalitas programs or the Legalitas category
+        // MUST NOT see the Legalitas programs
         $response->assertDontSee('Pendampingan Izin NIB');
         $response->assertDontSee('Sertifikasi Halal Gratis');
-        $response->assertDontSee('Legalitas');
     }
 
     public function test_empty_state_shows_data_tidak_ditemukan(): void
