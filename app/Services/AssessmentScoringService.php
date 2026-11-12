@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\DB;
 
 class AssessmentScoringService
 {
+    public function __construct(private AssessmentScoreFormula $formula) {}
+
     /**
      * Store a 0–100 score and level for each answered category, then set the primary obstacle.
      *
@@ -67,32 +69,33 @@ class AssessmentScoringService
         $rows = [];
 
         foreach ($answers->groupBy(fn (AssessmentAnswer $answer): int => $answer->question->obstacle_category_id) as $categoryAnswers) {
-            $numerator = 0.0;
-            $denominator = 0.0;
             $category = null;
+            $inputs = [];
 
             foreach ($categoryAnswers as $answer) {
                 $question = $answer->question;
                 $category = $question->obstacleCategory;
-                $weight = (float) $answer->weight;
-                $optionScore = $question->is_reverse_scored
-                    ? 100 - $answer->score
-                    : $answer->score;
-
-                $numerator += $optionScore * $weight;
-                $denominator += 100 * $weight;
+                $inputs[] = [
+                    'score' => $answer->score,
+                    'weight' => $answer->weight,
+                    'reverse' => (bool) $question->is_reverse_scored,
+                ];
             }
 
-            if ($category === null || $denominator <= 0) {
+            $score = $this->formula->categoryScore($inputs);
+
+            if ($category === null || $score === null) {
                 continue;
             }
-
-            $score = round(($numerator / $denominator) * 100, 2);
 
             $rows[] = [
                 'category' => $category,
                 'score' => $score,
-                'level' => $this->level($score, (float) $category->moderate_threshold, (float) $category->high_threshold),
+                'level' => $this->formula->level(
+                    $score,
+                    (float) $category->moderate_threshold,
+                    (float) $category->high_threshold,
+                ),
             ];
         }
 
@@ -104,44 +107,25 @@ class AssessmentScoringService
      */
     private function primaryCategory(array $rows): ?ObstacleCategory
     {
-        $primary = null;
+        $winner = $this->formula->primary(array_map(
+            fn (array $row): array => [
+                'id' => $row['category']->id,
+                'sortOrder' => $row['category']->sort_order,
+                'score' => $row['score'],
+            ],
+            $rows,
+        ));
+
+        if ($winner === null) {
+            return null;
+        }
 
         foreach ($rows as $row) {
-            if ($primary === null || $this->outranks($row, $primary)) {
-                $primary = $row;
+            if ($row['category']->id === $winner['id']) {
+                return $row['category'];
             }
         }
 
-        return $primary['category'] ?? null;
-    }
-
-    /**
-     * @param  array{category: ObstacleCategory, score: float, level: string}  $candidate
-     * @param  array{category: ObstacleCategory, score: float, level: string}  $current
-     */
-    private function outranks(array $candidate, array $current): bool
-    {
-        if ($candidate['score'] !== $current['score']) {
-            return $candidate['score'] > $current['score'];
-        }
-
-        if ($candidate['category']->sort_order !== $current['category']->sort_order) {
-            return $candidate['category']->sort_order < $current['category']->sort_order;
-        }
-
-        return $candidate['category']->id < $current['category']->id;
-    }
-
-    private function level(float $score, float $moderateThreshold, float $highThreshold): string
-    {
-        if ($score >= $highThreshold) {
-            return AssessmentCategoryScore::LEVEL_HIGH;
-        }
-
-        if ($score >= $moderateThreshold) {
-            return AssessmentCategoryScore::LEVEL_MODERATE;
-        }
-
-        return AssessmentCategoryScore::LEVEL_LOW;
+        return null;
     }
 }
