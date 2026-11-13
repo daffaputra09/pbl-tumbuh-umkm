@@ -6,6 +6,7 @@ use App\Models\Assessment;
 use App\Models\AssessmentCategoryScore;
 use App\Models\AssistanceProgram;
 use App\Models\Business;
+use App\Models\CoachingSession;
 use App\Models\FollowUp;
 use App\Models\ObstacleCategory;
 use App\Models\ProgramRecommendation;
@@ -33,7 +34,7 @@ class FollowUpWorkflowTest extends TestCase
         // 2. Officer submits tindak lanjut
         $response = $this->actingAs($officer)
             ->postJson(route('petugas.tindak-lanjut.store'), [
-                'business_id' => $businessData['owner']->id,
+                'business_id' => $businessData['business']->id,
                 'program_recommendation_id' => $businessData['recommendation']->id,
                 'assistance_program_id' => $businessData['program']->id,
                 'planned_activity' => 'Pelatihan Pembukuan Digital',
@@ -102,7 +103,7 @@ class FollowUpWorkflowTest extends TestCase
         // Submit follow-up
         $this->actingAs($officer)
             ->postJson(route('petugas.tindak-lanjut.store'), [
-                'business_id' => $businessData['owner']->id,
+                'business_id' => $businessData['business']->id,
                 'program_recommendation_id' => $businessData['recommendation']->id,
                 'assistance_program_id' => $businessData['program']->id,
                 'planned_activity' => 'Bantuan Alat Produksi',
@@ -152,7 +153,7 @@ class FollowUpWorkflowTest extends TestCase
 
         // 1. First follow-up was rejected
         $fuRejected = FollowUp::create([
-            'business_id' => $businessData['owner']->id,
+            'business_id' => $businessData['business']->id,
             'program_recommendation_id' => $businessData['recommendation']->id,
             'assistance_program_id' => $businessData['program']->id,
             'submitted_by' => $officer->id,
@@ -167,7 +168,7 @@ class FollowUpWorkflowTest extends TestCase
 
         // 2. Second follow-up was approved
         $fuApproved = FollowUp::create([
-            'business_id' => $businessData['owner']->id,
+            'business_id' => $businessData['business']->id,
             'program_recommendation_id' => $businessData['recommendation']->id,
             'assistance_program_id' => $businessData['program']->id,
             'submitted_by' => $officer->id,
@@ -182,7 +183,7 @@ class FollowUpWorkflowTest extends TestCase
 
         // 3. Third follow-up is pending
         $fuPending = FollowUp::create([
-            'business_id' => $businessData['owner']->id,
+            'business_id' => $businessData['business']->id,
             'program_recommendation_id' => $businessData['recommendation']->id,
             'assistance_program_id' => $businessData['program']->id,
             'submitted_by' => $officer->id,
@@ -290,10 +291,10 @@ class FollowUpWorkflowTest extends TestCase
     {
         $officer = User::factory()->create(['role' => 'officer']);
         $owner = User::factory()->create();
-        Business::factory()->create(['user_id' => $owner->id]);
+        $business = Business::factory()->create(['user_id' => $owner->id]);
 
         $payload = [
-            'business_id' => $owner->id,
+            'business_id' => $business->id,
             'planned_activity' => '',
             'planned_on' => '2026-12-01',
             'submission_note' => 'Pemilik sudah mendaftarkan minat.',
@@ -311,10 +312,10 @@ class FollowUpWorkflowTest extends TestCase
     {
         $officer = User::factory()->create(['role' => 'officer']);
         $owner = User::factory()->create();
-        Business::factory()->create(['user_id' => $owner->id]);
+        $business = Business::factory()->create(['user_id' => $owner->id]);
 
         $payload = [
-            'business_id' => $owner->id,
+            'business_id' => $business->id,
             'planned_activity' => 'Pendampingan foto produk',
             'planned_on' => '',
             'submission_note' => 'Pemilik sudah mendaftarkan minat.',
@@ -332,10 +333,10 @@ class FollowUpWorkflowTest extends TestCase
     {
         $officer = User::factory()->create(['role' => 'officer']);
         $owner = User::factory()->create();
-        Business::factory()->create(['user_id' => $owner->id]);
+        $business = Business::factory()->create(['user_id' => $owner->id]);
 
         $payload = [
-            'business_id' => $owner->id,
+            'business_id' => $business->id,
             'planned_activity' => 'Pendampingan foto produk',
             'planned_on' => '2026-12-01',
             'submission_note' => '',
@@ -347,5 +348,115 @@ class FollowUpWorkflowTest extends TestCase
             ->assertJsonValidationErrors('submission_note');
 
         $this->assertDatabaseCount('follow_ups', 0);
+    }
+
+    public function test_officer_can_submit_follow_up_for_business_without_account(): void
+    {
+        $officer = User::factory()->create(['role' => User::ROLE_OFFICER]);
+        $business = Business::factory()->create([
+            'user_id' => null,
+            'created_by' => $officer->id,
+            'business_name' => 'Usaha Petugas Mandiri',
+            'owner_name' => 'Pak Sutrisno',
+            'verification_status' => Business::STATUS_VERIFIED,
+        ]);
+
+        $category = ObstacleCategory::factory()->create(['name' => 'Pemasaran']);
+        $assessment = Assessment::factory()->completed()->create([
+            'business_id' => $business->id,
+            'filled_by' => $officer->id,
+            'primary_obstacle_category_id' => $category->id,
+        ]);
+
+        AssessmentCategoryScore::factory()->create([
+            'assessment_id' => $assessment->id,
+            'obstacle_category_id' => $category->id,
+            'score' => 90,
+            'level' => AssessmentCategoryScore::LEVEL_HIGH,
+        ]);
+
+        $program = AssistanceProgram::factory()->active()->create([
+            'name' => 'Bantuan Pemasaran Digital',
+            'created_by' => $officer->id,
+        ]);
+        $program->obstacleCategories()->attach($category->id, ['minimum_level' => 'moderate']);
+
+        $recommendation = ProgramRecommendation::factory()->create([
+            'business_id' => $business->id,
+            'assessment_id' => $assessment->id,
+            'assistance_program_id' => $program->id,
+            'obstacle_category_id' => $category->id,
+            'is_active' => true,
+            'applied_at' => now(),
+        ]);
+
+        $this->actingAs($officer)
+            ->get(route('petugas.tindak-lanjut'))
+            ->assertOk()
+            ->assertSee('Usaha Petugas Mandiri')
+            ->assertDontSee('Usaha ini belum punya akun pelaku.');
+
+        $response = $this->actingAs($officer)
+            ->postJson(route('petugas.tindak-lanjut.store'), [
+                'business_id' => $business->id,
+                'program_recommendation_id' => $recommendation->id,
+                'assistance_program_id' => $program->id,
+                'planned_activity' => 'Pelatihan Promosi Media Sosial',
+                'planned_on' => '2026-12-05',
+                'submission_note' => 'Pendataan langsung oleh petugas di lapangan.',
+            ]);
+
+        $response->assertOk();
+        $this->assertDatabaseHas('follow_ups', [
+            'business_id' => $business->id,
+            'program_recommendation_id' => $recommendation->id,
+            'planned_activity' => 'Pelatihan Promosi Media Sosial',
+        ]);
+        $followUp = FollowUp::query()->where('program_recommendation_id', $recommendation->id)->firstOrFail();
+        $this->assertSame($business->id, $followUp->business_id);
+    }
+
+    public function test_officer_can_record_coaching_session_for_business_without_account(): void
+    {
+        $officer = User::factory()->create(['role' => User::ROLE_OFFICER]);
+        $head = User::factory()->create(['role' => User::ROLE_VILLAGE_HEAD]);
+        $business = Business::factory()->create([
+            'user_id' => null,
+            'created_by' => $officer->id,
+            'business_name' => 'Usaha Mawar Indah',
+            'owner_name' => 'Ibu Mawar',
+            'verification_status' => Business::STATUS_VERIFIED,
+        ]);
+
+        $program = AssistanceProgram::factory()->active()->create([
+            'name' => 'Pendampingan Manajemen Operasional',
+            'created_by' => $officer->id,
+        ]);
+
+        $followUp = FollowUp::create([
+            'business_id' => $business->id,
+            'assistance_program_id' => $program->id,
+            'submitted_by' => $officer->id,
+            'decided_by' => $head->id,
+            'status' => 'approved',
+            'planned_activity' => 'Pencatatan SOP Produksi',
+            'planned_on' => '2026-11-28',
+            'submission_note' => 'Pendataan petugas tanpa akun.',
+            'decided_at' => now(),
+        ]);
+
+        $response = $this->actingAs($officer)
+            ->postJson(route('petugas.catat-pembinaan.store'), [
+                'follow_up_id' => $followUp->id,
+                'title' => 'Sesi Pembuatan SOP Selesai',
+                'held_on' => '2026-11-28',
+                'description' => 'Pendampingan pembuatan SOP produksi di tempat usaha.',
+                'outcome' => 'SOP berhasil dibuat dan diterapkan.',
+                'status' => 'completed',
+            ]);
+
+        $response->assertOk();
+        $session = CoachingSession::query()->where('follow_up_id', $followUp->id)->firstOrFail();
+        $this->assertSame($business->id, $session->business_id);
     }
 }

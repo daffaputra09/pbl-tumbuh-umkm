@@ -25,7 +25,7 @@ class OwnerCoachingSessionController extends Controller
         // ONLY status 'approved' (meaning approved by village head).
         // Any 'pending' or 'rejected' follow-ups are strictly omitted.
         $approvedFollowUps = FollowUp::query()
-            ->where('business_id', $business->user_id)
+            ->where('business_id', $business->id)
             ->where('status', 'approved')
             ->with([
                 'assistanceProgram',

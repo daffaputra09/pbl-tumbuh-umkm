@@ -340,13 +340,13 @@ export default function TindakLanjutManager({ queue: initialQueue = [] }) {
                                             )}
                                         </td>
                                         <td className="px-4 py-3">
-                                            {item.status === 'ready' && item.can_submit ? (
+                                            {item.status === 'ready' && item.can_submit && item.business_id ? (
                                                 <Button size="sm" onClick={() => openModal(item)}>
                                                     Buat Pengajuan
                                                 </Button>
                                             ) : item.status === 'ready' ? (
                                                 <span className="text-xs font-medium text-slate-500">
-                                                    Usaha ini belum punya akun pelaku.
+                                                    Data usaha tidak ditemukan.
                                                 </span>
                                             ) : item.status === 'pending' ? (
                                                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">

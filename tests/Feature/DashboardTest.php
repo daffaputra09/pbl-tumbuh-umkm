@@ -55,7 +55,7 @@ class DashboardTest extends TestCase
         ]);
 
         $followUpApproved = FollowUp::create([
-            'business_id' => $owner1->id,
+            'business_id' => $business1->id,
             'submitted_by' => $officer->id,
             'decided_by' => $villageHead->id,
             'status' => 'approved',
@@ -68,7 +68,7 @@ class DashboardTest extends TestCase
 
         CoachingSession::create([
             'follow_up_id' => $followUpApproved->id,
-            'business_id' => $owner1->id,
+            'business_id' => $business1->id,
             'recorded_by' => $officer->id,
             'title' => 'Sesi Packaging Selesai',
             'held_on' => now(),
@@ -79,7 +79,7 @@ class DashboardTest extends TestCase
 
         // 2. Business aktif & pending verifikasi
         $owner2 = User::factory()->create(['role' => User::ROLE_BUSINESS_OWNER]);
-        Business::factory()->create([
+        $business2 = Business::factory()->create([
             'user_id' => $owner2->id,
             'business_type_id' => $type->id,
             'operational_status' => 'active',
@@ -99,7 +99,7 @@ class DashboardTest extends TestCase
 
         // 4. Pending follow up untuk antrean persetujuan
         FollowUp::create([
-            'business_id' => $owner2->id,
+            'business_id' => $business2->id,
             'submitted_by' => $officer->id,
             'status' => 'pending',
             'planned_activity' => 'Pengajuan Bantuan Modal',
@@ -188,7 +188,7 @@ class DashboardTest extends TestCase
         ]);
 
         $followUpB = FollowUp::create([
-            'business_id' => $ownerB->id,
+            'business_id' => $businessB->id,
             'submitted_by' => $officer->id,
             'status' => 'approved',
             'planned_activity' => 'Pelatihan B',
@@ -198,7 +198,7 @@ class DashboardTest extends TestCase
 
         CoachingSession::create([
             'follow_up_id' => $followUpB->id,
-            'business_id' => $ownerB->id,
+            'business_id' => $businessB->id,
             'recorded_by' => $officer->id,
             'title' => 'Sesi Selesai',
             'held_on' => now(),
@@ -224,14 +224,14 @@ class DashboardTest extends TestCase
         $officer = User::factory()->create(['role' => User::ROLE_OFFICER]);
 
         $owner = User::factory()->create(['role' => User::ROLE_BUSINESS_OWNER]);
-        Business::factory()->create([
+        $business = Business::factory()->create([
             'user_id' => $owner->id,
             'business_name' => 'Usaha Antrean Uji',
         ]);
 
         $pastDate = CarbonImmutable::now()->subDays(10);
         $followUpOverdue = FollowUp::create([
-            'business_id' => $owner->id,
+            'business_id' => $business->id,
             'submitted_by' => $officer->id,
             'status' => 'pending',
             'planned_activity' => 'Kegiatan Tertunda',
@@ -286,7 +286,7 @@ class DashboardTest extends TestCase
 
         // 1. FollowUp: Ada pending, approved, dan rejected
         $followUpPending = FollowUp::create([
-            'business_id' => $owner->id,
+            'business_id' => $business->id,
             'submitted_by' => $officer->id,
             'status' => 'pending',
             'planned_activity' => 'Pengajuan Pelatihan Keuangan Pending',
@@ -295,7 +295,7 @@ class DashboardTest extends TestCase
         ]);
 
         $followUpApproved1 = FollowUp::create([
-            'business_id' => $owner->id,
+            'business_id' => $business->id,
             'submitted_by' => $officer->id,
             'decided_by' => $villageHead->id,
             'status' => 'approved',
@@ -306,7 +306,7 @@ class DashboardTest extends TestCase
         ]);
 
         $followUpApproved2 = FollowUp::create([
-            'business_id' => $owner->id,
+            'business_id' => $business->id,
             'submitted_by' => $officer->id,
             'decided_by' => $villageHead->id,
             'status' => 'approved',
@@ -317,7 +317,7 @@ class DashboardTest extends TestCase
         ]);
 
         $followUpApproved3 = FollowUp::create([
-            'business_id' => $owner->id,
+            'business_id' => $business->id,
             'submitted_by' => $officer->id,
             'decided_by' => $villageHead->id,
             'status' => 'approved',
@@ -328,7 +328,7 @@ class DashboardTest extends TestCase
         ]);
 
         $followUpRejected = FollowUp::create([
-            'business_id' => $owner->id,
+            'business_id' => $business->id,
             'submitted_by' => $officer->id,
             'decided_by' => $villageHead->id,
             'status' => 'rejected',
@@ -341,7 +341,7 @@ class DashboardTest extends TestCase
         // 2. CoachingSession: Ada scheduled, completed, dan cancelled
         CoachingSession::create([
             'follow_up_id' => $followUpApproved1->id,
-            'business_id' => $owner->id,
+            'business_id' => $business->id,
             'recorded_by' => $officer->id,
             'title' => 'Sesi Packaging Terjadwal',
             'held_on' => now()->addDays(2),
@@ -351,7 +351,7 @@ class DashboardTest extends TestCase
 
         CoachingSession::create([
             'follow_up_id' => $followUpApproved2->id,
-            'business_id' => $owner->id,
+            'business_id' => $business->id,
             'recorded_by' => $officer->id,
             'title' => 'Sesi Digital Marketing Selesai',
             'held_on' => now()->subDay(),
@@ -362,7 +362,7 @@ class DashboardTest extends TestCase
 
         CoachingSession::create([
             'follow_up_id' => $followUpApproved3->id,
-            'business_id' => $owner->id,
+            'business_id' => $business->id,
             'recorded_by' => $officer->id,
             'title' => 'Sesi Ekspor Batal',
             'held_on' => now()->subDays(2),

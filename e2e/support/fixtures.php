@@ -100,8 +100,9 @@ switch ($command) {
         $officer = User::query()->where('role', User::ROLE_OFFICER)->firstOrFail();
         $head = User::query()->where('role', User::ROLE_VILLAGE_HEAD)->firstOrFail();
         $status = $args['status'] ?? 'pending';
+        $businessId = $args['businessId'] ?? (isset($args['userId']) ? Business::query()->where('user_id', $args['userId'])->value('id') : null);
         $followUp = FollowUp::query()->create([
-            'business_id' => $args['userId'],
+            'business_id' => $businessId,
             'submitted_by' => $officer->id,
             'planned_activity' => $args['activity'] ?? 'Pendampingan uji',
             'planned_on' => '2026-12-01',

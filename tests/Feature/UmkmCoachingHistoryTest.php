@@ -53,7 +53,7 @@ class UmkmCoachingHistoryTest extends TestCase
 
         // 1. My Business - Approved follow-up (Awaiting execution)
         $myApprovedFollowUp = FollowUp::create([
-            'business_id' => $myOwner->id,
+            'business_id' => $myBusinessData['business']->id,
             'program_recommendation_id' => $myBusinessData['recommendation']->id,
             'assistance_program_id' => $myBusinessData['program']->id,
             'submitted_by' => $officer->id,
@@ -68,7 +68,7 @@ class UmkmCoachingHistoryTest extends TestCase
 
         // 2. My Business - Completed coaching session
         $myCompletedFollowUp = FollowUp::create([
-            'business_id' => $myOwner->id,
+            'business_id' => $myBusinessData['business']->id,
             'program_recommendation_id' => $myBusinessData['recommendation']->id,
             'assistance_program_id' => $myBusinessData['program']->id,
             'submitted_by' => $officer->id,
@@ -83,7 +83,7 @@ class UmkmCoachingHistoryTest extends TestCase
 
         CoachingSession::create([
             'follow_up_id' => $myCompletedFollowUp->id,
-            'business_id' => $myOwner->id,
+            'business_id' => $myBusinessData['business']->id,
             'assistance_program_id' => $myBusinessData['program']->id,
             'recorded_by' => $officer->id,
             'title' => 'Pembinaan Pemasaran Digital Selesai',
@@ -95,7 +95,7 @@ class UmkmCoachingHistoryTest extends TestCase
 
         // 3. My Business - PENDING follow-up (MUST NOT BE DISPLAYED)
         FollowUp::create([
-            'business_id' => $myOwner->id,
+            'business_id' => $myBusinessData['business']->id,
             'program_recommendation_id' => $myBusinessData['recommendation']->id,
             'assistance_program_id' => $myBusinessData['program']->id,
             'submitted_by' => $officer->id,
@@ -107,7 +107,7 @@ class UmkmCoachingHistoryTest extends TestCase
 
         // 4. My Business - REJECTED follow-up (MUST NOT BE DISPLAYED)
         FollowUp::create([
-            'business_id' => $myOwner->id,
+            'business_id' => $myBusinessData['business']->id,
             'program_recommendation_id' => $myBusinessData['recommendation']->id,
             'assistance_program_id' => $myBusinessData['program']->id,
             'submitted_by' => $officer->id,
@@ -122,7 +122,7 @@ class UmkmCoachingHistoryTest extends TestCase
 
         // 5. Neighbor's Business - Approved and Completed session (MUST NOT LEAK TO BU SITI)
         $neighborFollowUp = FollowUp::create([
-            'business_id' => $neighborOwner->id,
+            'business_id' => $neighborBusinessData['business']->id,
             'program_recommendation_id' => $neighborBusinessData['recommendation']->id,
             'assistance_program_id' => $neighborBusinessData['program']->id,
             'submitted_by' => $officer->id,
@@ -137,7 +137,7 @@ class UmkmCoachingHistoryTest extends TestCase
 
         CoachingSession::create([
             'follow_up_id' => $neighborFollowUp->id,
-            'business_id' => $neighborOwner->id,
+            'business_id' => $neighborBusinessData['business']->id,
             'assistance_program_id' => $neighborBusinessData['program']->id,
             'recorded_by' => $officer->id,
             'title' => 'Sesi Rahasia Warung Pak Budi Tetangga',
@@ -206,7 +206,7 @@ class UmkmCoachingHistoryTest extends TestCase
 
         // Older session
         $followUpOlder = FollowUp::create([
-            'business_id' => $owner->id,
+            'business_id' => $businessData['business']->id,
             'program_recommendation_id' => $businessData['recommendation']->id,
             'assistance_program_id' => $businessData['program']->id,
             'submitted_by' => $officer->id,
@@ -221,7 +221,7 @@ class UmkmCoachingHistoryTest extends TestCase
 
         CoachingSession::create([
             'follow_up_id' => $followUpOlder->id,
-            'business_id' => $owner->id,
+            'business_id' => $businessData['business']->id,
             'assistance_program_id' => $businessData['program']->id,
             'recorded_by' => $officer->id,
             'title' => 'Pembinaan Lama September',
@@ -233,7 +233,7 @@ class UmkmCoachingHistoryTest extends TestCase
 
         // Newer session
         $followUpNewer = FollowUp::create([
-            'business_id' => $owner->id,
+            'business_id' => $businessData['business']->id,
             'program_recommendation_id' => $businessData['recommendation']->id,
             'assistance_program_id' => $businessData['program']->id,
             'submitted_by' => $officer->id,
@@ -248,7 +248,7 @@ class UmkmCoachingHistoryTest extends TestCase
 
         CoachingSession::create([
             'follow_up_id' => $followUpNewer->id,
-            'business_id' => $owner->id,
+            'business_id' => $businessData['business']->id,
             'assistance_program_id' => $businessData['program']->id,
             'recorded_by' => $officer->id,
             'title' => 'Pembinaan Baru Oktober',

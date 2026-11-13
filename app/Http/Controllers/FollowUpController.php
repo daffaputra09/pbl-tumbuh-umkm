@@ -37,9 +37,9 @@ class FollowUpController extends Controller
             return [
                 'id' => 'rec_'.$rec->id,
                 'program_recommendation_id' => $rec->id,
-                'business_id' => $rec->business?->user_id,
+                'business_id' => $rec->business?->id,
                 'assistance_program_id' => $rec->assistance_program_id,
-                'can_submit' => filled($rec->business?->user_id),
+                'can_submit' => $rec->business !== null,
                 'umkm_name' => $rec->business->business_name ?? 'N/A',
                 'owner_name' => $rec->business?->owner?->name ?? $rec->business?->owner_name ?? 'N/A',
                 'problem_category' => $rec->obstacleCategory->name ?? 'N/A',
@@ -92,7 +92,7 @@ class FollowUpController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'business_id' => 'required|exists:businesses,user_id',
+            'business_id' => 'required|exists:businesses,id',
             'program_recommendation_id' => 'nullable|exists:program_recommendations,id',
             'assistance_program_id' => 'nullable|exists:assistance_programs,id',
             'planned_activity' => 'required|string|max:255',

@@ -106,11 +106,11 @@ class Business extends Model
 
     public function followUps()
     {
-        return $this->hasMany(FollowUp::class, 'business_id', 'user_id');
+        return $this->hasMany(FollowUp::class);
     }
 
     public function coachingSessions()
     {
-        return $this->hasMany(CoachingSession::class, 'business_id', 'user_id');
+        return $this->hasMany(CoachingSession::class);
     }
 }
