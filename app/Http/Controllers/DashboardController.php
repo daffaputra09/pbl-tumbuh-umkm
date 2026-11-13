@@ -186,7 +186,7 @@ class DashboardController extends Controller
             ->oldest('created_at')
             ->get()
             ->map(function (FollowUp $followUp) {
-                $business = $followUp->business ?? Business::where('id', $followUp->business_id)->orWhere('user_id', $followUp->business_id)->first();
+                $business = $followUp->business;
                 $diffDays = $followUp->created_at ? (int) $followUp->created_at->diffInDays(now()) : 0;
                 $programName = $followUp->assistanceProgram?->name
                     ?? $followUp->programRecommendation?->assistanceProgram?->name

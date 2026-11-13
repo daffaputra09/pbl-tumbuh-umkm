@@ -29,7 +29,7 @@ class CoachingSession extends Model
 
     public function business()
     {
-        return $this->belongsTo(Business::class, 'business_id', 'user_id');
+        return $this->belongsTo(Business::class);
     }
 
     public function assistanceProgram()

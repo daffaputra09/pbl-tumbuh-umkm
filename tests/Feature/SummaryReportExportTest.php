@@ -175,7 +175,7 @@ class SummaryReportExportTest extends TestCase
         $program = AssistanceProgram::factory()->create(['name' => 'KUR Bunga Rendah']);
 
         $followUp = FollowUp::query()->create([
-            'business_id' => $business->user_id,
+            'business_id' => $business->id,
             'assistance_program_id' => $program->id,
             'submitted_by' => $officer->id,
             'planned_activity' => 'Pengajuan berkas KUR',
@@ -186,7 +186,7 @@ class SummaryReportExportTest extends TestCase
 
         CoachingSession::query()->create([
             'follow_up_id' => $followUp->id,
-            'business_id' => $business->user_id,
+            'business_id' => $business->id,
             'assistance_program_id' => $program->id,
             'recorded_by' => $officer->id,
             'title' => 'Pendampingan Pengisian Form',

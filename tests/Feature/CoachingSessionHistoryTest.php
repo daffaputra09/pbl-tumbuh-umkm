@@ -25,7 +25,7 @@ class CoachingSessionHistoryTest extends TestCase
 
         // Follow up that is approved and awaiting coaching session
         $followUp = FollowUp::create([
-            'business_id' => $businessData['owner']->id,
+            'business_id' => $businessData['business']->id,
             'program_recommendation_id' => $businessData['recommendation']->id,
             'assistance_program_id' => $businessData['program']->id,
             'submitted_by' => $officer->id,
@@ -41,7 +41,7 @@ class CoachingSessionHistoryTest extends TestCase
         // Follow up that has already been recorded as coaching session
         $businessData2 = $this->createAppliedBusiness('Keripik Singkong Renyah');
         $followUp2 = FollowUp::create([
-            'business_id' => $businessData2['owner']->id,
+            'business_id' => $businessData2['business']->id,
             'program_recommendation_id' => $businessData2['recommendation']->id,
             'assistance_program_id' => $businessData2['program']->id,
             'submitted_by' => $officer->id,
@@ -85,7 +85,7 @@ class CoachingSessionHistoryTest extends TestCase
         $businessData = $this->createAppliedBusiness('Kopi Robusta Lereng');
 
         $followUp = FollowUp::create([
-            'business_id' => $businessData['owner']->id,
+            'business_id' => $businessData['business']->id,
             'program_recommendation_id' => $businessData['recommendation']->id,
             'assistance_program_id' => $businessData['program']->id,
             'submitted_by' => $officer->id,
@@ -132,7 +132,7 @@ class CoachingSessionHistoryTest extends TestCase
         $businessData = $this->createAppliedBusiness('Mebel Jati Makmur');
 
         $followUp = FollowUp::create([
-            'business_id' => $businessData['owner']->id,
+            'business_id' => $businessData['business']->id,
             'program_recommendation_id' => $businessData['recommendation']->id,
             'assistance_program_id' => $businessData['program']->id,
             'submitted_by' => $officer->id,
@@ -173,7 +173,7 @@ class CoachingSessionHistoryTest extends TestCase
         // Older recorded session (held later, but recorded earlier)
         $businessData1 = $this->createAppliedBusiness('UMKM Awal');
         $followUp1 = FollowUp::create([
-            'business_id' => $businessData1['owner']->id,
+            'business_id' => $businessData1['business']->id,
             'program_recommendation_id' => $businessData1['recommendation']->id,
             'assistance_program_id' => $businessData1['program']->id,
             'submitted_by' => $officer->id,
@@ -200,7 +200,7 @@ class CoachingSessionHistoryTest extends TestCase
         // Newer recorded session (held earlier, but recorded more recently)
         $businessData2 = $this->createAppliedBusiness('UMKM Baru');
         $followUp2 = FollowUp::create([
-            'business_id' => $businessData2['owner']->id,
+            'business_id' => $businessData2['business']->id,
             'program_recommendation_id' => $businessData2['recommendation']->id,
             'assistance_program_id' => $businessData2['program']->id,
             'submitted_by' => $officer->id,
@@ -268,7 +268,7 @@ class CoachingSessionHistoryTest extends TestCase
         $businessData = $this->createAppliedBusiness('Tahu Tempe Sumber Barokah');
 
         $followUp = FollowUp::create([
-            'business_id' => $businessData['owner']->id,
+            'business_id' => $businessData['business']->id,
             'program_recommendation_id' => $businessData['recommendation']->id,
             'assistance_program_id' => $businessData['program']->id,
             'submitted_by' => $officer->id,
@@ -308,7 +308,7 @@ class CoachingSessionHistoryTest extends TestCase
         $businessData = $this->createAppliedBusiness('Madu Alami Hutan');
 
         $followUp = FollowUp::create([
-            'business_id' => $businessData['owner']->id,
+            'business_id' => $businessData['business']->id,
             'program_recommendation_id' => $businessData['recommendation']->id,
             'assistance_program_id' => $businessData['program']->id,
             'submitted_by' => $officer->id,
@@ -364,7 +364,7 @@ class CoachingSessionHistoryTest extends TestCase
         $businessData = $this->createAppliedBusiness('Kerajinan Kulit Sukamaju');
 
         $followUp = FollowUp::create([
-            'business_id' => $businessData['owner']->id,
+            'business_id' => $businessData['business']->id,
             'program_recommendation_id' => $businessData['recommendation']->id,
             'assistance_program_id' => $businessData['program']->id,
             'submitted_by' => $officer->id,
@@ -453,7 +453,7 @@ class CoachingSessionHistoryTest extends TestCase
         $businessData = $this->createAppliedBusiness('UMKM Pending');
 
         $followUp = FollowUp::create([
-            'business_id' => $businessData['owner']->id,
+            'business_id' => $businessData['business']->id,
             'program_recommendation_id' => $businessData['recommendation']->id,
             'assistance_program_id' => $businessData['program']->id,
             'submitted_by' => $officer->id,
@@ -487,7 +487,7 @@ class CoachingSessionHistoryTest extends TestCase
         $businessData = $this->createAppliedBusiness('UMKM Ditolak');
 
         $followUp = FollowUp::create([
-            'business_id' => $businessData['owner']->id,
+            'business_id' => $businessData['business']->id,
             'program_recommendation_id' => $businessData['recommendation']->id,
             'assistance_program_id' => $businessData['program']->id,
             'submitted_by' => $officer->id,
@@ -524,7 +524,7 @@ class CoachingSessionHistoryTest extends TestCase
         $businessData = $this->createAppliedBusiness('UMKM Sesi Tunggal');
 
         $followUp = FollowUp::create([
-            'business_id' => $businessData['owner']->id,
+            'business_id' => $businessData['business']->id,
             'program_recommendation_id' => $businessData['recommendation']->id,
             'assistance_program_id' => $businessData['program']->id,
             'submitted_by' => $officer->id,

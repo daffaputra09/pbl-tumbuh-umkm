@@ -67,13 +67,13 @@ class FollowUpDecisionTest extends TestCase
     {
         $officer = $submitter ?? User::factory()->create(['role' => User::ROLE_OFFICER]);
         $owner = User::factory()->create(['role' => User::ROLE_BUSINESS_OWNER]);
-        Business::factory()->create([
+        $business = Business::factory()->create([
             'user_id' => $owner->id,
             'created_by' => $officer->id,
         ]);
 
         return FollowUp::query()->create([
-            'business_id' => $owner->id,
+            'business_id' => $business->id,
             'submitted_by' => $officer->id,
             'planned_activity' => 'Pendampingan modal',
             'planned_on' => '2026-11-20',

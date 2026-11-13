@@ -277,7 +277,7 @@ class SummaryReportTest extends TestCase
         ]);
         $followUpJan = FollowUp::query()->create([
             'program_recommendation_id' => $recJan->id,
-            'business_id' => $businessJan->user_id,
+            'business_id' => $businessJan->id,
             'assistance_program_id' => $program->id,
             'submitted_by' => $officer->id,
             'planned_activity' => 'Kunjungan Januari',
@@ -287,7 +287,7 @@ class SummaryReportTest extends TestCase
         ]);
         CoachingSession::query()->create([
             'follow_up_id' => $followUpJan->id,
-            'business_id' => $businessJan->user_id,
+            'business_id' => $businessJan->id,
             'assistance_program_id' => $program->id,
             'recorded_by' => $officer->id,
             'title' => 'Sesi Pembinaan Januari',
@@ -328,7 +328,7 @@ class SummaryReportTest extends TestCase
         ]);
         $followUpMar = FollowUp::query()->create([
             'program_recommendation_id' => $recMar->id,
-            'business_id' => $businessMar->user_id,
+            'business_id' => $businessMar->id,
             'assistance_program_id' => $program->id,
             'submitted_by' => $officer->id,
             'planned_activity' => 'Kunjungan Maret',
@@ -338,7 +338,7 @@ class SummaryReportTest extends TestCase
         ]);
         CoachingSession::query()->create([
             'follow_up_id' => $followUpMar->id,
-            'business_id' => $businessMar->user_id,
+            'business_id' => $businessMar->id,
             'assistance_program_id' => $program->id,
             'recorded_by' => $officer->id,
             'title' => 'Sesi Pembinaan Maret',
@@ -423,7 +423,7 @@ class SummaryReportTest extends TestCase
         ]);
         FollowUp::query()->create([
             'program_recommendation_id' => $rec1->id,
-            'business_id' => $business1->user_id,
+            'business_id' => $business1->id,
             'assistance_program_id' => $progModal->id,
             'submitted_by' => $villageHead->id,
             'planned_activity' => 'Verifikasi Berkas Modal Feb',
@@ -461,7 +461,7 @@ class SummaryReportTest extends TestCase
         ]);
         FollowUp::query()->create([
             'program_recommendation_id' => $rec2->id,
-            'business_id' => $business2->user_id,
+            'business_id' => $business2->id,
             'assistance_program_id' => $progModal->id,
             'submitted_by' => $villageHead->id,
             'planned_activity' => 'Pendampingan Modal April',
@@ -499,7 +499,7 @@ class SummaryReportTest extends TestCase
         ]);
         FollowUp::query()->create([
             'program_recommendation_id' => $rec3->id,
-            'business_id' => $business3->user_id,
+            'business_id' => $business3->id,
             'assistance_program_id' => $progProduksi->id,
             'submitted_by' => $villageHead->id,
             'planned_activity' => 'Inspeksi Alat Produksi April',
@@ -592,10 +592,9 @@ class SummaryReportTest extends TestCase
             'applied_at' => now(),
         ]);
 
-        // FollowUp and CoachingSession store businesses.user_id in business_id per schema
         $followUp = FollowUp::query()->create([
             'program_recommendation_id' => $recommendation->id,
-            'business_id' => $businessA->user_id,
+            'business_id' => $businessA->id,
             'assistance_program_id' => $program->id,
             'submitted_by' => $officer->id,
             'planned_activity' => 'Pendampingan Pembukuan Alpha',
@@ -606,7 +605,7 @@ class SummaryReportTest extends TestCase
 
         CoachingSession::query()->create([
             'follow_up_id' => $followUp->id,
-            'business_id' => $businessA->user_id,
+            'business_id' => $businessA->id,
             'assistance_program_id' => $program->id,
             'recorded_by' => $officer->id,
             'title' => 'Evaluasi Pembukuan Alpha',
@@ -738,7 +737,7 @@ class SummaryReportTest extends TestCase
             if ($i <= 12) {
                 $followUp = FollowUp::query()->create([
                     'program_recommendation_id' => $recommendation->id,
-                    'business_id' => $business->user_id,
+                    'business_id' => $business->id,
                     'assistance_program_id' => $program->id,
                     'submitted_by' => $officer->id,
                     'planned_activity' => "Kegiatan RTL {$num}",
@@ -749,7 +748,7 @@ class SummaryReportTest extends TestCase
 
                 CoachingSession::query()->create([
                     'follow_up_id' => $followUp->id,
-                    'business_id' => $business->user_id,
+                    'business_id' => $business->id,
                     'assistance_program_id' => $program->id,
                     'recorded_by' => $officer->id,
                     'title' => "Sesi Pembinaan {$num}",
@@ -839,7 +838,7 @@ class SummaryReportTest extends TestCase
             if ($i <= 12) {
                 FollowUp::query()->create([
                     'program_recommendation_id' => $recommendation->id,
-                    'business_id' => $business->user_id,
+                    'business_id' => $business->id,
                     'assistance_program_id' => $program->id,
                     'submitted_by' => $officer->id,
                     'planned_activity' => "Rencana {$num}",
