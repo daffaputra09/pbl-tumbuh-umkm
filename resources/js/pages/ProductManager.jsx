@@ -245,8 +245,8 @@ export default function ProductManager() {
         : products;
 
     const content = (
-        <div className="mx-auto max-w-3xl">
-            <header className="mb-8">
+        <div className="space-y-6">
+            <header>
                 <p className="text-sm font-semibold text-primary">Kelola Produk</p>
                 <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
                     Produk Usahamu
@@ -257,7 +257,7 @@ export default function ProductManager() {
             </header>
 
             {errorMessage && (
-                <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
+                <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
                     {errorMessage}
                 </div>
             )}

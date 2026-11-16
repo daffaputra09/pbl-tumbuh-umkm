@@ -176,8 +176,8 @@ export default function UmkmProfileForm({ business = null, businessTypes = [], m
         <div className="relative isolate overflow-hidden">
             <PageBackground />
 
-            <div className="mx-auto max-w-3xl">
-                <header className="mb-8">
+            <div className={isOfficerMode ? 'mx-auto max-w-3xl' : 'space-y-6'}>
+                <header className={isOfficerMode ? 'mb-8' : ''}>
                     <p className="text-sm font-semibold text-primary">
                         {isOfficerMode ? 'Pendataan UMKM oleh Petugas' : 'Pendaftaran & Pembaruan Data'}
                     </p>
@@ -192,13 +192,13 @@ export default function UmkmProfileForm({ business = null, businessTypes = [], m
                 </header>
 
                 {submitStatus === 'success' && isOfficerMode && (
-                    <div className="mb-6 rounded-xl border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">
+                    <div className={cn('rounded-xl border border-success/30 bg-success/10 px-4 py-3 text-sm text-success', isOfficerMode && 'mb-6')}>
                         Data usaha berhasil disimpan. Silakan lanjutkan input UMKM berikutnya kalau masih ada.
                     </div>
                 )}
 
                 {serverError && (
-                    <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
+                    <div className={cn('rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive', isOfficerMode && 'mb-6')}>
                         {serverError}
                     </div>
                 )}
