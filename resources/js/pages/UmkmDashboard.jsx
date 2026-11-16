@@ -44,100 +44,100 @@ export default function UmkmDashboard({ business, ownerName, primaryObstacle = n
     const programCount = recommendations.length;
 
     return (
-            <div className="mx-auto max-w-5xl">
-                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-brand-hover px-6 py-7 text-white sm:px-9 sm:py-9">
-                    <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                        <div>
-                            <div className="flex flex-wrap items-center gap-2 text-sm text-white/80">
-                                <HugeiconsIcon icon={Calendar03Icon} size={16} aria-hidden="true" />
-                                {TODAY_LABEL}
-                            </div>
-                            <h1 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">
-                                Selamat datang, {ownerName}!
-                            </h1>
-                            <p className="mt-2 max-w-lg text-sm leading-relaxed text-white/85">
-                                {`Data usaha ${business.name}: ${verification.description} `}
-                                {primaryObstacle
-                                    ? 'Rekomendasi di bawah mengikuti kendala yang sudah kamu isi.'
-                                    : 'Isi kebutuhan dan kendala supaya program yang cocok bisa ditampilkan.'}
-                            </p>
+        <div className="space-y-6">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-brand-hover px-6 py-7 text-white sm:px-9 sm:py-9">
+                <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                        <div className="flex flex-wrap items-center gap-2 text-sm text-white/80">
+                            <HugeiconsIcon icon={Calendar03Icon} size={16} aria-hidden="true" />
+                            {TODAY_LABEL}
                         </div>
+                        <h1 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">
+                            Selamat datang, {ownerName}!
+                        </h1>
+                        <p className="mt-2 max-w-lg text-sm leading-relaxed text-white/85">
+                            {`Data usaha ${business.name}: ${verification.description} `}
+                            {primaryObstacle
+                                ? 'Rekomendasi di bawah mengikuti kendala yang sudah kamu isi.'
+                                : 'Isi kebutuhan dan kendala supaya program yang cocok bisa ditampilkan.'}
+                        </p>
+                    </div>
 
-                        <div className="flex shrink-0 flex-wrap gap-2.5">
-                            <a
-                                href="#status-verifikasi"
-                                className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-white/90"
-                            >
-                                Cek Status Verifikasi
-                            </a>
-                            <a
-                                href="#rekomendasi"
-                                className="rounded-full border border-white/40 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-                            >
-                                Lihat Rekomendasi Program
-                            </a>
-                        </div>
+                    <div className="flex shrink-0 flex-wrap gap-2.5">
+                        <a
+                            href="#status-verifikasi"
+                            className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-white/90"
+                        >
+                            Cek Status Verifikasi
+                        </a>
+                        <a
+                            href="#rekomendasi"
+                            className="rounded-full border border-white/40 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                        >
+                            Lihat Rekomendasi Program
+                        </a>
                     </div>
                 </div>
+            </div>
 
-                <div className="mt-6 grid gap-4 sm:grid-cols-3">
-                    <SummaryCard
-                        icon={verification.icon}
-                        badgeClass={verification.badgeClass}
-                        title="Status Verifikasi"
-                        headline={verification.label}
-                        description={verification.description}
-                    />
-                    <SummaryCard
-                        icon={primaryObstacle ? Tag01Icon : Notification01Icon}
-                        badgeClass="bg-sun-50 text-sun-700"
-                        title="Kendala Utama"
-                        headline={primaryObstacle ? primaryObstacle.name : 'Belum ada'}
-                        description={primaryObstacle
-                            ? primaryObstacle.explanation
-                            : 'Isi halaman Kebutuhan dan kendala supaya kendala utama bisa ditampilkan.'}
-                    />
-                    <SummaryCard
-                        icon={Idea01Icon}
-                        badgeClass="bg-brand-50 text-primary"
-                        title="Program yang Cocok"
-                        headline={programCount > 0 ? `${programCount} Program` : 'Belum ada'}
-                        description={programCount > 0
-                            ? 'Program ini dipilih dari kendala yang sudah kamu isi.'
-                            : 'Belum ada program yang cocok dengan kendala usahamu.'}
-                    />
-                </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+                <SummaryCard
+                    icon={verification.icon}
+                    badgeClass={verification.badgeClass}
+                    title="Status Verifikasi"
+                    headline={verification.label}
+                    description={verification.description}
+                />
+                <SummaryCard
+                    icon={primaryObstacle ? Tag01Icon : Notification01Icon}
+                    badgeClass="bg-sun-50 text-sun-700"
+                    title="Kendala Utama"
+                    headline={primaryObstacle ? primaryObstacle.name : 'Belum ada'}
+                    description={primaryObstacle
+                        ? primaryObstacle.explanation
+                        : 'Isi halaman Kebutuhan dan kendala supaya kendala utama bisa ditampilkan.'}
+                />
+                <SummaryCard
+                    icon={Idea01Icon}
+                    badgeClass="bg-brand-50 text-primary"
+                    title="Program yang Cocok"
+                    headline={programCount > 0 ? `${programCount} Program` : 'Belum ada'}
+                    description={programCount > 0
+                        ? 'Program ini dipilih dari kendala yang sudah kamu isi.'
+                        : 'Belum ada program yang cocok dengan kendala usahamu.'}
+                />
+            </div>
 
-                <Card id="status-verifikasi" className="mt-6 scroll-mt-6">
-                    <CardHeader>
-                        <CardTitle className="text-base">Status Verifikasi Data Usahamu</CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                            Begini progres pengecekan data usahamu oleh petugas desa, dijelaskan sesederhana mungkin.
-                        </p>
-                    </CardHeader>
-                    <CardContent>
-                        <div
-                            className={cn(
-                                'flex items-start gap-3 rounded-xl border px-4 py-3',
-                                verification.badgeClass,
-                                'border-transparent',
+            <Card id="status-verifikasi" className="scroll-mt-6">
+                <CardHeader>
+                    <CardTitle className="text-base">Status Verifikasi Data Usahamu</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                        Begini progres pengecekan data usahamu oleh petugas desa, dijelaskan sesederhana mungkin.
+                    </p>
+                </CardHeader>
+                <CardContent>
+                    <div
+                        className={cn(
+                            'flex items-start gap-3 rounded-xl border px-4 py-3',
+                            verification.badgeClass,
+                            'border-transparent',
+                        )}
+                    >
+                        <HugeiconsIcon icon={verification.icon} size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
+                        <div>
+                            <p className="text-sm font-bold">{verification.label}</p>
+                            <p className="mt-0.5 text-sm leading-relaxed opacity-90">{verification.description}</p>
+                            {business.verificationNote && (
+                                <p className="mt-2 text-sm leading-relaxed opacity-90">
+                                    Catatan dari petugas: &ldquo;{business.verificationNote}&rdquo;
+                                </p>
                             )}
-                        >
-                            <HugeiconsIcon icon={verification.icon} size={20} className="mt-0.5 shrink-0" aria-hidden="true" />
-                            <div>
-                                <p className="text-sm font-bold">{verification.label}</p>
-                                <p className="mt-0.5 text-sm leading-relaxed opacity-90">{verification.description}</p>
-                                {business.verificationNote && (
-                                    <p className="mt-2 text-sm leading-relaxed opacity-90">
-                                        Catatan dari petugas: &ldquo;{business.verificationNote}&rdquo;
-                                    </p>
-                                )}
-                            </div>
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </CardContent>
+            </Card>
 
-                <section id="rekomendasi" className="mt-8 scroll-mt-6">
+            <section id="rekomendasi" className="scroll-mt-6">
                     <div className="mb-4">
                         <h2 className="text-lg font-bold text-ink">Rekomendasi Program Untukmu</h2>
                         <p className="mt-1 text-sm text-muted-foreground">

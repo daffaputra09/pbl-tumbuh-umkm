@@ -51,7 +51,7 @@ export default function UmkmNeedsForm({ categories = [] }) {
         return (
             <div className="relative isolate overflow-hidden">
                 <PageBackground />
-                <div className="mx-auto max-w-2xl">
+                <div className="space-y-6">
                     <Card>
                         <CardContent className="py-6 text-sm text-muted-foreground">
                             Daftar pertanyaan belum tersedia. Hubungi petugas desa, atau coba lagi nanti.
@@ -153,8 +153,8 @@ export default function UmkmNeedsForm({ categories = [] }) {
         <div className="relative isolate overflow-hidden">
             <PageBackground />
 
-            <div className="mx-auto max-w-2xl">
-                <header className="mb-6">
+            <div className="space-y-6">
+                <header>
                     <p className="text-sm font-semibold text-primary">Kebutuhan &amp; Kendala Usaha</p>
                     <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
                         {phase === 'review' ? 'Ringkasan Jawabanmu' : 'Ceritakan Kesulitan Usahamu'}
@@ -168,7 +168,7 @@ export default function UmkmNeedsForm({ categories = [] }) {
                 </header>
 
                 {phase !== 'review' && (
-                    <div className="mb-6 flex gap-1.5">
+                    <div className="flex gap-1.5">
                         {categories.map((item, index) => (
                             <span
                                 key={item.id}
