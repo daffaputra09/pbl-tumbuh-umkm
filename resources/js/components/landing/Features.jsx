@@ -1,11 +1,15 @@
 import { motion } from 'motion/react';
 import {
     Analytics01Icon,
+    Calendar01Icon,
+    CheckmarkCircle02Icon,
+    Clock01Icon,
     DatabaseIcon,
     DocumentValidationIcon,
     Idea01Icon,
     Shield01Icon,
-    Tick02Icon,
+    Tag01Icon,
+    User02Icon,
 } from '@hugeicons/core-free-icons';
 import { Icon, Reveal, SampleLabel, SectionTitle, Underline } from '@/components/landing/shared';
 import { cn } from '@/lib/utils';
@@ -38,11 +42,40 @@ const supportingFeatures = [
     },
 ];
 
-const timeline = [
-    { stage: 'Direkomendasikan', title: 'Pelatihan foto produk', note: 'Cocok dengan kebutuhan pemasaran', done: true },
-    { stage: 'Disetujui kepala desa', title: 'Dijadwalkan di balai desa', note: 'Bersama UMKM lain di kelompok yang sama', done: true },
-    { stage: 'Selesai', title: 'Pelatihan sudah diikuti', note: 'Petugas mencatat hasil dan catatan lanjutan', done: true },
-    { stage: 'Berikutnya', title: 'Pendampingan berjualan di marketplace', note: 'Menunggu jadwal', done: false },
+const sessions = [
+    {
+        status: 'Terlaksana',
+        tone: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+        icon: CheckmarkCircle02Icon,
+        whenLabel: 'Pelaksanaan',
+        when: '12 Nov 2026',
+        program: 'Pemasaran',
+        title: 'Pelatihan foto produk',
+        note: 'Peserta sudah bisa memotret produk untuk katalog WhatsApp.',
+        mentor: 'Petugas Desa',
+    },
+    {
+        status: 'Dijadwalkan',
+        tone: 'border-sky-200 bg-sky-50 text-sky-700',
+        icon: Clock01Icon,
+        whenLabel: 'Jadwal',
+        when: '24 Nov 2026',
+        program: 'Digitalisasi',
+        title: 'Pendampingan berjualan di marketplace',
+        note: 'Disetujui kepala desa, menunggu hari pelaksanaan di balai desa.',
+        mentor: 'Petugas Desa',
+    },
+    {
+        status: 'Menunggu Persetujuan',
+        tone: 'border-amber-200 bg-amber-50 text-amber-800',
+        icon: Clock01Icon,
+        whenLabel: 'Rencana',
+        when: '2 Des 2026',
+        program: 'Modal',
+        title: 'Pendampingan akses KUR mikro',
+        note: 'Diajukan petugas, belum diputuskan kepala desa.',
+        mentor: 'Petugas Desa',
+    },
 ];
 
 export default function Features() {
@@ -64,36 +97,42 @@ export default function Features() {
                     </Reveal>
 
                     <Reveal delay={0.1}>
-                        <div className="rounded-3xl bg-white p-6 ring-1 ring-slate-200 sm:p-8">
-                            <div className="mb-6 flex items-center justify-between gap-3">
+                        <div className="flex flex-col gap-3">
+                            <div className="flex items-center justify-between gap-3 px-1">
                                 <p className="font-bold text-ink">Riwayat pembinaan</p>
                                 <SampleLabel />
                             </div>
-                            <ol className="relative flex flex-col gap-6 pl-8">
-                                <span aria-hidden className="absolute top-2 bottom-2 left-[0.6875rem] w-px bg-slate-200" />
-                                {timeline.map((item, index) => (
-                                    <motion.li
-                                        key={item.title}
-                                        initial={{ opacity: 0, y: 8 }}
-                                        whileInView={{ opacity: 1, y: 0 }}
-                                        viewport={{ once: true }}
-                                        transition={{ duration: 0.4, delay: 0.2 + index * 0.12 }}
-                                        className="relative"
-                                    >
-                                        <span
-                                            className={cn(
-                                                'absolute top-0.5 -left-8 grid size-[1.375rem] place-items-center rounded-full ring-4 ring-white',
-                                                item.done ? 'bg-brand text-white' : 'border-2 border-dashed border-slate-300 bg-white',
-                                            )}
-                                        >
-                                            {item.done && <Icon icon={Tick02Icon} size={12} strokeWidth={3} />}
+                            {sessions.map((session, index) => (
+                                <motion.article
+                                    key={session.title}
+                                    initial={{ opacity: 0, y: 8 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.4, delay: 0.15 + index * 0.08 }}
+                                    className="rounded-2xl border border-border bg-white p-4 shadow-xs sm:p-5"
+                                >
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className={cn('inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold', session.tone)}>
+                                            <Icon icon={session.icon} size={14} />
+                                            {session.status}
                                         </span>
-                                        <p className={cn('text-xs font-semibold', item.done ? 'text-brand' : 'text-sun-700')}>{item.stage}</p>
-                                        <p className="mt-0.5 font-bold text-ink">{item.title}</p>
-                                        <p className="text-sm text-muted-foreground">{item.note}</p>
-                                    </motion.li>
-                                ))}
-                            </ol>
+                                        <span className="inline-flex items-center gap-1.5 text-xs text-slate-500">
+                                            <Icon icon={Calendar01Icon} size={14} className="text-slate-400" />
+                                            {session.whenLabel}: <strong className="font-semibold text-ink">{session.when}</strong>
+                                        </span>
+                                        <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                                            <Icon icon={Tag01Icon} size={13} className="text-slate-400" />
+                                            {session.program}
+                                        </span>
+                                    </div>
+                                    <h3 className="mt-3 text-base font-bold text-ink">{session.title}</h3>
+                                    <p className="mt-1 text-sm leading-relaxed text-slate-600">{session.note}</p>
+                                    <p className="mt-3 inline-flex items-center gap-1 text-xs text-slate-500">
+                                        <Icon icon={User02Icon} size={13} className="text-slate-400" />
+                                        Pendamping: <span className="font-semibold text-slate-700">{session.mentor}</span>
+                                    </p>
+                                </motion.article>
+                            ))}
                         </div>
                     </Reveal>
                 </div>

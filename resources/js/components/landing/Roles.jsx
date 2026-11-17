@@ -1,5 +1,15 @@
 import { motion } from 'motion/react';
-import { CheckmarkCircle02Icon, CrownIcon, Idea01Icon, User02Icon, UserCheck01Icon } from '@hugeicons/core-free-icons';
+import {
+    Alert02Icon,
+    CheckmarkCircle02Icon,
+    Clock01Icon,
+    CrownIcon,
+    Idea01Icon,
+    Tag01Icon,
+    User02Icon,
+    UserCheck01Icon,
+    ViewIcon,
+} from '@hugeicons/core-free-icons';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Icon, Reveal, SampleLabel, SectionTitle, Underline } from '@/components/landing/shared';
 import { cn } from '@/lib/utils';
@@ -110,19 +120,35 @@ function VisualHeader({ title }) {
 function OwnerVisual() {
     return (
         <div className="mx-auto flex max-w-sm flex-col gap-3">
-            <VisualHeader title="Halaman usaha saya" />
-            <Panel className="flex items-center gap-3">
-                <Icon icon={CheckmarkCircle02Icon} size={22} className="text-success" />
-                <div>
-                    <p className="text-xs text-slate-600">Status data</p>
-                    <p className="text-sm font-bold text-ink">Sudah diperiksa petugas</p>
+            <VisualHeader title="Dashboard Usaha" />
+            <Panel>
+                <div className="flex items-center gap-3">
+                    <span className="grid size-10 place-items-center rounded-xl bg-success/10 text-success">
+                        <Icon icon={CheckmarkCircle02Icon} size={20} />
+                    </span>
+                    <p className="text-sm font-medium text-muted-foreground">Status Verifikasi</p>
                 </div>
+                <p className="mt-3 text-base font-bold text-ink">Terverifikasi</p>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">Data usaha kamu sudah lengkap dan aktif.</p>
+            </Panel>
+            <Panel>
+                <div className="flex items-start justify-between gap-2">
+                    <span className="grid size-10 place-items-center rounded-xl bg-brand-50 text-primary">
+                        <Icon icon={Idea01Icon} size={20} />
+                    </span>
+                    <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground">Pemasaran</span>
+                </div>
+                <p className="mt-3 text-sm font-medium text-muted-foreground">Program yang Cocok</p>
+                <p className="mt-1 text-base font-bold text-ink">Pelatihan pemasaran lewat media sosial</p>
+                <p className="mt-0.5 text-xs font-medium text-primary">Desa</p>
             </Panel>
             <Panel className="flex items-center gap-3">
-                <Icon icon={Idea01Icon} size={22} className="text-sun-700" />
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-sun-50 text-sun-700">
+                    <Icon icon={Tag01Icon} size={20} />
+                </span>
                 <div>
-                    <p className="text-xs text-slate-600">Program untuk usaha Anda</p>
-                    <p className="text-sm font-bold text-ink">Pelatihan pemasaran lewat media sosial</p>
+                    <p className="text-sm font-medium text-muted-foreground">Kendala Utama</p>
+                    <p className="text-base font-bold text-ink">Pemasaran</p>
                 </div>
             </Panel>
         </div>
@@ -130,16 +156,28 @@ function OwnerVisual() {
 }
 
 function OfficerVisual() {
-    const queue = ['Usaha jamu tradisional', 'Usaha madu hutan', 'Usaha sambal rumahan'];
+    const queue = [
+        { name: 'Keripik Tempe Bu Sri', detail: 'Menunggu dicek · Krajan', days: '3 hari', revision: false, overdue: false },
+        { name: 'Batik Tulis Bu Lestari', detail: 'Menunggu dicek · Sumbersari', days: '9 hari', revision: false, overdue: true },
+        { name: 'Madu Hutan Pak Darto', detail: 'Perlu perbaikan · Karanganyar', days: '2 hari', revision: true, overdue: false },
+    ];
 
     return (
         <div className="mx-auto max-w-sm">
-            <VisualHeader title="Menunggu diperiksa" />
-            <Panel className="flex flex-col divide-y divide-slate-100 p-0">
-                {queue.map((name) => (
-                    <div key={name} className="flex items-center justify-between gap-3 px-4 py-3">
-                        <p className="truncate text-sm font-semibold text-ink">{name}</p>
-                        <span className="shrink-0 rounded-md bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-hover">Periksa</span>
+            <VisualHeader title="Antrean verifikasi" />
+            <Panel className="flex flex-col divide-y divide-border p-0">
+                {queue.map((item) => (
+                    <div key={item.name} className="flex items-center gap-3 px-4 py-3">
+                        <span className={cn('grid size-9 shrink-0 place-items-center rounded-xl', item.revision ? 'bg-rose-50 text-rose-600' : 'bg-sun-50 text-sun')}>
+                            <Icon icon={item.revision ? Alert02Icon : Clock01Icon} size={18} />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-semibold text-ink">{item.name}</p>
+                            <p className="text-xs text-muted-foreground">{item.detail}</p>
+                        </div>
+                        <span className={cn('shrink-0 rounded-md px-2 py-0.5 text-xs font-semibold tabular-nums', item.overdue ? 'bg-rose-50 text-rose-700' : 'bg-slate-100 text-slate-600')}>
+                            {item.days}
+                        </span>
                     </div>
                 ))}
             </Panel>
@@ -150,14 +188,22 @@ function OfficerVisual() {
 function HeadVisual() {
     return (
         <div className="mx-auto flex max-w-sm flex-col gap-3">
-            <VisualHeader title="Perlu persetujuan" />
+            <VisualHeader title="Persetujuan tindak lanjut" />
             <Panel>
-                <p className="text-xs text-slate-600">Diajukan oleh petugas desa</p>
-                <p className="mt-1 font-bold text-ink">Pelatihan pengemasan produk</p>
-                <p className="mt-1 text-sm text-muted-foreground">Untuk UMKM dengan kebutuhan tinggi di bidang pemasaran.</p>
-                <div className="mt-4 flex gap-2">
-                    <span className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white">Setujui</span>
-                    <span className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">Minta revisi</span>
+                <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-ink">Keripik Tempe Bu Sri</p>
+                    <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">Menunggu</span>
+                </div>
+                <p className="mt-2 text-sm font-medium text-primary">Pelatihan pengemasan produk</p>
+                <p className="mt-1 text-xs text-muted-foreground">Rencana: foto produk dan kemasan di balai desa.</p>
+                <p className="mt-2 text-xs text-slate-500">Diajukan oleh Petugas Desa</p>
+                <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white px-3 py-1.5 text-xs font-semibold text-ink">
+                        <Icon icon={ViewIcon} size={14} />
+                        Tinjau Pengajuan
+                    </span>
+                    <span className="inline-flex items-center rounded-full border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600">Tolak</span>
+                    <span className="inline-flex items-center rounded-full bg-success px-3 py-1.5 text-xs font-semibold text-white">Setujui</span>
                 </div>
             </Panel>
         </div>
