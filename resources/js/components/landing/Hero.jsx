@@ -108,25 +108,25 @@ export default function Hero() {
                     <div aria-hidden className="absolute -inset-x-10 -top-10 bottom-10 -z-10 rounded-[3rem] bg-gradient-to-b from-brand-200/60 via-brand-100/30 to-transparent blur-3xl" />
                     <DashboardPreview />
 
-                    <FloatingCard className="-top-8 -left-6 hidden lg:block" floatClassName="animate-float" delay={1.6}>
-                        <span className="grid size-10 place-items-center rounded-xl bg-sun-50 text-sun">
+                    <FloatingCard className="bottom-10 left-2 hidden xl:block" floatClassName="animate-float" delay={1.6}>
+                        <span className="grid size-10 place-items-center rounded-xl bg-brand-50 text-primary">
                             <Icon icon={Idea01Icon} size={20} />
                         </span>
                         <div>
-                            <p className="text-[11px] font-medium text-slate-500">Rekomendasi program</p>
+                            <p className="text-[11px] font-medium text-slate-500">Program yang cocok</p>
                             <p className="text-sm font-bold text-ink">Pelatihan pemasaran digital</p>
-                            <p className="text-[11px] font-semibold text-brand">Cocok untuk 18 UMKM</p>
+                            <p className="text-[11px] font-semibold text-primary">Pemasaran · BUMDes</p>
                         </div>
                     </FloatingCard>
 
-                    <FloatingCard className="-right-6 bottom-16 hidden lg:block" floatClassName="animate-float-slow" delay={1.8}>
-                        <span className="grid size-10 place-items-center rounded-xl bg-green-50 text-success">
+                    <FloatingCard className="top-28 -right-2 hidden xl:block" floatClassName="animate-float-slow" delay={1.8}>
+                        <span className="grid size-10 place-items-center rounded-xl bg-success/10 text-success">
                             <Icon icon={CheckmarkCircle02Icon} size={20} />
                         </span>
                         <div>
-                            <p className="text-[11px] font-medium text-slate-500">Data diverifikasi</p>
-                            <p className="text-sm font-bold text-ink">Batik Tulis Lestari</p>
-                            <p className="text-[11px] font-semibold text-success">Oleh Petugas Desa · baru saja</p>
+                            <p className="text-[11px] font-medium text-slate-500">Status verifikasi</p>
+                            <p className="text-sm font-bold text-ink">Terverifikasi</p>
+                            <p className="text-[11px] font-semibold text-success">Batik Tulis Bu Lestari</p>
                         </div>
                     </FloatingCard>
                 </motion.div>
