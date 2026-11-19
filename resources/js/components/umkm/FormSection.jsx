@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
  */
 export default function FormSection({ icon, title, description, children, className }) {
     return (
-        <Card className={cn('gap-6', className)}>
+        <Card className={cn('gap-6 p-4 sm:p-6', className)}>
             <CardHeader className="flex-row items-start gap-3 space-y-0">
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-primary">
                     <HugeiconsIcon icon={icon} size={20} strokeWidth={1.8} aria-hidden="true" />

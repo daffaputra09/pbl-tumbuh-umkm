@@ -251,9 +251,9 @@ export default function UmkmRiwayatPembinaanManager({
                         </div>
 
                         {/* Search and Date Filter */}
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
                             {/* Search Input */}
-                            <div className="relative min-w-[220px] flex-1 sm:w-64">
+                            <div className="relative w-full sm:w-64 min-w-0">
                                 <HugeiconsIcon
                                     icon={Search01Icon}
                                     size={16}
@@ -264,18 +264,18 @@ export default function UmkmRiwayatPembinaanManager({
                                     placeholder="Cari program / topik..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="h-9 pl-9 pr-3 text-xs"
+                                    className="h-9 pl-9 pr-3 text-xs w-full"
                                 />
                             </div>
 
                             {/* Date range filter */}
-                            <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                                <HugeiconsIcon icon={Calendar03Icon} size={15} className="text-slate-400" />
+                            <div className="flex w-full sm:w-auto items-center gap-1.5 text-xs text-slate-500 min-w-0">
+                                <HugeiconsIcon icon={Calendar03Icon} size={15} className="text-slate-400 shrink-0" />
                                 <Input
                                     type="date"
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
-                                    className="h-9 w-32 px-2 text-xs"
+                                    className="h-9 flex-1 sm:w-32 px-2 text-xs min-w-0"
                                     title="Tanggal mulai"
                                 />
                                 <span>-</span>
@@ -283,7 +283,7 @@ export default function UmkmRiwayatPembinaanManager({
                                     type="date"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="h-9 w-32 px-2 text-xs"
+                                    className="h-9 flex-1 sm:w-32 px-2 text-xs min-w-0"
                                     title="Tanggal akhir"
                                 />
                             </div>

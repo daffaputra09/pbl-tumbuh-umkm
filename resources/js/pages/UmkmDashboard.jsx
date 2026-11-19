@@ -45,14 +45,14 @@ export default function UmkmDashboard({ business, ownerName, primaryObstacle = n
 
     return (
         <div className="space-y-6">
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-brand-hover px-6 py-7 text-white sm:px-9 sm:py-9">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-brand-hover px-4 py-6 text-white sm:px-6 sm:py-7 lg:px-9 lg:py-9">
                 <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                     <div>
                         <div className="flex flex-wrap items-center gap-2 text-sm text-white/80">
                             <HugeiconsIcon icon={Calendar03Icon} size={16} aria-hidden="true" />
                             {TODAY_LABEL}
                         </div>
-                        <h1 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">
+                        <h1 className="mt-3 text-xl font-extrabold tracking-tight sm:text-2xl lg:text-3xl break-words">
                             Selamat datang, {ownerName}!
                         </h1>
                         <p className="mt-2 max-w-lg text-sm leading-relaxed text-white/85">
@@ -63,16 +63,16 @@ export default function UmkmDashboard({ business, ownerName, primaryObstacle = n
                         </p>
                     </div>
 
-                    <div className="flex shrink-0 flex-wrap gap-2.5">
+                    <div className="flex shrink-0 flex-col sm:flex-row gap-2.5">
                         <a
                             href="#status-verifikasi"
-                            className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-white/90"
+                            className="rounded-full bg-white px-5 py-2.5 text-center text-sm font-semibold text-primary transition-colors hover:bg-white/90"
                         >
                             Cek Status Verifikasi
                         </a>
                         <a
                             href="#rekomendasi"
-                            className="rounded-full border border-white/40 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                            className="rounded-full border border-white/40 px-5 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-white/10"
                         >
                             Lihat Rekomendasi Program
                         </a>
@@ -198,7 +198,7 @@ function SummaryCard({ icon, badgeClass, title, headline, description }) {
                 <CardTitle className="text-sm text-muted-foreground">{title}</CardTitle>
             </CardHeader>
             <CardContent>
-                <p className="text-lg font-bold text-ink">{headline}</p>
+                <p className="text-lg font-bold text-ink break-words">{headline}</p>
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{description}</p>
             </CardContent>
         </Card>

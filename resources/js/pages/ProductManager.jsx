@@ -264,15 +264,15 @@ export default function ProductManager() {
 
             <Card>
                 <CardHeader className="gap-3">
-                    <div className="flex items-center justify-between gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <CardTitle className="text-base">Daftar Produk</CardTitle>
-                        <Button type="button" size="sm" onClick={openCreateModal}>
+                        <Button type="button" size="sm" onClick={openCreateModal} className="w-full sm:w-auto">
                             <HugeiconsIcon icon={PlusSignIcon} size={16} aria-hidden="true" />
                             Tambah Produk
                         </Button>
                     </div>
 
-                    <div className="relative">
+                    <div className="relative w-full">
                         <HugeiconsIcon
                             icon={Search01Icon}
                             size={16}
@@ -284,7 +284,7 @@ export default function ProductManager() {
                             value={query}
                             onChange={(event) => setQuery(event.target.value)}
                             placeholder="Cari nama atau kategori produk"
-                            className="pl-10"
+                            className="w-full pl-10"
                             aria-label="Cari produk"
                         />
                     </div>
@@ -306,40 +306,42 @@ export default function ProductManager() {
                     {visibleProducts.map((product) => (
                         <div
                             key={product.id}
-                            className="flex items-center justify-between gap-3 rounded-xl border border-border bg-white px-4 py-3"
+                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 rounded-xl border border-border bg-white p-3.5 sm:px-4 sm:py-3 transition-colors"
                         >
-                            <div className="flex min-w-0 items-center gap-3">
+                            <div className="flex min-w-0 items-start sm:items-center gap-3 flex-1">
                                 {productPhotoSrc(product.photo_path) ? (
                                     <img
                                         src={productPhotoSrc(product.photo_path)}
                                         alt={product.name}
-                                        className="size-12 shrink-0 rounded-lg object-cover"
+                                        className="size-12 shrink-0 rounded-lg object-cover border border-slate-100"
                                     />
                                 ) : (
-                                    <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-muted text-[10px] text-muted-foreground">
+                                    <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-muted text-[10px] text-muted-foreground border border-slate-100">
                                         Tanpa foto
                                     </div>
                                 )}
-                                <div className="min-w-0">
-                                    <p className="truncate text-sm font-semibold text-ink">{product.name}</p>
-                                    <p className="truncate text-xs text-muted-foreground">
-                                        {product.category} &middot; {formatRupiah(product.price)}
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-semibold text-ink break-words sm:truncate">{product.name}</p>
+                                    <p className="mt-0.5 text-xs text-muted-foreground break-words sm:truncate">
+                                        <span className="font-medium text-slate-700">{product.category}</span> &middot; {formatRupiah(product.price)}
                                         {product.unit ? ` / ${product.unit}` : ''}
                                     </p>
                                 </div>
                             </div>
 
-                            <div className="flex shrink-0 items-center gap-2">
+                            <div className="flex items-center justify-between sm:justify-end gap-2 border-t border-slate-100 pt-2.5 sm:border-0 sm:pt-0 sm:shrink-0">
                                 <Badge variant={product.is_active ? 'success' : 'outline'}>
                                     {product.is_active ? 'Aktif' : 'Nonaktif'}
                                 </Badge>
-                                <EditIconButton
-                                    label={`Edit produk ${product.name}`}
-                                    onClick={() => openEditModal(product)}
-                                />
-                                <Button type="button" size="sm" variant="outline" onClick={() => handleToggle(product)}>
-                                    {product.is_active ? 'Nonaktifkan' : 'Aktifkan'}
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                    <EditIconButton
+                                        label={`Edit produk ${product.name}`}
+                                        onClick={() => openEditModal(product)}
+                                    />
+                                    <Button type="button" size="sm" variant="outline" onClick={() => handleToggle(product)}>
+                                        {product.is_active ? 'Nonaktifkan' : 'Aktifkan'}
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -360,7 +362,7 @@ export default function ProductManager() {
                 >
                     <div className="my-auto flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
                         {/* Header popup */}
-                        <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-5">
+                        <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-4 py-4 sm:px-6 sm:py-5">
                             <div>
                                 <h2
                                     id="product-modal-title"
@@ -393,7 +395,7 @@ export default function ProductManager() {
                             onSubmit={handleSubmit}
                             className="flex min-h-0 flex-col overflow-y-auto"
                         >
-                            <div className="grid gap-x-5 gap-y-5 p-6 sm:grid-cols-2">
+                            <div className="grid gap-x-5 gap-y-4 p-4 sm:p-6 sm:grid-cols-2">
                                 {formError && (
                                     <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive sm:col-span-2">
                                         {formError}
@@ -523,13 +525,13 @@ export default function ProductManager() {
                             </div>
 
                             {/* Footer popup */}
-                            <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50/70 px-6 py-4 sm:flex-row sm:justify-end">
+                            <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50/70 px-4 py-3.5 sm:px-6 sm:py-4 sm:flex-row sm:justify-end">
                                 <Button
                                     type="button"
                                     variant="outline"
                                     onClick={closeModal}
                                     disabled={isSubmitting}
-                                    className="sm:min-w-28"
+                                    className="w-full sm:w-auto sm:min-w-28"
                                 >
                                     Batal
                                 </Button>
@@ -537,7 +539,7 @@ export default function ProductManager() {
                                 <Button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="sm:min-w-36"
+                                    className="w-full sm:w-auto sm:min-w-36"
                                 >
                                     {isSubmitting
                                         ? 'Menyimpan...'
