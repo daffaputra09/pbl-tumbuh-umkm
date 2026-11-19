@@ -227,11 +227,11 @@ function GateScreen({ category, onAnswer, onBack }) {
                 <p className="text-center text-base font-semibold text-ink">
                     Apakah kamu mengalami kendala di bidang {category.name.toLowerCase()}?
                 </p>
-                <div className="flex gap-3">
-                    <Button type="button" variant="outline" onClick={() => onAnswer('tidak')}>
+                <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-3">
+                    <Button type="button" variant="outline" onClick={() => onAnswer('tidak')} className="w-full sm:w-28">
                         Tidak
                     </Button>
-                    <Button type="button" onClick={() => onAnswer('ya')}>
+                    <Button type="button" onClick={() => onAnswer('ya')} className="w-full sm:w-28">
                         Ya, ada
                     </Button>
                 </div>
@@ -286,11 +286,11 @@ function DetailScreen({ category, answers, onSelect, onLanjut, onBack, error }) 
 
                 {error && <p className="text-sm font-medium text-destructive">{error}</p>}
 
-                <div className="flex justify-between">
-                    <Button type="button" variant="outline" onClick={onBack}>
+                <div className="flex flex-col-reverse sm:flex-row justify-between gap-3 pt-2">
+                    <Button type="button" variant="outline" onClick={onBack} className="w-full sm:w-auto">
                         Kembali
                     </Button>
-                    <Button type="button" onClick={onLanjut}>
+                    <Button type="button" onClick={onLanjut} className="w-full sm:w-auto">
                         Lanjut
                     </Button>
                 </div>
@@ -306,12 +306,17 @@ function LikertScale({ options, selectedOptionId, onSelect }) {
     const last = options[options.length - 1];
 
     return (
-        <div className="flex items-center gap-3 sm:gap-4">
-            <span className="w-16 shrink-0 text-right text-[11px] leading-tight text-muted-foreground sm:w-24 sm:text-xs">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
+            <div className="flex items-center justify-between text-xs text-muted-foreground sm:hidden">
+                <span className="font-medium text-left">{first?.label}</span>
+                <span className="font-medium text-right">{last?.label}</span>
+            </div>
+
+            <span className="hidden sm:block w-16 sm:w-24 shrink-0 text-right text-[11px] sm:text-xs leading-tight text-muted-foreground">
                 {first?.label}
             </span>
 
-            <div className="flex flex-1 items-center justify-center gap-3 sm:gap-6">
+            <div className="flex flex-1 items-center justify-between sm:justify-center gap-1.5 sm:gap-6">
                 {options.map((option, index) => {
                     const selected = selectedOptionId === option.id;
 
@@ -323,7 +328,7 @@ function LikertScale({ options, selectedOptionId, onSelect }) {
                             className={cn(
                                 'flex size-9 shrink-0 items-center justify-center rounded-full border-2 text-sm font-bold transition-colors sm:size-10',
                                 selected
-                                    ? 'border-primary bg-primary text-white'
+                                    ? 'border-primary bg-primary text-white shadow-xs'
                                     : 'border-border bg-white text-muted-foreground hover:border-primary/50',
                             )}
                         >
@@ -333,7 +338,7 @@ function LikertScale({ options, selectedOptionId, onSelect }) {
                 })}
             </div>
 
-            <span className="w-16 shrink-0 text-[11px] leading-tight text-muted-foreground sm:w-24 sm:text-xs">
+            <span className="hidden sm:block w-16 sm:w-24 shrink-0 text-left text-[11px] sm:text-xs leading-tight text-muted-foreground">
                 {last?.label}
             </span>
         </div>
@@ -408,11 +413,11 @@ function ReviewScreen({ categories, state, otherObstacle, onChangeOtherObstacle,
 
             {error && <p className="text-sm font-medium text-destructive">{error}</p>}
 
-            <div className="flex justify-between pt-2">
-                <Button type="button" variant="outline" onClick={onBack} disabled={isSubmitting}>
+            <div className="flex flex-col-reverse sm:flex-row justify-between gap-3 pt-2">
+                <Button type="button" variant="outline" onClick={onBack} disabled={isSubmitting} className="w-full sm:w-auto">
                     Kembali
                 </Button>
-                <Button type="button" onClick={onSubmit} disabled={isSubmitting}>
+                <Button type="button" onClick={onSubmit} disabled={isSubmitting} className="w-full sm:w-auto">
                     {isSubmitting ? 'Mengirim...' : 'Kirim Jawaban'}
                 </Button>
             </div>

@@ -337,7 +337,7 @@ export default function UmkmProfileForm({ business = null, businessTypes = [], m
         </button>
 
         {yearPickerOpen && (
-            <div className="absolute z-50 mt-2 w-full min-w-[280px] rounded-xl border bg-background p-3 shadow-lg">
+            <div className="absolute z-50 mt-2 w-full max-w-[280px] left-0 rounded-xl border bg-background p-3 shadow-lg">
                 <div className="mb-3 flex items-center justify-between">
                     <button
                         type="button"
@@ -419,7 +419,7 @@ export default function UmkmProfileForm({ business = null, businessTypes = [], m
                     </FormSection>
 
                     <div className="flex justify-end">
-                        <Button type="submit" disabled={isSubmitting}>
+                        <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
                             {isSubmitting ? 'Menyimpan...' : isOfficerMode ? 'Simpan Data UMKM' : 'Simpan Profil Usaha'}
                         </Button>
                     </div>
