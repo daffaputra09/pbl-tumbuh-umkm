@@ -110,7 +110,7 @@ export function FilterBar({ references, filters, onChange, onReset, shownCount, 
                         <option value="semua">Semua dusun</option>
                         {references.hamlets.map((name) => (
                             <option key={name} value={name}>
-                                Dusun {name}
+                                {name.startsWith('Dusun ') ? name : (name.toLowerCase() === 'lainnya' ? 'Lainnya' : `Dusun ${name}`)}
                             </option>
                         ))}
                     </Select>

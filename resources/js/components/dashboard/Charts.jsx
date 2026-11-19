@@ -199,7 +199,7 @@ export function DusunChart({ data }) {
                         <CartesianGrid stroke="#e2e8f0" strokeDasharray="4 4" vertical={false} />
                         <XAxis dataKey="name" tick={AXIS_TICK} tickLine={false} axisLine={false} interval={0} tickFormatter={formatDusunTick} />
                         <YAxis tick={AXIS_TICK} tickLine={false} axisLine={false} allowDecimals={false} width={48} />
-                        <Tooltip cursor={{ fill: '#f1f5f9', radius: 8 }} content={<ChartTooltip labelFormatter={(label) => `Dusun ${label}`} />} />
+                        <Tooltip cursor={{ fill: '#f1f5f9', radius: 8 }} content={<ChartTooltip labelFormatter={(label) => label?.toLowerCase() === 'lainnya' ? 'Lainnya' : (label?.startsWith('Dusun ') ? label : `Dusun ${label}`)} />} />
                         <Bar dataKey="aktif" name="Aktif" stackId="dusun" fill="#0f766e" maxBarSize={44} />
                         <Bar dataKey="tidakAktif" name="Tidak aktif" stackId="dusun" fill="#cbd5e1" radius={[8, 8, 0, 0]} maxBarSize={44} />
                     </BarChart>

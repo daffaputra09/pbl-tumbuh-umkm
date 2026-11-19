@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Business;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Random\Engine\Mt19937;
@@ -15,7 +16,12 @@ class DashboardService
 
     public const ROLES = [self::ROLE_PETUGAS, self::ROLE_KEPALA_DESA];
 
-    private const HAMLETS = ['Krajan', 'Sumbersari', 'Karanganyar', 'Sidomulyo', 'Tegalrejo'];
+    private const HAMLETS = [
+        Business::DUSUN_JEDING,
+        Business::DUSUN_JUNWATU,
+        Business::DUSUN_REJOSO,
+        Business::DUSUN_LAINNYA,
+    ];
 
     /**
      * @var list<array{id: int, slug: string, name: string, moderateThreshold: float, highThreshold: float}>
@@ -117,7 +123,7 @@ class DashboardService
         $startOfWindow = CarbonImmutable::now()->startOfMonth()->subMonths(11);
         $daysInWindow = (int) $startOfWindow->diffInDays(CarbonImmutable::now());
         $businessTypeIds = array_keys(self::BUSINESS_TYPES);
-        $hamletWeights = [30, 24, 20, 16, 10];
+        $hamletWeights = [40, 35, 25];
 
         $records = [];
 

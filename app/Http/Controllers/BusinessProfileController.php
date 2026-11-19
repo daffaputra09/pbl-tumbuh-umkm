@@ -19,6 +19,7 @@ class BusinessProfileController extends Controller
         return view('umkm.profil', [
             'business' => $business,
             'businessTypes' => $this->businessTypeOptions(),
+            'dusunList' => Business::DUSUN_LIST,
             'mode' => 'self',
         ]);
     }
@@ -33,6 +34,10 @@ class BusinessProfileController extends Controller
             ...$validated,
             'created_by' => $business ? $business->created_by : $request->user()->id,
         ];
+
+        if ($business && $validated['hamlet'] === Business::DUSUN_LAINNYA && ! empty($business->hamlet) && ! in_array($business->hamlet, Business::DUSUN_LIST, true)) {
+            $attributes['hamlet'] = $business->hamlet;
+        }
 
         if ($business === null || empty($business->verification_status)) {
             $attributes['verification_status'] = Business::STATUS_PENDING;
@@ -59,6 +64,7 @@ class BusinessProfileController extends Controller
         return view('petugas.umkm.pendataan-umkm', [
             'business' => null,
             'businessTypes' => $this->businessTypeOptions(),
+            'dusunList' => Business::DUSUN_LIST,
             'mode' => 'officer',
         ]);
     }

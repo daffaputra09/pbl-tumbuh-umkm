@@ -362,13 +362,13 @@ test('TC_BIZ_005 dan TC_VER_002 petugas mendata usaha lalu memverifikasi', async
 
     await login(page, accounts.officer);
     await page.goto('/petugas/umkm/pendataan-umkm');
-    await page.getByRole('combobox').selectOption({ label: 'Jasa' });
+    await page.locator('#business-type-select').selectOption({ label: 'Jasa' });
     await page.getByPlaceholder('Contoh: Warung Nasi Padang').fill(businessName);
     await page.getByPlaceholder('Nama lengkap pemilik usaha').fill('Bu Warung');
     await page.getByPlaceholder('08xxxxxxxxxx').fill('081234009988');
     await page.getByPlaceholder('nama@email.com').fill(`warung.${Date.now()}@tumbuh.test`);
     await page.getByPlaceholder('Alamat lengkap tempat usaha beroperasi').fill('Jl. Melati No. 2');
-    await page.getByPlaceholder('Nama dusun').fill('Krajan');
+    await page.locator('#dusun-select').selectOption('Rejoso');
     await page.getByRole('button', { name: /Pilih tahun/ }).click();
     await page.getByRole('button', { name: '«' }).click();
     await page.getByRole('button', { name: '2018', exact: true }).click();

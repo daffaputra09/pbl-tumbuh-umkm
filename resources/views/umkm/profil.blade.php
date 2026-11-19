@@ -40,5 +40,5 @@
     @endif
 
     <div id="app" data-page="umkmProfile"></div>
-    <script type="application/json" id="page-props">@json(['business' => $business, 'businessTypes' => $businessTypes, 'mode' => $mode])</script>
+    <script type="application/json" id="page-props">{!! json_encode(['business' => $business, 'businessTypes' => $businessTypes, 'dusunList' => $dusunList, 'mode' => $mode]) !!}</script>
 @endsection

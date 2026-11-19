@@ -147,7 +147,7 @@
                                 </div>
                                 <div class="pumkm-data-item">
                                     <span class="pumkm-data-label">Dusun</span>
-                                    <span class="pumkm-data-value">{{ $umkm['hamlet'] ?? $umkm['dusun'] ?? '-' }}</span>
+                                    <span class="pumkm-data-value">{{ \App\Models\Business::normalizeHamlet($umkm['hamlet'] ?? $umkm['dusun'] ?? null) }}</span>
                                 </div>
                                 <div class="pumkm-data-item">
                                     <span class="pumkm-data-label">RT / RW</span>
