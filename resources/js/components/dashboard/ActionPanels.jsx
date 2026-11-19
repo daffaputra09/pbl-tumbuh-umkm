@@ -4,6 +4,7 @@ import { Icon } from '@/components/landing/shared';
 import { getObstacleIcon } from '@/components/dashboard/ObstaclePanel';
 import { EmptyState, Panel } from '@/components/dashboard/Panel';
 import { formatDate, formatNumber } from '@/components/dashboard/lib/metrics';
+import { normalizeHamlet } from '@/constants/dusun';
 import { cn } from '@/lib/utils';
 
 const INITIAL_VISIBLE_ROWS = 6;
@@ -11,9 +12,10 @@ const INITIAL_VISIBLE_ROWS = 6;
 function matchesSearch(record, query) {
     const keyword = query.trim().toLowerCase();
     const businessName = (record.businessName || '').toLowerCase();
-    const hamlet = (record.hamlet || '').toLowerCase();
+    const hamlet = normalizeHamlet(record.hamlet || record.dusun).toLowerCase();
+    const rawHamlet = (record.hamlet || record.dusun || '').toLowerCase();
 
-    return keyword === '' || businessName.includes(keyword) || hamlet.includes(keyword);
+    return keyword === '' || businessName.includes(keyword) || hamlet.includes(keyword) || rawHamlet.includes(keyword);
 }
 
 function ScoreBadge({ score }) {
@@ -89,7 +91,7 @@ export function AttentionTable({ records = [], obstacleLabels = {}, className })
                                             <p className="font-semibold text-ink">{record.businessName}</p>
                                             <p className="text-xs text-muted-foreground">{record.employeeCount} tenaga kerja</p>
                                         </td>
-                                        <td className="py-3 pr-4 text-slate-600">{record.hamlet || '-'}</td>
+                                        <td className="py-3 pr-4 text-slate-600">{normalizeHamlet(record.hamlet || record.dusun)}</td>
                                         <td className="py-3 pr-4">
                                             <span className="inline-flex items-center gap-2 text-slate-700">
                                                 <Icon icon={getObstacleIcon(record.dominant?.slug)} size={16} className="text-brand" />
@@ -114,7 +116,7 @@ export function AttentionTable({ records = [], obstacleLabels = {}, className })
                                         <p className="truncate font-semibold text-ink">{record.businessName}</p>
                                         <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
                                             <Icon icon={Location01Icon} size={13} />
-                                            {record.hamlet || '-'} · {record.employeeCount} tenaga kerja
+                                            {normalizeHamlet(record.hamlet || record.dusun)} · {record.employeeCount} tenaga kerja
                                         </p>
                                     </div>
                                     <ScoreBadge score={Math.round(record.dominant?.score || 0)} />
@@ -209,7 +211,7 @@ export function VerificationQueue({ records = [], role, followUpQueue = [], rout
                                                     </span>
                                                 </div>
                                                 <p className="truncate text-xs text-muted-foreground">
-                                                    {record.programName || record.plannedActivity || record.rencana_kegiatan || 'Program Pendampingan'} · Dusun {record.hamlet || record.dusun || '-'}
+                                                    {record.programName || record.plannedActivity || record.rencana_kegiatan || 'Program Pendampingan'} · Dusun {normalizeHamlet(record.hamlet || record.dusun)}
                                                 </p>
                                                 <p className="text-[11px] text-slate-400">
                                                     Diajukan oleh {record.submittedBy || record.diajukan_oleh || 'Petugas Desa'}
@@ -252,7 +254,7 @@ export function VerificationQueue({ records = [], role, followUpQueue = [], rout
                                     <div className="min-w-0 flex-1">
                                         <p className="truncate text-sm font-semibold text-ink">{record.businessName}</p>
                                         <p className="text-xs text-muted-foreground">
-                                            {needsFix ? 'Perlu perbaikan' : 'Menunggu dicek'} · {record.hamlet || 'Desa Junrejo'}
+                                            {needsFix ? 'Perlu perbaikan' : 'Menunggu dicek'} · {record.hamlet ? normalizeHamlet(record.hamlet) : 'Desa Junrejo'}
                                         </p>
                                     </div>
                                     <span

@@ -13,7 +13,6 @@ use App\Models\User;
 use App\Services\DashboardService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -119,12 +118,14 @@ class DashboardController extends Controller
             });
 
         // 5. Sebaran Data (Dusun & Jenis Usaha)
-        $sebaranDusun = Business::select('hamlet', DB::raw('count(*) as total'))
-            ->whereNotNull('hamlet')
-            ->where('hamlet', '!=', '')
-            ->groupBy('hamlet')
-            ->orderByDesc('total')
-            ->get();
+        $sebaranDusun = Business::all()
+            ->groupBy(fn (Business $b) => Business::normalizeHamlet($b->hamlet))
+            ->map(fn ($group, $hamlet) => (object) [
+                'hamlet' => $hamlet,
+                'total' => $group->count(),
+            ])
+            ->sortByDesc('total')
+            ->values();
 
         $sebaranJenisUsaha = BusinessType::withCount('businesses')
             ->orderByDesc('businesses_count')
@@ -170,7 +171,7 @@ class DashboardController extends Controller
                 return [
                     'id' => $business->id,
                     'nama_usaha' => $business->business_name,
-                    'dusun' => $business->hamlet ?? '-',
+                    'dusun' => Business::normalizeHamlet($business->hamlet),
                     'kendala_utama' => $primaryCategory?->name ?? 'Kendala Utama',
                     'skor' => round((float) $topScore),
                     'tanggal_terdaftar' => $business->created_at ? $business->created_at->format('d/m/Y') : '-',
@@ -198,7 +199,7 @@ class DashboardController extends Controller
                     'businessId' => $business?->id ?? $followUp->business_id,
                     'businessName' => $business?->business_name ?? 'UMKM Tidak Diketahui',
                     'ownerName' => $business?->owner_name ?? $business?->owner?->name ?? '-',
-                    'hamlet' => $business?->hamlet ?? '-',
+                    'hamlet' => Business::normalizeHamlet($business?->hamlet),
                     'programName' => $programName,
                     'plannedActivity' => $followUp->planned_activity,
                     'submittedBy' => $followUp->submitter?->name ?? 'Petugas Desa',
@@ -210,7 +211,7 @@ class DashboardController extends Controller
                     // Format kompatibilitas blade/legacy
                     'nama_usaha' => $business?->business_name ?? 'UMKM Tidak Diketahui',
                     'pemilik' => $business?->owner_name ?? $business?->owner?->name ?? '-',
-                    'dusun' => $business?->hamlet ?? '-',
+                    'dusun' => Business::normalizeHamlet($business?->hamlet),
                     'rencana_kegiatan' => $followUp->planned_activity,
                     'program_bantuan' => $programName,
                     'diajukan_oleh' => $followUp->submitter?->name ?? 'Petugas Desa',
@@ -221,13 +222,12 @@ class DashboardController extends Controller
                 ];
             });
 
-        $allHamlets = Business::whereNotNull('hamlet')
-            ->where('hamlet', '!=', '')
-            ->pluck('hamlet')
-            ->merge(['Krajan', 'Junrejo', 'Rejoso', 'Lainnya'])
-            ->unique()
-            ->values()
-            ->all();
+        $allHamlets = [
+            Business::DUSUN_JEDING,
+            Business::DUSUN_JUNWATU,
+            Business::DUSUN_REJOSO,
+            Business::DUSUN_LAINNYA,
+        ];
 
         $refBusinessTypes = BusinessType::all()->map(fn (BusinessType $type) => [
             'id' => $type->id,
@@ -271,7 +271,7 @@ class DashboardController extends Controller
                     'id' => $b->id,
                     'businessName' => $b->business_name,
                     'ownerName' => $b->owner_name,
-                    'hamlet' => $b->hamlet ?: 'Lainnya',
+                    'hamlet' => Business::normalizeHamlet($b->hamlet),
                     'businessType' => [
                         'id' => $b->businessType?->id ?? 0,
                         'slug' => $b->businessType?->slug ?: 'lainnya',

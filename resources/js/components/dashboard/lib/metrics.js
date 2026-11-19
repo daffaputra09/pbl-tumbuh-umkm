@@ -1,3 +1,5 @@
+import { DEFAULT_DUSUN_LIST, DUSUN_LAINNYA, normalizeHamlet } from '@/constants/dusun';
+
 export const VERIFICATION_STATUSES = [
     { key: 'verified', label: 'Terverifikasi', color: '#0f766e' },
     { key: 'pending', label: 'Menunggu', color: '#d97706' },
@@ -43,11 +45,21 @@ export function daysSince(dateString, now) {
 }
 
 export function filterRecords(records, { hamlet, businessType }) {
-    return records.filter(
-        (record) =>
-            (hamlet === 'semua' || record.hamlet === hamlet) &&
-            (businessType === 'semua' || (record.businessType?.slug && record.businessType.slug === businessType)),
-    );
+    return records.filter((record) => {
+        const recordHamlet = normalizeHamlet(record.hamlet || record.dusun);
+        const matchesHamlet =
+            !hamlet ||
+            hamlet === 'semua' ||
+            recordHamlet.toLowerCase() === hamlet.toLowerCase() ||
+            (hamlet.toLowerCase() === 'lainnya' && !DEFAULT_DUSUN_LIST.map((d) => d.toLowerCase()).includes((record.hamlet || record.dusun || '').trim().toLowerCase()));
+
+        const matchesBusinessType =
+            !businessType ||
+            businessType === 'semua' ||
+            (record.businessType?.slug && record.businessType.slug === businessType);
+
+        return matchesHamlet && matchesBusinessType;
+    });
 }
 
 function monthKey(date) {
@@ -173,7 +185,11 @@ export function computeMetrics(records, { references, periodMonths, now }) {
         .sort((first, second) => second.high - first.high);
 
     const hamletCounts = hamletsList.map((name) => {
-        const inHamlet = records.filter((record) => record.hamlet === name);
+        const inHamlet = records.filter((record) => {
+            const norm = normalizeHamlet(record.hamlet || record.dusun);
+
+            return norm.toLowerCase() === name.toLowerCase();
+        });
         const activeInHamlet = inHamlet.filter((record) => record.operationalStatus === 'active').length;
 
         return {

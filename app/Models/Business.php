@@ -24,6 +24,44 @@ class Business extends Model
         self::STATUS_VERIFIED,
     ];
 
+    public const DUSUN_JEDING = 'Jeding';
+
+    public const DUSUN_JUNWATU = 'Junwatu';
+
+    public const DUSUN_REJOSO = 'Rejoso';
+
+    public const DUSUN_LAINNYA = 'Lainnya';
+
+    public const DUSUN_LIST = [
+        self::DUSUN_JEDING,
+        self::DUSUN_JUNWATU,
+        self::DUSUN_REJOSO,
+    ];
+
+    public static function normalizeHamlet(?string $hamlet): string
+    {
+        $trimmed = trim((string) $hamlet);
+
+        if (strcasecmp($trimmed, self::DUSUN_JEDING) === 0) {
+            return self::DUSUN_JEDING;
+        }
+
+        if (strcasecmp($trimmed, self::DUSUN_JUNWATU) === 0) {
+            return self::DUSUN_JUNWATU;
+        }
+
+        if (strcasecmp($trimmed, self::DUSUN_REJOSO) === 0) {
+            return self::DUSUN_REJOSO;
+        }
+
+        return self::DUSUN_LAINNYA;
+    }
+
+    public function getNormalizedHamletAttribute(): string
+    {
+        return self::normalizeHamlet($this->attributes['hamlet'] ?? null);
+    }
+
     protected $fillable = [
         'user_id',
         'business_type_id',

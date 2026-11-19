@@ -7,6 +7,7 @@ import { BusinessTypePanel, GroupingPanel } from '@/components/dashboard/Distrib
 import { FilterBar, HeadInsights, WelcomeBanner } from '@/components/dashboard/Overview';
 import { ChartPlaceholder, Panel } from '@/components/dashboard/Panel';
 import { computeMetrics, filterRecords } from '@/components/dashboard/lib/metrics';
+import { DEFAULT_DUSUN_LIST, DUSUN_LAINNYA, normalizeHamlet } from '@/constants/dusun';
 
 const loadCharts = () => import('@/components/dashboard/Charts');
 const TrendChart = lazy(() => loadCharts().then((module) => ({ default: module.TrendChart })));
@@ -30,7 +31,7 @@ export default function Dashboard({
     routes = {},
 }) {
     const safeReferences = useMemo(() => ({
-        hamlets: Array.isArray(references?.hamlets) ? references.hamlets : [],
+        hamlets: Array.isArray(references?.hamlets) && references.hamlets.length > 0 ? references.hamlets : [...DEFAULT_DUSUN_LIST, DUSUN_LAINNYA],
         businessTypes: Array.isArray(references?.businessTypes) ? references.businessTypes : [],
         obstacleCategories: Array.isArray(references?.obstacleCategories) ? references.obstacleCategories : [],
     }), [references]);
@@ -48,7 +49,17 @@ export default function Dashboard({
             return safeFollowUpQueue;
         }
 
-        return safeFollowUpQueue.filter((item) => (item.hamlet || '').toLowerCase() === filters.hamlet.toLowerCase());
+        const targetHamlet = filters.hamlet.toLowerCase();
+
+        return safeFollowUpQueue.filter((item) => {
+            const itemHamlet = normalizeHamlet(item.hamlet || item.dusun);
+
+            if (targetHamlet === 'lainnya') {
+                return itemHamlet.toLowerCase() === 'lainnya';
+            }
+
+            return itemHamlet.toLowerCase() === targetHamlet;
+        });
     }, [safeFollowUpQueue, filters.hamlet]);
 
     const metrics = useMemo(

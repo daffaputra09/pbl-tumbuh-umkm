@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { DEFAULT_DUSUN_LIST, DUSUN_LAINNYA } from '@/constants/dusun';
 import { apiFetch } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { Store04Icon } from '@hugeicons/core-free-icons';
@@ -39,7 +40,12 @@ function buildInitialState(business) {
  * Form dan validasinya sama persis, bedanya cuma endpoint tujuan submit dan
  * apa yang terjadi setelah sukses (lihat handleSubmit).
  */
-export default function UmkmProfileForm({ business = null, businessTypes = [], mode = 'self' }) {
+export default function UmkmProfileForm({
+    business = null,
+    businessTypes = [],
+    dusunList = DEFAULT_DUSUN_LIST,
+    mode = 'self',
+}) {
     const [formData, setFormData] = useState(() => buildInitialState(business));
     const [errors, setErrors] = useState({});
     const [submitStatus, setSubmitStatus] = useState('idle');
@@ -47,10 +53,16 @@ export default function UmkmProfileForm({ business = null, businessTypes = [], m
     const [serverError, setServerError] = useState('');
     const [yearPickerOpen, setYearPickerOpen] = useState(false);
     const [pickerDecade, setPickerDecade] = useState(
-    Math.floor(CURRENT_YEAR / 10) * 10);
+        Math.floor(CURRENT_YEAR / 10) * 10
+    );
 
     const isOfficerMode = mode === 'officer';
     const submitUrl = isOfficerMode ? '/petugas/umkm/pendataan-umkm' : '/umkm/profil';
+
+    const activeDusunList = Array.isArray(dusunList) && dusunList.length > 0 ? dusunList : DEFAULT_DUSUN_LIST;
+    const initialHamlet = business?.hamlet ? String(business.hamlet).trim() : (business?.id ? DUSUN_LAINNYA : '');
+    const hasLegacyHamlet = Boolean(business?.id && !activeDusunList.includes(initialHamlet));
+    const availableHamlets = hasLegacyHamlet ? [initialHamlet, DUSUN_LAINNYA, ...activeDusunList] : activeDusunList;
 
     function updateField(field, value) {
         setFormData((prev) => ({ ...prev, [field]: value }));
@@ -106,6 +118,8 @@ export default function UmkmProfileForm({ business = null, businessTypes = [], m
 
         if (!formData.hamlet.trim()) {
             nextErrors.hamlet = 'Dusun wajib diisi.';
+        } else if (!availableHamlets.includes(formData.hamlet.trim())) {
+            nextErrors.hamlet = 'Pilih salah satu dusun yang tersedia.';
         }
 
         const year = Number(formData.establishedYear);
@@ -176,8 +190,8 @@ export default function UmkmProfileForm({ business = null, businessTypes = [], m
         <div className="relative isolate overflow-hidden">
             <PageBackground />
 
-            <div className={isOfficerMode ? 'mx-auto max-w-3xl' : 'space-y-6'}>
-                <header className={isOfficerMode ? 'mb-8' : ''}>
+            <div className="space-y-6">
+                <header>
                     <p className="text-sm font-semibold text-primary">
                         {isOfficerMode ? 'Pendataan UMKM oleh Petugas' : 'Pendaftaran & Pembaruan Data'}
                     </p>
@@ -192,13 +206,13 @@ export default function UmkmProfileForm({ business = null, businessTypes = [], m
                 </header>
 
                 {submitStatus === 'success' && isOfficerMode && (
-                    <div className={cn('rounded-xl border border-success/30 bg-success/10 px-4 py-3 text-sm text-success', isOfficerMode && 'mb-6')}>
+                    <div className="rounded-xl border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">
                         Data usaha berhasil disimpan. Silakan lanjutkan input UMKM berikutnya kalau masih ada.
                     </div>
                 )}
 
                 {serverError && (
-                    <div className={cn('rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive', isOfficerMode && 'mb-6')}>
+                    <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
                         {serverError}
                     </div>
                 )}
@@ -209,8 +223,9 @@ export default function UmkmProfileForm({ business = null, businessTypes = [], m
                         title="Data Identitas Usaha"
                         description="Informasi dasar mengenai usaha dan pemiliknya."
                     >
-                        <Field label="Jenis Usaha" required error={errors.businessTypeId}>
+                        <Field id="business-type-select" label="Jenis Usaha" required error={errors.businessTypeId}>
                             <Select
+                                id="business-type-select"
                                 value={formData.businessTypeId}
                                 onChange={(event) => updateField('businessTypeId', event.target.value)}
                                 aria-invalid={Boolean(errors.businessTypeId)}
@@ -274,13 +289,27 @@ export default function UmkmProfileForm({ business = null, businessTypes = [], m
                             />
                         </Field>
 
-                        <Field label="Dusun" required error={errors.hamlet}>
-                            <Input
-                                value={formData.hamlet}
+                        <Field id="dusun-select" label="Dusun" required error={errors.hamlet}>
+                            <Select
+                                id="dusun-select"
+                                value={hasLegacyHamlet && !activeDusunList.includes(formData.hamlet) ? initialHamlet : formData.hamlet}
                                 onChange={(event) => updateField('hamlet', event.target.value)}
-                                placeholder="Nama dusun"
                                 aria-invalid={Boolean(errors.hamlet)}
-                            />
+                            >
+                                <option value="" disabled>
+                                    Pilih Dusun
+                                </option>
+                                {hasLegacyHamlet && (
+                                    <option value={initialHamlet}>
+                                        {DUSUN_LAINNYA}
+                                    </option>
+                                )}
+                                {activeDusunList.map((dusun) => (
+                                    <option key={dusun} value={dusun}>
+                                        {dusun}
+                                    </option>
+                                ))}
+                            </Select>
                         </Field>
 
                         <div className="grid grid-cols-2 gap-4">
@@ -429,10 +458,10 @@ export default function UmkmProfileForm({ business = null, businessTypes = [], m
     );
 }
 
-function Field({ label, required = false, error, className, children }) {
+function Field({ id, label, required = false, error, className, children }) {
     return (
         <div className={cn('flex flex-col', className)}>
-            <Label className="mb-1.5">
+            <Label htmlFor={id} className="mb-1.5">
                 {label}
                 {required && <span className="ml-0.5 text-destructive">*</span>}
             </Label>
